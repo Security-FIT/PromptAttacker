@@ -23,7 +23,7 @@ def get_args():
     parser.add_argument("--rank_model_path", type=str, default='../reward-model-deberta')
     parser.add_argument("--opt_objective", type=str, default='ASR')
     parser.add_argument("--hf_cache_dir", type=str, default='./hf_models')
-    parser.add_argument("--att_file", type=str, default='./data/advbench.txt')
+    parser.add_argument("--att_file", type=str, default='2025_ICLR_PiF/data/advbench.txt')
 
     parser.add_argument("--output_dir", type=str, default='./output/')
     parser.add_argument("--output_file", type=str, default='Jailbreaking_Text.json')
@@ -32,13 +32,6 @@ def get_args():
 
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--interation", type=int, default=20)
-    parser.add_argument("--top_n", type=int, default=5)
-    parser.add_argument("--top_m", type=int, default=5)
-    parser.add_argument("--top_k", type=int, default=10)
-    parser.add_argument("--warm_up", type=int, default=0)
-    parser.add_argument("--temperature", type=float, default=0.1)
-    parser.add_argument("--threshold", type=float, default=0.9)
-    parser.add_argument("--seed", type=int, default=0)
 
     return parser.parse_args()
 
@@ -60,11 +53,6 @@ def main():
     logger.info(args)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
-    torch.cuda.manual_seed(args.seed)
-
 
     with open(args.att_file, 'r') as f:
         advbench = f.readlines()
@@ -88,8 +76,8 @@ def main():
         for ii in range(0, len(prompt_advbench), args.batch_size):
             chunk_size = min(args.batch_size, len(prompt_advbench) - ii)
             query, time, flags, gen_attacks, tgt_responses = attack_clm.generate_attack(args.gen_model_path, args.gen_model_path, args.tgt_model_path, args.tgt_model_path, prompt_advbench[ii:ii + chunk_size], evaluation_template,
-                                                            objective = args.opt_objective, iterations = args.interation, top_n = args.top_n , top_m = args.top_m ,
-                                                            top_k = args.top_k , warm_up = args.warm_up, temperature = args.temperature , threshold = args.threshold , device = device)
+                                                            objective = args.opt_objective, iterations = args.interation, top_n = 5 , top_m = 5 ,
+                                                            top_k = 10 , warm_up = 0, temperature = 0.1, threshold =0.9 , device = device)
             overall_query += query
             overall_time += time
             for jj, (flag, prompt_adv, gen_attack, tgt_response) in enumerate(zip(flags, prompt_advbench[ii:ii + chunk_size], gen_attacks, tgt_responses)):

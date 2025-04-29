@@ -7,7 +7,7 @@ model_path = "./models/Llama-3-13b-chat"
 tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
 model = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto", trust_remote_code=True)
 
-# Vstupní prompt - můžete zadat libovolnou otázku či zprávu
+# Vstupní prompt - můžete zadat libovolnou otázku či zprá vu
 prompt = "Ahoj, jak se máš?"
 
 # Příprava vstupu

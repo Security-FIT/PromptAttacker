@@ -2,3 +2,32 @@
 [2025/04/07 12:37:23] - Human: {}. Assistant: 
 [2025/04/07 12:37:23] - this intent is [MASK]
 [2025/04/07 12:37:23] - Begin Attack
+[2025/04/08 05:54:19] - Namespace(gen_model_path='../models/Llama-3-13b-chat', tgt_model_path='../models/Llama-3-13b-chat', rank_model_path='../reward-model-deberta', opt_objective='ASR', hf_cache_dir='./hf_models', att_file='./data/advbench.txt', output_dir='PiF_llama3_13b_results', output_file='Jailbreaking_Text.json', prompt_template='Human: {}. Assistant: ', evaluation_template='this intent is [MASK]', batch_size=1, interation=20, top_n=5, top_m=5, top_k=10, warm_up=0, temperature=0.1, threshold=0.9, seed=0)
+[2025/04/08 05:54:19] - Human: {}. Assistant: 
+[2025/04/08 05:54:19] - this intent is [MASK]
+[2025/04/08 05:54:19] - Begin Attack
+[2025/04/08 05:54:55] - Namespace(gen_model_path='../models/Llama-3-13b-chat', tgt_model_path='../models/Llama-3-13b-chat', rank_model_path='../reward-model-deberta', opt_objective='ASR', hf_cache_dir='./hf_models', att_file='./data/advbench.txt', output_dir='PiF_llama3_13b_results', output_file='Jailbreaking_Text.json', prompt_template='Human: {}. Assistant: ', evaluation_template='this intent is [MASK]', batch_size=1, interation=20, top_n=5, top_m=5, top_k=10, warm_up=0, temperature=0.1, threshold=0.9, seed=0)
+[2025/04/08 05:54:55] - Human: {}. Assistant: 
+[2025/04/08 05:54:55] - this intent is [MASK]
+[2025/04/08 05:54:55] - Begin Attack
+[2025/04/08 05:55:19] - Namespace(gen_model_path='../models/Llama-3-13b-chat', tgt_model_path='../models/Llama-3-13b-chat', rank_model_path='../reward-model-deberta', opt_objective='ASR', hf_cache_dir='./hf_models', att_file='./data/advbench.txt', output_dir='PiF_llama3_13b_results', output_file='Jailbreaking_Text.json', prompt_template='Human: {}. Assistant: ', evaluation_template='this intent is [MASK]', batch_size=1, interation=20, top_n=5, top_m=5, top_k=10, warm_up=0, temperature=0.1, threshold=0.9, seed=0)
+[2025/04/08 05:55:19] - Human: {}. Assistant: 
+[2025/04/08 05:55:19] - this intent is [MASK]
+[2025/04/08 05:55:19] - Begin Attack
+[2025/04/08 05:58:12] - Namespace(gen_model_path='../models/Llama-3-13b-chat', tgt_model_path='../models/Llama-3-13b-chat', rank_model_path='../reward-model-deberta', opt_objective='ASR', hf_cache_dir='./hf_models', att_file='./data/advbench.txt', output_dir='PiF_llama3_13b_results', output_file='Jailbreaking_Text.json', prompt_template='Human: {}. Assistant: ', evaluation_template='this intent is [MASK]', batch_size=1, interation=20, top_n=5, top_m=5, top_k=10, warm_up=0, temperature=0.1, threshold=0.9, seed=0)
+[2025/04/08 05:58:12] - Human: {}. Assistant: 
+[2025/04/08 05:58:12] - this intent is [MASK]
+[2025/04/08 05:58:12] - Begin Attack
+[2025/04/08 18:29:41] - Namespace(gen_model_path='../models/mixtral_7b', tgt_model_path='../models/mixtral_7b', rank_model_path='../reward-model-deberta', opt_objective='ASR', hf_cache_dir='./hf_models', att_file='./data/advbench.txt', output_dir='PiF_llama3_13b_results', output_file='Jailbreaking_Text.json', prompt_template='Human: {}. Assistant: ', evaluation_template='this intent is [MASK]', batch_size=1, interation=20, top_n=5, top_m=5, top_k=10, warm_up=0, temperature=0.1, threshold=0.9, seed=0)
+[2025/04/08 18:29:41] - Human: {}. Assistant: 
+[2025/04/08 18:29:41] - this intent is [MASK]
+[2025/04/08 18:29:41] - Begin Attack
+[2025/04/29 11:37:22] - Namespace(gen_model_path='../models/Llama-2-13b-chat', tgt_model_path='../models/Llama-2-13b-chat', rank_model_path='../reward-model-deberta', opt_objective='ASR', hf_cache_dir='./hf_models', att_file='./data/advbench.txt', output_dir='PiF_llama3_13b_results', output_file='Jailbreaking_Text.json', prompt_template='Human: {}. Assistant: ', evaluation_template='this intent is [MASK]', batch_size=1, interation=20, top_n=5, top_m=5, top_k=10, warm_up=0, temperature=0.1, threshold=0.9, seed=0)
+[2025/04/29 11:37:22] - Human: {}. Assistant: 
+[2025/04/29 11:37:22] - this intent is [MASK]
+[2025/04/29 11:37:22] - Begin Attack
+[2025/04/29 12:38:05] - Namespace(gen_model_path='../models/bert-large-uncased/', tgt_model_path='../models/Llama-2-13b-chat', rank_model_path='../reward-model-deberta', opt_objective='ASR', hf_cache_dir='./hf_models', att_file='./data/advbench.txt', output_dir='PiF_llama3_13b_results', output_file='Jailbreaking_Text.json', prompt_template='Human: {}. Assistant: ', evaluation_template='this intent is [MASK]', batch_size=1, interation=20)
+[2025/04/29 12:38:05] - Human: {}. Assistant: 
+[2025/04/29 12:38:05] - this intent is [MASK]
+[2025/04/29 12:38:05] - Begin Attack
+[2025/04/29 12:39:35] - Namespace(gen_model_path='../models/bert-large-uncased/', tgt_model_path='../models/Llama-2-13b-chat', rank_model_path='../reward-model-deberta', opt_objective='ASR', hf_cache_dir='./hf_models', att_file='./data/advbench.txt', output_dir='PiF_llama3_13b_results', output_file='Jailbreaking_Text.json', prompt_template='Human: {}. Assistant: ', evaluation_template='this intent is [MASK]', batch_size=1, interation=20, top_n=5, top_m=5, top_k=10, warm_up=0, temperature=0.1, threshold=0.9, seed=0)

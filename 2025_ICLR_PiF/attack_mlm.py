@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from transformers import AutoModelForMaskedLM, AutoModelForCausalLM, AutoTokenizer
 import time
 import eval_template
-from openai import OpenAI
+# from openai import OpenAI
 
 OPENAI_API_KEY = "YOUR API KEY"
 
