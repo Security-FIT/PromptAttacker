@@ -39,3 +39,22 @@ llama 3 13b
 Sequential Break
 <!-- https://arxiv.org/pdf/2411.06426v1 -->
 <!-- https://anonymous.4open.science/r/JailBreakAttack-4F3B/README.md -->
+
+
+----------------------------------------------------------------------------------------------------------------------------
+rady od Toma:
+
+je toho hodně co to může ovlivnit, jednak gpu, takže:
+- jede ti to na gpu? Můžeš ověřit pomocí příkazu nvidia-smi, to ti ukáže kolik vram tvůj program používá, mělo by být ideálně skoro všechno.
+
+- na PBS si musíš při spouštění úlohy specifikovat num_gpus a gpu_mem, bez toho nedostaneš žádné gpu
+
+- kolik vramky máš k dispozici - já teď spouštím modely s 32B parametry a klidně si k tomu vezmu 70gb vramky, 18gb zabere model a zbytek je na KV cache (to právě do jisté míry určuje propustnost)
+
+a pak se mi nejvíce osvědčilo použít knihovnu vllm přes příkazovou řádku (vllm serve), to ti spustí lokální endpoint který je kompatibilní s openai (takže k tomu přistoupíš stejně jako bys chtěl volat chat gpt přes api, třeba přes knihovnu openai)
+
+a nejvíc cool je, že můžeš přes ssh na svém počítači forwardnout port a pak k tomu endpointu můžeš přistupovat i ze svého pc
+
+a kdybys zvolil teda ten postup s api serverem tak doporučuju interaktivní úlohu (qsub -I) spolu s tmuxem (pokud neznáš, tak ti to umožní zachovat běžící úlohy a shell i po tom co ukončíš ssh spojení  a pak se k tomu znovu vrátit)
+
+nevím jestli to není trochu overwhelming, tak se kdyžtak ptej a rád dovysvětlím 😅 hrozně mi trvalo, než jsem přišel na ten ideální workflow, takže ti rád ušetřím ten čas pokud možno :DD

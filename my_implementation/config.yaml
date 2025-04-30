@@ -1,0 +1,16 @@
+input: dataset/data.txt
+output: results
+
+attacks:
+  Flip: 
+    path: attacks/Flip/Flip.py
+  Pif:
+    path: attacks/PiF/PiF.py
+
+
+
+
+run_defense: false
+defense:
+
+evaluator:
