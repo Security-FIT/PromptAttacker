@@ -1,20 +1,44 @@
-from transformers import AutoTokenizer, AutoModelForCausalLM
+#!/usr/bin/env python3
+import os, sys, argparse
+from vllm import LLM, SamplingParams
 
-# Upravte cestu k modelu, pokud jste ho stáhli do jiné složky
-model_path = "./models/Llama-3-13b-chat"
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model_path", "-m", type=str, required=True)
+    parser.add_argument("--prompt", "-p", type=str, required=True)
+    args = parser.parse_args()
 
-# Načtení tokenizéru a modelu s povoleným důvěřováním vzdálenému kódu
-tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
-model = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto", trust_remote_code=True)
+    # ===== diagnostika =====
+    abs_path = os.path.abspath(args.model_path)
+    print(f"[DEBUG] Zadána cesta:       {args.model_path}")
+    print(f"[DEBUG] Absolutní cesta:    {abs_path}")
+    if not os.path.exists(abs_path):
+        print(f"[ERROR] TAHLE CESTA NEEXISTUJE!", file=sys.stderr)
+        sys.exit(1)
+    if not os.path.isdir(abs_path):
+        print(f"[ERROR] TAHLE CESTA NENÍ SLOŽKA!", file=sys.stderr)
+        sys.exit(1)
 
-# Vstupní prompt - můžete zadat libovolnou otázku či zprá vu
-prompt = "Ahoj, jak se máš?"
+    print(f"[DEBUG] Obsah složky “{abs_path}”:")
+    for fn in sorted(os.listdir(abs_path)):
+        print("   ", fn)
+    print("========================\n")
 
-# Příprava vstupu
-inputs = tokenizer(prompt, return_tensors="pt")
+    # ===== vlastní inference =====
+    llm = LLM(model=abs_path)
+    out = llm.generate(
+        [{"prompt": args.prompt}],
+        sampling_params=SamplingParams(max_tokens=50, temperature=0.8)
+    )
+    print("\n--- Odpověď ---")
+    # for output in out:
+    prompt = out[0].prompt
+    generated_text = out[0].outputs[0].text
+    print(f"Prompt:    {prompt!r}")
+    print(f"Output:    {generated_text!r}")
+    print("-" * 60)
 
-# Generování odpovědi s maximálním počtem nových tokenů
-outputs = model.generate(**inputs, max_new_tokens=100)
+if __name__ == "__main__":
+    main()
 
-# Výpis vygenerované odpovědi
-print(tokenizer.decode(outputs[0], skip_special_tokens=True))
+# python3 test.py --model_path models/Llama-2-13b-chat --prompt "Ahoj"

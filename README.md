@@ -1,5 +1,8 @@
 # master_thesis - Jail Breaking LLMs 
 
+### TODO
+- jeste musim otestovat potom svoji obranou metodu, na tom jak ovlivni semantiku odpovedi na ne-Jailberakovy prompt
+
 spousteni skriptu na GPU: CUDA_VISIBLE_DEVICES=1,2 python tvuj_skript.pyp
 
 
@@ -20,19 +23,26 @@ python PiF_CLM.py --gen_model_path ../models/mixtral_7b --tgt_model_path ../mode
 
 CUDA_VISIBLE_DEVICES=2 nohup python PiF_CLM.py --gen_model_path ../models/vicuna-13b --tgt_model_path ../models/vicuna-13b --opt_objective ASR --interation 20 --output_dir vicuna-13b
 
-
-stahnute modely k tomuto Pifu...
-mixtral 7b
-llama 2 8b
-llama 3 13b
-
 ----------------------------------------------------------------------------------------------------------------------------
-
 FlipAttack
 <!-- https://arxiv.org/pdf/2410.02832 -->
 <!-- https://github.com/yueliu1999/FlipAttack -->
-mixtral 7b
-llama 3 13b
+
+
+Má několik parametrů, které říkají jak bude manipulováno se vstupním promptem: 
+    # (I) Flip Word Order (FWO)
+    # (II) Flip Chars in Word (FCW)
+    # (III) Flip Chas in Sentence (FCS)
+    # (IV) Fool Model Mode (FMM)
+
+pak ma jeste 
+lang_gpt = bool ... pridam systemovy prompt, kterym rikam asistentovy aby nikdy neodpovidal na nelegalni veci 
+few_shot = bool ... dam modelu ukazku jak dany utok rozparsovat 
+cot = bool      ... jestli chci aby popisoval krok po kroku
+
+
+zatim priklad spusteni 
+# python3 my_implementation/attacks/Flip/main.py --victim_llm models/Llama-2-13b-chat/ --data_path my_implementation/dataset/flip.csv
 
 ----------------------------------------------------------------------------------------------------------------------------
 

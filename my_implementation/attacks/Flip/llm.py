@@ -1,25 +1,50 @@
-# llm.py
-import os
-from vllm import LLM as VLLM, SamplingParams
+# TENTO FILE JE MUUUUUUUUUUJ
+
+
+from vllm import LLM as VLLMClient, SamplingParams
 
 class LLM:
     """
-    Wrapper around vLLM to load a local model and generate responses.
-    """
-    def __init__(self, model_path, temperature=0, max_token=None, retry_time=None, failed_sleep_time=None, round_sleep_time=None):
-        if not os.path.exists(model_path):
-            raise FileNotFoundError(f"Model path {model_path} does not exist.")
-        # Load local model via vLLM
-        self.llm = VLLM(model=model_path)
-        # Configure sampling parameters
-        sampling_kwargs = {"temperature": temperature}
-        if max_token and max_token > 0:
-            sampling_kwargs["max_tokens"] = max_token
-        self.sampling_params = SamplingParams(**sampling_kwargs)
+    Very simple wrapper around vLLM for local inference.
 
-    def response(self, messages):
-        # `messages` is a list of dicts with 'content' keys; concatenate them into a prompt
-        prompt = "\n".join([m['content'] for m in messages])
-        # Generate locally
-        outputs = list(self.llm.generate([prompt], sampling_params=self.sampling_params))
-        return outputs[0].text
+    Example:
+        victim = LLM(
+            model_path="./models/Llama-2-13b-chat",  # lokální složka s config.json apod.
+            temperature=0.8,
+            max_tokens=512,
+            gpu_ids=[0],  # nebo [] pro CPU-only
+        )
+        response = victim.response([{"role":"user","content":"Ahoj, jak se máš?"}])
+    """
+    def __init__(self,
+                 model_path: str,
+                 temperature: float = 0.8,
+                 max_tokens: int = 512
+                 ):
+        # cesta k lokálnímu HF modelu
+        self.model_path = model_path
+        self.temperature = temperature
+        self.max_tokens = max_tokens
+
+        # vytvoříme klienta až v response(), abychom mohli znovu použít wrapper
+
+    def response(self, messages: list[dict]) -> str:
+        # očekáváme seznam zpráv, kde poslední obsahuje prompt od uživatele
+        user_prompt = messages[-1]["content"]
+
+        # inicializace vLLM klienta pro inference
+        client = VLLMClient(
+            model=self.model_path
+        )
+
+        # generování textu
+        outputs = client.generate(
+            [{"prompt": user_prompt}],
+            sampling_params=SamplingParams(
+                temperature=self.temperature,
+                max_tokens=self.max_tokens
+            )
+        )
+
+        # v nové verzi vLLM jsou výstupy v outputs[0].outputs
+        return outputs[0].outputs[0].text
