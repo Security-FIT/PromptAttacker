@@ -6,9 +6,10 @@ import pandas
 from attacks.Flip.llm import LLM
 from tqdm import tqdm
 from attacks.Flip.flip_attack import FlipAttack
+from defense.defense_EA import DefenseEA
 
-def run_flip_attack(config: dict):
-    
+def run_flip_attack(config: dict, run_defense: bool = False):
+    defense = DefenseEA()
     victim_llm = config['victim_llm']
     data_path  = config['data_path']
     out_dir    = config['output_dict']
@@ -57,6 +58,9 @@ def run_flip_attack(config: dict):
             log, flip_attack = attack_model.generate(harm_prompt)
             
             # attack llms
+            if run_defense:
+                flip_attack[-1]['content'] = defense(flip_attack[-1]['content'])
+
             llm_response = victim_llm.response(flip_attack)
             
             entry = {

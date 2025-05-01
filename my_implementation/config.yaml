@@ -14,10 +14,7 @@ attacks:
   Pif:
     path: attacks/PiF/PiF.py
 
-
-
-
-run_defense: false
+run_defense: true
 defense:
 
 evaluator:

@@ -31,4 +31,8 @@ if __name__ == "__main__":
         print(f"    {k}: {v}")
 
     flip_cfg = cfg['attacks']['Flip']
-    run_flip_attack(flip_cfg)
+    print(f"[INFO] Running FlipAttack with config: {cfg.get('run_defense', False)}")
+    run_flip_attack(flip_cfg, cfg.get('run_defense', False))
+
+
+# python3 run_pipeline.py --config_file config.yaml

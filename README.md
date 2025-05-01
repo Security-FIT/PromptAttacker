@@ -27,6 +27,11 @@ CUDA_VISIBLE_DEVICES=2 nohup python PiF_CLM.py --gen_model_path ../models/vicuna
 FlipAttack
 <!-- https://arxiv.org/pdf/2410.02832 -->
 <!-- https://github.com/yueliu1999/FlipAttack -->
+anthropic==0.36.0
+joblib==0.17.0
+openai==1.51.2
+pandas==1.1.3
+tqdm==4.65.0
 
 
 Má několik parametrů, které říkají jak bude manipulováno se vstupním promptem: 
