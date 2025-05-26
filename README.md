@@ -17,7 +17,7 @@ llama 3 13b
 2025_ICLR_PiF
 <!-- https://arxiv.org/pdf/2502.03052 -->
 <!-- https://github.com/tmllab/2025_ICLR_PiF?tab=readme-ov-file -->
-python PiF_CLM.py --gen_model_path ../models/Llama-2-13b-chat --tgt_model_path ../models/Llama-2-13b-chat --opt_objective ASR --interation 20 --output_dir PiF_llama3_13b_results
+python PiF_CLM.py --gen_model_path ../my_implementation/models/Llama-2-13b-chat --tgt_model_path ../my_implementation/models/Llama-2-13b-chat --opt_objective ASR --interation 20 --output_dir PiF_llama3_13b_results
 
 python PiF_CLM.py --gen_model_path ../models/mixtral_7b --tgt_model_path ../models/mixtral_7b --opt_objective ASR --interation 20 --output_dir mixtral_7b
 
@@ -50,10 +50,26 @@ zatim priklad spusteni
 # python3 my_implementation/attacks/Flip/main.py --victim_llm models/Llama-2-13b-chat/ --data_path my_implementation/dataset/flip.csv
 
 ----------------------------------------------------------------------------------------------------------------------------
+Cypher Attack
+<!-- https://arxiv.org/pdf/2402.10601 -->
+<!-- https://github.com/DivijH/jailbreak_cryptography -->
+
+
+Tento utok jsem musel celý implementovat podle sebe v článku je několik metod šifrování vstupního textu, ale já jsem si zvolil pouze tu nejúspěšnější. (Tedy metodu, která měla největší úspěch Jailbreakovat model)
+
+Dale jsem doimplementoval pomer v jakem se slova nahrazuji. Tedy delsi vety nahradi vice slov a kratsi mene slov 
+----------------------------------------------------------------------------------------------------------------------------
+ZAJIMAVY UTOK URCITE SE NA TO PODIVAM MA PEKNE VYSLEDKY
+
+<!-- https://arxiv.org/pdf/2307.15043 -->
+
+----------------------------------------------------------------------------------------------------------------------------
 
 Sequential Break
 <!-- https://arxiv.org/pdf/2411.06426v1 -->
 <!-- https://anonymous.4open.science/r/JailBreakAttack-4F3B/README.md -->
+
+
 
 
 ----------------------------------------------------------------------------------------------------------------------------

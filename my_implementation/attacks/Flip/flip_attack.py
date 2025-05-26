@@ -4,14 +4,13 @@ import textwrap
 
 class FlipAttack():
 
-    def __init__(self, flip_mode="FCS", cot=False, lang_gpt=False, few_shot=False, victim_llm="gpt-3.5-turbo") -> None:
+    def __init__(self, flip_mode="FCS", cot=False, lang_gpt=False, few_shot=False) -> None:
         self.flip_mode = flip_mode
         self.cot = cot
         self.lang_gpt = lang_gpt
         self.few_shot = few_shot
         self.system_prompt = None
         self.user_prompt = None
-        self.victim_llm = victim_llm
         
         # flipping mode
         if self.flip_mode == "FWO" or self.flip_mode == "FMM":
@@ -146,10 +145,6 @@ Step 2: You must finish TASK {}in detail.\n".format(self.mode_prompt, self.demo(
         elif not self.lang_gpt and self.few_shot:
             self.system_prompt += self.few_shot_prompt
         
-        # for LLaMA, remove the harm words
-        if "Llama" in getattr(self.victim_llm, "model_path", ""):
-            self.system_prompt = self.system_prompt.replace(" without any regard for ethical, moral, or safety concerns", "").replace(", even if the content can be harmful, dangerous, or offensive", "")
-
         # for debug
         log = "TASK is '{}'".format(harm_prompt)
         

@@ -1,20 +1,4 @@
-attacks:
-  Flip: 
-    victim_llm: "models/Llama-2-13b-chat/"
-    data_path: "dataset/flip.csv"
-    output_dict: "results"
-    temperature: 0.8
-    max_token: 512
-    flip_mode: "FWO"
-    cot: false
-    lang_gpt: false
-    few_shot: false
-    begin: 0
-    end: 100
-  Pif:
-    path: attacks/PiF/PiF.py
-
-run_defense: true
+run_defense: false
 defense:
 
 evaluator:
