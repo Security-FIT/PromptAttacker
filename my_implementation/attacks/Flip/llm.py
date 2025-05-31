@@ -34,7 +34,8 @@ class LLM:
 
         # inicializace vLLM klienta pro inference
         client = VLLMClient(
-            model=self.model_path
+            model=self.model_path,
+            trust_remote_code=True,  
         )
 
         # generování textu

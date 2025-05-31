@@ -1,0 +1,12 @@
+SQL:
+  attacker_llm: "models/DeepSeek-V3/"
+  target_llm: "models/Llama-2-13b-chat/"
+  data_path: "dataset/sql.csv"
+  output_dir: "results"
+  temperature_attack: 0.7
+  temperature_target: 0.8
+  max_tokens: 512
+  few_shot: true
+  num_attempts: 5
+  begin: 0
+  end: 100

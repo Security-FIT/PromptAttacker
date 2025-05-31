@@ -57,7 +57,9 @@ Cypher Attack
 
 Tento utok jsem musel celý implementovat podle sebe v článku je několik metod šifrování vstupního textu, ale já jsem si zvolil pouze tu nejúspěšnější. (Tedy metodu, která měla největší úspěch Jailbreakovat model)
 
-Dale jsem doimplementoval pomer v jakem se slova nahrazuji. Tedy delsi vety nahradi vice slov a kratsi mene slov 
+Dale jsem doimplementoval pomer v jakem se slova nahrazuji. Tedy delsi vety nahradi vice slov a kratsi mene slov.
+-- TOTO BUDU JESTE MUSET OVERIT EXPERIMENTY A POPRIPADE ZMENIT !!!!!!
+
 ----------------------------------------------------------------------------------------------------------------------------
 ZAJIMAVY UTOK URCITE SE NA TO PODIVAM MA PEKNE VYSLEDKY
 
@@ -71,7 +73,11 @@ Sequential Break
 
 
 
+----------------------------------------------------------------------------------------------------------------------------
+SQL UTOK - StructuredTransform
 
+<!-- https://arxiv.org/pdf/2502.11853 -->
+<!-- https://github.com/StructTransform/Benchmark/blob/main/easyjailbreak/datasets/harmbench_llama_SQL_subset.csv -->
 ----------------------------------------------------------------------------------------------------------------------------
 rady od Toma:
 
