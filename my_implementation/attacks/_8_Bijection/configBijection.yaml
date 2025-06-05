@@ -1,0 +1,8 @@
+Digit:
+  victim_llm: "models/Llama-2-13b-chat/"
+  data_path: "dataset/flip.csv"
+  output_dir: "results"
+  temperature: 0.0
+  max_token: 512
+  begin: 0
+  end: null

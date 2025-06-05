@@ -3,9 +3,9 @@
 import os
 import json
 import pandas
-from attacks.Flip.llm import LLM
+from attacks._2_Flip.llm import LLM
 from tqdm import tqdm
-from attacks.Flip.flip_attack import FlipAttack
+from attacks._2_Flip.flip_attack import FlipAttack
 from defense.defense_EA import DefenseEA
 from attacks.helpers import load_config
 

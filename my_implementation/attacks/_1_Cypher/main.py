@@ -3,9 +3,9 @@
 import os
 import json
 import pandas
-from attacks.Cypher.llm import LLM
+from attacks._1_Cypher.llm import LLM
 from tqdm import tqdm
-from attacks.Cypher.cypher_attack import CypherAttack
+from attacks._1_Cypher.cypher_attack import CypherAttack
 from defense.defense_EA import DefenseEA
 from attacks.helpers import load_config
 
