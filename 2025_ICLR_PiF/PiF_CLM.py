@@ -23,7 +23,7 @@ def get_args():
     parser.add_argument("--rank_model_path", type=str, default='../reward-model-deberta')
     parser.add_argument("--opt_objective", type=str, default='ASR')
     parser.add_argument("--hf_cache_dir", type=str, default='./hf_models')
-    parser.add_argument("--att_file", type=str, default='data/advbench.txt')
+    parser.add_argument("--att_file", type=str, default='./data/advbench.txt')
 
     parser.add_argument("--output_dir", type=str, default='./output/')
     parser.add_argument("--output_file", type=str, default='Jailbreaking_Text.json')

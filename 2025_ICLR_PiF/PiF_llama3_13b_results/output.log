@@ -38,3 +38,9 @@
 [2025/05/02 14:49:21] - Begin Attack
 [2025/05/02 14:49:26] - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
 [2025/05/02 14:49:39] - Some parameters are on the meta device because they were offloaded to the cpu.
+[2025/06/05 12:37:30] - Namespace(gen_model_path='../my_implementation/models/Llama-2-13b-chat', tgt_model_path='../my_implementation/models/Llama-2-13b-chat', rank_model_path='../reward-model-deberta', opt_objective='ASR', hf_cache_dir='./hf_models', att_file='./data/advbench.txt', output_dir='PiF_llama3_13b_results', output_file='Jailbreaking_Text.json', prompt_template='Human: {}. Assistant: ', evaluation_template='this intent is [MASK]', batch_size=1, interation=20)
+[2025/06/05 12:37:30] - Human: {}. Assistant: 
+[2025/06/05 12:37:30] - this intent is [MASK]
+[2025/06/05 12:37:30] - Begin Attack
+[2025/06/05 12:37:33] - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+[2025/06/05 12:40:47] - Some parameters are on the meta device because they were offloaded to the cpu.

@@ -184,10 +184,10 @@ def generate_attack(generate_m, generate_t, tgt_m, tgt_t, texts, evaluation_temp
                 generate_tokenizer.pad_token = generate_tokenizer.eos_token
             else:
                 generate_tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-                generate_model.resize_token_embeddings(len(generate_tokenizer), mean_resizing=False)
+                generate_model.resize_token_embeddings(len(generate_tokenizer))
 
         generate_tokenizer.add_special_tokens({'mask_token': '[MASK]'})
-        generate_model.resize_token_embeddings(len(generate_tokenizer), mean_resizing=False)
+        generate_model.resize_token_embeddings(len(generate_tokenizer))
 
         start_time = time.time()
 
@@ -211,7 +211,7 @@ def generate_attack(generate_m, generate_t, tgt_m, tgt_t, texts, evaluation_temp
                     tgt_tokenizer.pad_token = tgt_tokenizer.eos_token
                 else:
                     tgt_tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-                    tgt_model.resize_token_embeddings(len(tgt_tokenizer), mean_resizing=False)
+                    tgt_model.resize_token_embeddings(len(tgt_tokenizer))
         else:
             tgt_model = tgt_m
             tgt_tokenizer = tgt_t
