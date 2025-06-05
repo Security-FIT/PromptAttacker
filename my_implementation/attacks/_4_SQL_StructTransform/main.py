@@ -1,3 +1,5 @@
+# TENTO FILE JE MUUUUUUUUUUJ
+
 import os, json, yaml, pandas as pd
 from tqdm import tqdm
 import gc

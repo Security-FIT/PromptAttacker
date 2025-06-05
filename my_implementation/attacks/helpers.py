@@ -1,7 +1,7 @@
+# TENTO FILE JE MUUUUUUUUUUJ
 
 import os
 import json
-import argparse
 import yaml
 
 def load_config(path):

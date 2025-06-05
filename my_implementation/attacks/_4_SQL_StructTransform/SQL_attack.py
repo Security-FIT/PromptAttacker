@@ -1,3 +1,4 @@
+# TENTO FILE JE MUUUUUUUUUUJ
 
 from __future__ import annotations
 import textwrap
@@ -94,5 +95,5 @@ class SQLAttack:
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user",   "content": sql_prompt}
         ]
-        log = f"GOAL='{goal}'  ➜  SQL_PROMPT='{sql_prompt[:60]}…'"
+        log = f"GOAL='{goal}'  ->  SQL_PROMPT='{sql_prompt[:60]}…'"
         return log, attack_msgs

@@ -5,9 +5,9 @@ import json
 import argparse
 import yaml
 
-from attacks.Flip.main import run_flip_attack  
-from attacks.Cypher.main import run_cypher_attack
-from attacks.SQL_StructTransform.main import run_sql_attack
+from attacks._1_Cypher.main import run_cypher_attack
+from attacks._2_Flip.main import run_flip_attack  
+from attacks._4_SQL_StructTransform.main import run_sql_attack
 
 def load_config(path):
     ext = os.path.splitext(path)[1].lower()

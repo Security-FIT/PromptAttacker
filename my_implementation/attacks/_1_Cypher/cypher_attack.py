@@ -1,4 +1,4 @@
-# TENTO FILE JE VICE MENE OKOMCENYYYYYY
+# TENTO FILE JE VICE MENE OKOPCENYYYYYY
 
 import textwrap
 from typing import Tuple, Dict, Optional

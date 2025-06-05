@@ -1,3 +1,5 @@
+# TENTO FILE JE MUUUUUUUUUUJ
+
 from vllm import LLM as VLLMClient, SamplingParams
 
 class LLM:
