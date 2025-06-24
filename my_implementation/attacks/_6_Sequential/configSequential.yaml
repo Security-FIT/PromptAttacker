@@ -1,0 +1,10 @@
+Sequential:
+  victim_llm: "models/Llama-2-13b-chat"
+  data_path: "dataset/flip.csv"
+  output_dir: "results/"
+  temperature: 0.0
+  max_tokens: 512
+  steps : 3
+  steps: 3
+  begin: 0
+  end: 100

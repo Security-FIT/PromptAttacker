@@ -8,7 +8,10 @@ import yaml
 from attacks._1_Cypher.main import run_cypher_attack
 from attacks._2_Flip.main import run_flip_attack  
 from attacks._4_SQL_StructTransform.main import run_sql_attack
-from attacks._8_Bijection.main import run_digit_attack
+from attacks._5_suffix.main import run_suffix_attack
+from attacks._6_Sequential.main import run_sequential_attack
+from attacks._8_Bijection.main import run_bijection_attack
+from attacks._9_Dialog_completition.main import run_dialog_attack
 
 def load_config(path):
     ext = os.path.splitext(path)[1].lower()
@@ -34,5 +37,8 @@ if __name__ == "__main__":
     # run_flip_attack(cfg.get('run_defense', False))
     # run_cypher_attack(cfg.get('run_defense', False))
     # run_sql_attack(cfg.get('run_defense', False))
-    run_digit_attack(cfg.get('run_defense', False))
+    # run_bijection_attack(cfg.get('run_defense', False))
+    # run_suffix_attack(cfg.get('run_defense', False))
+    # run_sequential_attack(cfg.get('run_defense', False))
+    run_dialog_attack(cfg.get('run_defense', False))
 # python3 run_pipeline.py --config_file config.yaml

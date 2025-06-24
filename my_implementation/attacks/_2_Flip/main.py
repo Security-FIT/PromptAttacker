@@ -50,7 +50,7 @@ def run_flip_attack(run_defense: bool = False):
  
 
     os.makedirs(out_dir, exist_ok=True)
-    output_file = os.path.join(out_dir, 'flip.json')
+    output_file = os.path.join(out_dir, '_2_flip.json')
 
     with open(output_file, 'w', encoding='utf-8') as fo:
 

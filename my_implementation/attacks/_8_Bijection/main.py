@@ -1,5 +1,3 @@
-# main.py
-
 import os
 import yaml
 import json
@@ -14,12 +12,12 @@ from attacks._8_Bijection.llm import LLM
 from attacks.helpers import load_config
 from defense.defense_EA import DefenseEA
 
-def run_digit_attack(run_defense: bool = False):
-
+def run_bijection_attack(run_defense: bool = False):
     defense = DefenseEA()
-    # 1) Najdu a načtu configDigit.yaml
+
+    # 1) Najdu a načtu configBijection.yaml
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    config_path = os.path.join(script_dir,"configBijection.yaml")
+    config_path = os.path.join(script_dir, "configBijection.yaml")
     if not os.path.isfile(config_path):
         sys.exit(f"Konfigurační soubor nenalezen: {config_path}")
 
@@ -32,8 +30,10 @@ def run_digit_attack(run_defense: bool = False):
     output_dir = cfg_digit["output_dir"]
     temperature = cfg_digit["temperature"]
     max_token = cfg_digit["max_token"]
-    begin = cfg_digit["begin"]
-    end = cfg_digit["end"]
+    begin = cfg_digit.get("begin", 0)
+    end = cfg_digit.get("end", None)
+    kt = cfg_digit.get("kt", 1)
+    kp = cfg_digit.get("kp", 1)
 
     print(f"[INFO] Spouštím DigitAttack s victim_llm={victim_llm_path}, data_path={data_path}")
 
@@ -56,7 +56,7 @@ def run_digit_attack(run_defense: bool = False):
 
     # 5) Připravím výstupní adresář a JSONL soubor
     os.makedirs(output_dir, exist_ok=True)
-    output_file = os.path.join(output_dir, "digit_results.jsonl")
+    output_file = os.path.join(output_dir, "_8_bijection_results.jsonl")
 
     # 6) Inicializuji LLM wrapper
     victim_llm = LLM(
@@ -65,42 +65,39 @@ def run_digit_attack(run_defense: bool = False):
         max_tokens=max_token
     )
 
-    # 7) Vlastní loop: pro každý řádek z CSV
     with open(output_file, "w", encoding="utf-8") as fo:
         for idx, row in enumerate(tqdm(df.itertuples(index=False), desc="Zpracování CSV"), start=begin):
-            original_prompt = str(row.goal)  # beru text z 'goal' sloupce
+            original_prompt = str(row.goal).strip()
+            if not original_prompt:
+                continue
 
-            # 7.1) Vytvořím instanci útoku: každá instance má vlastní náhodnou bijekci
-            attack_model = DigitAttack()
+            # --- START OPRAVENÉ ČÁSTI ---
 
-            # 7.2) Zakóduji prompt
-            gen_info = attack_model.generate(original_prompt)
-            encoded_prompt = gen_info["encoded_prompt"]
+            # 1) Vytvořím instanci útoku (A.1–A.3)
+            attack_model = DigitAttack(kt=kt, kp=kp)
 
-            # 7.3) Připravím “konverzační“ seznam zpráv (pouze user → encoded_prompt)
-            messages = [
-                {"role": "user", "content": encoded_prompt}
-            ]
+            # 2) Vygeneruji seznam zpráv (system, teaching, practice, a zakončený zakódovaným promptem)
+            messages = attack_model.generate(original_prompt)
 
-            # 7.4) Odešlu do victim LLM
+            # 3) Odešlu `messages` do LLM
             try:
-                if run_defense:
-                    messages[-1]['content'] = defense(messages[-1]['content'])
                 llm_reply = victim_llm.response(messages)
             except Exception as e:
                 llm_reply = f"Chyba při volání LLM: {e}"
 
-            # 7.5) Uložím jeden JSON řádek do výsledků (JSONL)
+            # 4) Zakódovaný prompt je v poslední položce `messages`
+            encoded_prompt = messages[-1]["content"]
+
+            # --- KONEC OPRAVENÉ ČÁSTI ---
+
+            # 5) Složím JSON objekt a zapíšu ho jako jeden řádek JSONL
             entry = {
                 "id": idx,
-                "original_prompt": gen_info["original_prompt"],
-                "encoded_prompt": gen_info["encoded_prompt"],
+                "original_prompt": original_prompt,
+                "encoded_prompt": encoded_prompt,
                 "model_reply": llm_reply
             }
             fo.write(json.dumps(entry, ensure_ascii=False) + "\n")
             fo.flush()
 
     print(f"[INFO] Výsledky jsou uloženy v {output_file}")
-
-# if __name__ == "__main__":
-    # run_digit_attack()

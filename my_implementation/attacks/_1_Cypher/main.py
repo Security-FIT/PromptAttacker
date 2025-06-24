@@ -49,7 +49,7 @@ def run_cypher_attack(run_defense: bool = False):
  
 
     os.makedirs(out_dir, exist_ok=True)
-    output_file = os.path.join(out_dir, 'cypher.json')
+    output_file = os.path.join(out_dir, '_1_cypher.json')
 
     with open(output_file, 'w', encoding='utf-8') as fo:
 

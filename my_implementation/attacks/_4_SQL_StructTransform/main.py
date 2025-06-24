@@ -43,7 +43,7 @@ def run_sql_attack(run_defense: bool = False):
 
     df = pd.read_csv(cfg["data_path"])
     os.makedirs(cfg["output_dir"], exist_ok=True)
-    out_path = os.path.join(cfg["output_dir"], "direct_sql.jsonl")
+    out_path = os.path.join(cfg["output_dir"], "_4_sql.jsonl")
 
     with open(out_path, "w", encoding="utf-8") as fo:
         for idx, goal in tqdm(

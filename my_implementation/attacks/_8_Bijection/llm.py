@@ -1,5 +1,3 @@
-# attacks/Digit/llm.py
-
 from vllm import LLM as VLLMClient, SamplingParams
 
 class LLM:
