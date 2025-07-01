@@ -1,0 +1,4 @@
+[2025/06/09 09:49:56] - Namespace(gen_model_path='../my_implementation/models/Llama-2-7b-hf', tgt_model_path='../my_implementation/models/Llama-2-7b-hf', rank_model_path='../reward-model-deberta', opt_objective='ASR', hf_cache_dir='./hf_models', att_file='./data/advbench.txt', output_dir='PIF_Llama-2-7b-hf_results', output_file='Jailbreaking_Text.json', prompt_template='Human: {}. Assistant: ', evaluation_template='this intent is [MASK]', batch_size=1, interation=20)
+[2025/06/09 09:49:56] - Human: {}. Assistant: 
+[2025/06/09 09:49:56] - this intent is [MASK]
+[2025/06/09 09:49:56] - Begin Attack

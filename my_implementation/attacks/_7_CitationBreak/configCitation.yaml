@@ -1,0 +1,6 @@
+Citation:
+  victim_llm: "models/Llama-2-13b-chat"
+  data_path: "dataset/darkCite.jsonl"
+  output_dir: "results"
+  temperature: 0.0
+  max_token: 512

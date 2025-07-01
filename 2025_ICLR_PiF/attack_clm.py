@@ -177,17 +177,41 @@ def generate_attack(generate_m, generate_t, tgt_m, tgt_t, texts, evaluation_temp
 
     for iter in range(iterations):
 
-        generate_model = AutoModelForCausalLM.from_pretrained(generate_m, output_hidden_states=True, load_in_8bit=False, use_flash_attention_2=False, cache_dir='./hf_models', device_map="auto").eval()
         generate_tokenizer = AutoTokenizer.from_pretrained(generate_t, use_fast=True)
+
+        # Pokud chybí pad_token, nastavíme nebo přidáme
+        added = False
         if generate_tokenizer.pad_token is None:
             if generate_tokenizer.eos_token:
                 generate_tokenizer.pad_token = generate_tokenizer.eos_token
             else:
                 generate_tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-                generate_model.resize_token_embeddings(len(generate_tokenizer))
+                added = True
 
-        generate_tokenizer.add_special_tokens({'mask_token': '[MASK]'})
-        generate_model.resize_token_embeddings(len(generate_tokenizer))
+        # Přidáme mask_token, aby šlo v estimate_word_importance hledat tokenizer.mask_token
+        if generate_tokenizer.mask_token is None:
+            generate_tokenizer.add_special_tokens({'mask_token': '[MASK]'})
+            added = True
+
+        # Model NAČTEME BEZ offloadu, s ignore_mismatched_sizes
+        generate_model = AutoModelForCausalLM.from_pretrained(
+            generate_m,
+            output_hidden_states=True,
+            load_in_8bit=False,
+            use_flash_attention_2=False,
+            cache_dir='./hf_models',
+            ignore_mismatched_sizes=True
+        ).eval()
+
+        # Přesuňeme model na GPU/CPU
+        generate_model.to(device)
+
+        # Pokud jsme do tokenizeru přidali cokoli nového, roztáhneme embed-vrstvy
+        if added:
+            generate_model.resize_token_embeddings(
+                len(generate_tokenizer),
+                mean_resizing=False
+            )
 
         start_time = time.time()
 
@@ -204,14 +228,31 @@ def generate_attack(generate_m, generate_t, tgt_m, tgt_t, texts, evaluation_temp
         torch.cuda.empty_cache()
 
         if tgt_m != "gpt-4-0613" and tgt_m != "o1-preview-2024-09-12":
-            tgt_model = AutoModelForCausalLM.from_pretrained(tgt_m, load_in_8bit=False, use_flash_attention_2=False, cache_dir='./hf_models', device_map="auto").eval()
-            tgt_tokenizer = AutoTokenizer.from_pretrained(tgt_t, cache_dir='./hf_models')
+            tgt_tokenizer = AutoTokenizer.from_pretrained(tgt_t, use_fast=True)
+
+            added_t = False
             if tgt_tokenizer.pad_token is None:
                 if tgt_tokenizer.eos_token:
                     tgt_tokenizer.pad_token = tgt_tokenizer.eos_token
                 else:
                     tgt_tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-                    tgt_model.resize_token_embeddings(len(tgt_tokenizer))
+                    added_t = True
+
+            tgt_model = AutoModelForCausalLM.from_pretrained(
+                tgt_m,
+                load_in_8bit=False,
+                use_flash_attention_2=False,
+                cache_dir='./hf_models',
+                ignore_mismatched_sizes=True
+            ).eval()
+
+            tgt_model.to(device)
+
+            if added_t:
+                tgt_model.resize_token_embeddings(
+                    len(tgt_tokenizer),
+                    mean_resizing=False
+                )
         else:
             tgt_model = tgt_m
             tgt_tokenizer = tgt_t

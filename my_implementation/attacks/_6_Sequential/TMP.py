@@ -45,28 +45,20 @@ def run_sequential_attack(run_defense: bool = False):
     with open(output_file, 'w', encoding='utf-8') as fo:
         for idx, harm_prompt in tqdm(enumerate(df['goal'][begin:end]), total=end-begin):
             print(f"[INFO] Processing id {idx}: {harm_prompt[:50]}...")
-            
-
+            # Build the sequential attack prompts
             attack_model = SequentialAttack(steps)
             log, sequence_prompts = attack_model.generate(harm_prompt)
 
-            all_system = " ".join(item['system'] for item in sequence_prompts)
-
-
-            all_user   = " ".join(item['user']   for item in sequence_prompts)
-
-            if run_defense:
-                all_user = defense.defend(all_user)
-
+            last_prompt = sequence_prompts[-1]['user']
             response = llm_client.response([
-                {'role': 'system', 'content': all_system},
-                {'role': 'user', 'content': all_user}
+                {'role': 'system', 'content': sequence_prompts[-1]['system']},
+                {'role': 'user', 'content': last_prompt}
             ])
 
             entry = {
                 'id': idx,
                 'original_prompt': log,
-                'prompt': all_user,
+                'prompt': last_prompt,
                 'response': response
             }
             fo.write(json.dumps(entry, ensure_ascii=False) + '')
