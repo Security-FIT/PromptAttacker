@@ -1,0 +1,8 @@
+ReNeLLM:
+  victim_llm: "./models/Llama-2-13b-chat"
+  data_path:  "dataset/adv_ica.csv"
+  output_dir: "results"
+  temperature: 0.0
+  max_token: 512
+  iter_max: 20         # max iterací (rewrite+nest)
+  cot: false           # step-by-step
