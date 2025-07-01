@@ -124,7 +124,7 @@ tady jsem vzal pouze jednu modifikaci sequential utoku. A to teplate 1 pro Dialo
 
 ----------------------------------------------------------------------------------------------------------------------------
 17 ica
-<!-- https://arxiv.org/pdf/2505.13862 -->
+<!-- https://github.com/EasyJailbreak/EasyJailbreak/tree/master -->
 
 ----------------------------------------------------------------------------------------------------------------------------
 18 gcg 
