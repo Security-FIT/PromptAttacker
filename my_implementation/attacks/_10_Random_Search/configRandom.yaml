@@ -1,0 +1,12 @@
+RandomSearch:
+  victim_llm: "models/Llama-2-13b-chat/"
+  data_path: "dataset/advbench.csv"
+  output_dict: "results"
+  temperature: 1.0
+  max_token: 4096
+  target_str: "Sure,"
+  max_iterations: 3
+  max_restarts: 3
+  max_n_to_change: 8
+  begin: 0
+  end: 100

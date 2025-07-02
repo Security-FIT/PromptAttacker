@@ -28,14 +28,8 @@ SCENARIOS = [
 # -----------------------------------------------------------------------
 @dataclass
 class ReNeLLMConfig:
-    iter_max: int = 20        # maximální počet pokusů
-    use_cot: bool = False     # přidá „step-by-step“ instrukci
-
-
-@dataclass
-class ReNeLLMConfig:
-    iter_max: int = 20       # už se tu nepoužívá
-    use_cot: bool = False    # přidá „step-by-step“
+    iter_max: int = 20        
+    use_cot: bool = False     
 
 
 class ReNeLLMAttack:

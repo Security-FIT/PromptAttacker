@@ -36,7 +36,7 @@ def run_ica_attack(use_defense: bool = False):
         end = len(df)
 
     # ------------ inference smyčka -------------------------------------
-    out_file = out_dir / "_3_ica.json"
+    out_file = out_dir / "_16_ica.json"
     with out_file.open("w", encoding="utf-8") as fo:
         for idx, row in enumerate(
                 tqdm(df.iloc[begin:end].itertuples(index=False),
