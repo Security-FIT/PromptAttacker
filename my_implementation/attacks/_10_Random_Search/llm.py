@@ -20,14 +20,13 @@ class LLM:
         model_path: str,
         temperature: float = 0.8,
         max_tokens: int = 512,
-        gpu_ids: list[int] | None = None,
         seed: int = 42,
     ) -> None:
         self.model_path = model_path
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.seed = seed
-        self.client = VLLMClient(model=model_path, gpu_ids=gpu_ids or [])
+        self.client = VLLMClient(model=model_path)
         self.params = SamplingParams(
             max_tokens=max_tokens,
             temperature=temperature,
@@ -42,7 +41,7 @@ class LLM:
     def response(self, messages: list[dict[str, str]]) -> str:
         prompt = self._messages_to_prompt(messages)
         generations = self.client.generate(prompt, self.params)
-        return generations[0]  # vracíme prostě první kandidát
+        return generations[0]
 
 
     @staticmethod

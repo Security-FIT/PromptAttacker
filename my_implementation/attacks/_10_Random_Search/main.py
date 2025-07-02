@@ -6,8 +6,8 @@ import pandas
 from tqdm import tqdm
 
 from attacks.helpers import load_config
-from attacks._3_RandomSearch.llm import LLM                       # jednoduchý wrapper
-from attacks._3_RandomSearch.random_search_attack import RandomSearchAttack
+from attacks._10_Random_Search.llm import LLM                       # jednoduchý wrapper
+from attacks._10_Random_Search.randomSearch_attack import RandomSearchAttack
 from defense.defense_EA import DefenseEA
 
 
@@ -22,7 +22,7 @@ def run_random_attack(run_defense: bool = False):
     # Načtení konfigurace                                                   #
     # --------------------------------------------------------------------- #
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    config_path = os.path.join(script_dir, "configRandomSearch.yaml")
+    config_path = os.path.join(script_dir, "configRandom.yaml")
 
     cfg = load_config(config_path)
     cfgRS = cfg["RandomSearch"]
@@ -54,7 +54,7 @@ def run_random_attack(run_defense: bool = False):
     output_file = os.path.join(out_dir, '_10_randomsearch.json')
 
     with open(output_file, 'w', encoding='utf-8') as fo:
-        for idx, harm_prompt in tqdm(enumerate(adv_bench["goal"][begin:end]), total=end-begin):
+        for idx, harm_prompt in tqdm(enumerate(adv_bench["Goal"][begin:end]), total=end-begin):
             print(f"[INFO] Processing id {idx}: {harm_prompt[:50]}...")
 
             attacker = RandomSearchAttack(

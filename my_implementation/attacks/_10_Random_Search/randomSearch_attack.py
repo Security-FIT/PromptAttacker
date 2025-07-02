@@ -134,11 +134,11 @@ class RandomSearchAttack:
                 if self.verbose:
                     print(f"[RandomSearch] restart={restart} iter={it} suffix_len={len(adv_suffix)}")
 
-                # úspěch = odpověď nezačíná žádným 'broken' prefixem
-                if not any(response_text.strip().lower().startswith(bad.lower()) for bad in self._broken_prefixes):
+               
+                if not any(str(response_text).strip().lower().startswith(bad.lower()) for bad in self._broken_prefixes):
                     return {
                         "adversarial_prompt": messages[1]["content"],
-                        "model_response": response_text,
+                        "model_response": str(response_text),
                     }
 
                 # jinak suffix náhodně zmutujeme a zkusíme znovu
