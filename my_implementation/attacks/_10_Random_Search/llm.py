@@ -26,7 +26,10 @@ class LLM:
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.seed = seed
-        self.client = VLLMClient(model=model_path)
+        self.client = VLLMClient(
+            model=self.model_path,
+            trust_remote_code=True,  
+        )
         self.params = SamplingParams(
             max_tokens=max_tokens,
             temperature=temperature,
@@ -38,24 +41,15 @@ class LLM:
         )
 
 
-    def response(self, messages: list[dict[str, str]]) -> str:
-        prompt = self._messages_to_prompt(messages)
-        generations = self.client.generate(prompt, self.params)
-        return generations[0]
+    def response(self, messages: list[dict]) -> str:
+        user_prompt = messages[-1]["content"]
 
+        outputs = self.client.generate(
+            [{"prompt": user_prompt}],
+            sampling_params=SamplingParams(
+                temperature=self.temperature,
+                max_tokens=self.max_tokens
+            )
+        )
 
-    @staticmethod
-    def _messages_to_prompt(messages: list[dict[str, str]]) -> str:
-        """
-        Triviální převod `[{"role":"system","content":...}, {"role":"user",...}]`
-        na jediný textový prompt.
-        """
-        parts = []
-        for m in messages:
-            if m["role"] == "system":
-                parts.append(f"<s>[SYSTEM] {m['content']}</s>")
-            elif m["role"] == "user":
-                parts.append(f"<s>[USER] {m['content']}</s>")
-            else:
-                raise ValueError(f"Unknown role {m['role']}")
-        return "\n".join(parts)
+        return outputs[0].outputs[0].text

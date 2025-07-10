@@ -1,0 +1,18 @@
+PastTense:
+  reformulator_llm: "models/Llama-3.1-70B/" 
+  
+  target_llm: "models/Llama-3.1-70B/" 
+
+  data_path: "dataset/adv_ica.csv"
+  output_dict: "results"
+  
+  reformulator_temperature: 1.0
+  reformulator_max_tokens: 150
+  
+  target_temperature: 0
+  target_max_tokens: 150
+
+  attack_type: "past" 
+  begin: 0
+  end: 100
+  n_restarts: 2

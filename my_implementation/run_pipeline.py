@@ -18,6 +18,12 @@ from attacks._20_Base.main import run_base_attack
 from attacks._21_Art_Prompt.main import run_artprompt_attack
 from attacks._22_Renellm.main import run_renellm_attack
 from attacks._10_Random_Search.main import run_random_attack
+from attacks._18_Gcg.main import run_gcg_attack
+from attacks._11_Pair.main import run_pair_attack
+from attacks._25_past.main import run_past_tense_attack
+from attacks._12_Tap.main import run_tap_attack
+from attacks._17_Overload.main import run_overload_attack
+
 
 def load_config(path):
     ext = os.path.splitext(path)[1].lower()
@@ -51,6 +57,11 @@ if __name__ == "__main__":
     # run_ica_attack(cfg.get('run_defense', False))
     # run_renellm_attack(cfg.get('run_defense', False))
     # run_base_attack(cfg.get('run_defense', False))
-    # run_artprompt_attack(cfg.get('run_defense', False))
-    run_random_attack(cfg.get('run_defense', False))
+    # run_artprompt_attack(cfg.get('run_defense', False)) #zatim nefunguje 
+    # run_random_attack(cfg.get('run_defense', False))
+    # run_pair_attack(cfg.get('run_defense', False))  
+    # run_gcg_attack(cfg.get('run_defense', False))
+    # run_past_tense_attack(cfg.get('run_defense', False))
+    # run_tap_attack(cfg.get('run_defense',False))  # Moc slozity asi to nebudu nakonec delat, zatim nefunguje a stravil jsem na nem uz skoro 3 dny
+    run_overload_attack(cfg.get('run_defense', False))
 # python3 run_pipeline.py --config_file config.yaml

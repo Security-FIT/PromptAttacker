@@ -1,34 +1,15 @@
-# TENTO FILE JE MUUUUUUUUUUJ
+# encoding: utf-8
+# Author    : Floyed<Floyed_Shen@outlook.com>
+# Datetime  : 2024/9/1 12:57
+# User      : yu
+# Product   : PyCharm
+# Project   : panda-guard
+# File      : base.py
+# explain   :
 
-import os
-import json
-import yaml
-from typing import List, Dict
 import abc
 from typing import Dict, List, Union, Any
 from dataclasses import dataclass, field
-
-
-
-def load_config(path):
-    ext = os.path.splitext(path)[1].lower()
-    with open(path, 'r', encoding='utf-8') as f:
-        if ext in ('.yaml', '.yml'):
-            return yaml.safe_load(f)
-        elif ext == '.json':
-            return json.load(f)
-        else:
-            raise ValueError(f"Unsupported config file: {path}")
-        
-
-def is_user_turn(messages: List[Dict[str, str]]) -> bool:
-    """
-    Check if it's the user's turn based on the last message.
-
-    :param messages: List of message dictionaries containing "role" and "content".
-    :return: True if the last message is from the user, False otherwise.
-    """
-    return messages and len(messages) > 0 and messages[-1]["role"] == "user"
 
 
 @dataclass

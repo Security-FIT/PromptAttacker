@@ -1,0 +1,13 @@
+Overload:
+  victim_llm: "./models/Llama-2-7b-hf"
+  temperature: 0.0
+  max_token: 512
+  data_path: "dataset/adv_ica.csv"
+  output_dict: "results"
+  dict_type: ["all"]   
+  random_dict: 30      
+  lenmin: 1
+  lenmax: 5
+  value_len: 1
+  strlen: 1          
+  mask_loc: "before"     

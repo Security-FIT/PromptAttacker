@@ -106,8 +106,12 @@ tady jsem vzal pouze jednu modifikaci sequential utoku. A to teplate 1 pro Dialo
 <!-- https://arxiv.org/abs/2401.06373 -->
 
 ----------------------------------------------------------------------------------------------------------------------------
-12 tap
+12 +-✓tap
 <!-- https://arxiv.org/abs/2312.02119 -->
+Je strasne moc pametove narocny a nejspis ho vyskrtnu 
+
+Tady taky potrebuji dva modely a nemam vyresene, co s tim druhym, protoze dva se z tezi vejdou do VRAM metacentra, aktualne zkousim 60GB 
+
 ----------------------------------------------------------------------------------------------------------------------------
 13 transfer
 <!-- https://arxiv.org/pdf/2505.13862 -->
@@ -120,7 +124,7 @@ tady jsem vzal pouze jednu modifikaci sequential utoku. A to teplate 1 pro Dialo
 <!-- https://arxiv.org/pdf/2505.13862 -->
 ----------------------------------------------------------------------------------------------------------------------------
 16 overload
-<!-- https://arxiv.org/pdf/2505.13862 -->
+<!-- https://arxiv.org/pdf/2410.04190 -->
 
 ----------------------------------------------------------------------------------------------------------------------------
 17✓ ica
@@ -151,6 +155,11 @@ tady jsem vzal pouze jednu modifikaci sequential utoku. A to teplate 1 pro Dialo
 24 autodan 
 <!-- https://arxiv.org/abs/2310.04451 -->
 ----------------------------------------------------------------------------------------------------------------------------
+25✓ Past tense
+<!-- https://arxiv.org/pdf/2407.11969 -->
+<!-- https://github.com/tml-epfl/llm-past-tense/blob/main/main.py -->
+
+tento utok budu muset jeste trochu upravit, protoze jako ostatni nevejde se moc dobre ani na 60GB Vram, takze to v budoucnu budu muset resit asi pres API. Zatim v kodu pouzivam stejne llmko attacker i target
 ----------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------------
 

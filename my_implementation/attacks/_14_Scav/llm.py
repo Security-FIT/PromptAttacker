@@ -34,11 +34,8 @@ class LLM:
 
     def response(self, messages: list[dict]) -> str:
         # očekáváme seznam zpráv, kde poslední obsahuje prompt od uživatele
-        user_prompt = messages[-1]["content"]
-
+        user_prompt = messages
         # inicializace vLLM klienta pro inference
-
-
         # generování textu
         outputs = self.client.generate(
             [{"prompt": user_prompt}],
@@ -47,6 +44,6 @@ class LLM:
                 max_tokens=self.max_tokens
             )
         )
-
+        print()
         # v nové verzi vLLM jsou výstupy v outputs[0].outputs
-        return outputs[0].outputs[0].text
+        return outputs[0].outputs[0].text.strip() 
