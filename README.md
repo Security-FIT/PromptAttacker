@@ -98,13 +98,13 @@ tady jsem vzal pouze jednu modifikaci sequential utoku. A to teplate 1 pro Dialo
 <!-- https://anonymous.4open.science/w/JailBreakAttack-4F3B/-->
 
 ----------------------------------------------------------------------------------------------------------------------------
-10 Random Search
+10✓  Random Search
 <!-- https://arxiv.org/pdf/2404.02151 -->
 
 ----------------------------------------------------------------------------------------------------------------------------
 11 pair
 <!-- https://arxiv.org/abs/2401.06373 -->
-
+TADY ZATIM NEVIM
 ----------------------------------------------------------------------------------------------------------------------------
 12 +-✓tap
 <!-- https://arxiv.org/abs/2312.02119 -->
@@ -113,12 +113,13 @@ Je strasne moc pametove narocny a nejspis ho vyskrtnu
 Tady taky potrebuji dva modely a nemam vyresene, co s tim druhym, protoze dva se z tezi vejdou do VRAM metacentra, aktualne zkousim 60GB 
 
 ----------------------------------------------------------------------------------------------------------------------------
-13 transfer
-<!-- https://arxiv.org/pdf/2505.13862 -->
+13 GPT4cypher
+<!-- https://arxiv.org/abs/2308.06463 -->
 
 ----------------------------------------------------------------------------------------------------------------------------
-14 scav
+14✓ scav
 <!-- https://arxiv.org/abs/2404.12038 -->
+U tohoto utoku jsou dve varianty a obe funguji u jinych modelu, takze potom budu chtit vyzkouset obe na vice variantach
 ----------------------------------------------------------------------------------------------------------------------------
 15 rewrite
 <!-- https://arxiv.org/pdf/2505.13862 -->
@@ -154,6 +155,7 @@ Tady taky potrebuji dva modely a nemam vyresene, co s tim druhym, protoze dva se
 ----------------------------------------------------------------------------------------------------------------------------
 24 autodan 
 <!-- https://arxiv.org/abs/2310.04451 -->
+<!-- https://github.com/SheltonLiu-N/AutoDAN/blob/main/utils/opt_utils.py#L176 -->
 ----------------------------------------------------------------------------------------------------------------------------
 25✓ Past tense
 <!-- https://arxiv.org/pdf/2407.11969 -->

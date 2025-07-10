@@ -23,6 +23,9 @@ from attacks._11_Pair.main import run_pair_attack
 from attacks._25_past.main import run_past_tense_attack
 from attacks._12_Tap.main import run_tap_attack
 from attacks._17_Overload.main import run_overload_attack
+from attacks._14_Scav.main import run_scav_attack
+from attacks._13_GPT4cypher.main import run_GPTcypher_attack
+from attacks._24_Autodan.main import run_autodan_attack
 
 
 def load_config(path):
@@ -63,5 +66,9 @@ if __name__ == "__main__":
     # run_gcg_attack(cfg.get('run_defense', False))
     # run_past_tense_attack(cfg.get('run_defense', False))
     # run_tap_attack(cfg.get('run_defense',False))  # Moc slozity asi to nebudu nakonec delat, zatim nefunguje a stravil jsem na nem uz skoro 3 dny
-    run_overload_attack(cfg.get('run_defense', False))
+    # run_overload_attack(cfg.get('run_defense', False))
+    # run_scav_attack(cfg.get('run_defense', False))
+    # run_GPTcypher_attack(cfg.get('run_defense', False))
+    # run_autodan_attack(cfg.get('run_defense', False))  # u tohoto utoku zkusim pozdeji pouzit GPT, tedy sam si koupim API a budu to spoustet... treba to bude fungovat, ale zatim jdu implemetovat nejaky jednodusi 
+    # 21 utoku zatim
 # python3 run_pipeline.py --config_file config.yaml
