@@ -7,7 +7,7 @@ import numpy as np
 # from openai import OpenAI
 import argparse
 import os
-import eval_template
+import attacks._3_PiF.eval as eval_template
 
 OPENAI_API_KEY = "YOUR API KEY"
 

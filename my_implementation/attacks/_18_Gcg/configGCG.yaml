@@ -1,6 +1,5 @@
 GCG:
   model_path: "models/Llama-2-13b-chat/"
-  device_map: "cuda:6"
   data_path: "dataset/adv_ica.csv"
   output_dict : "results"
   topk: 256

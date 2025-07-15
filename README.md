@@ -6,11 +6,10 @@
 spousteni skriptu na GPU: CUDA_VISIBLE_DEVICES=1,2 python tvuj_skript.pyp
 
 
-Dalsi modely - viz models/ a příslušná stránka na HG (všechny modely stažené z HF)
-VIcuna 13b - https://huggingface.co/lmsys/vicuna-13b-v1.5
-mixtral 7b - https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1
 
-
+s timto jsem spoustel Pif 
+<!-- python3 PiF_CLM.py --gen_model_path ../my_implementation/models/Qwen3-1.7B/ --tgt_model_path ../my_implementation/models/vicuna-7b --output_dir Pif_from -->
+<!-- python3 PiF_CLM.py --gen_model_path ../my_implementation/models/Llama-2-13b-chat --tgt_model_path ../my_implementation/models/vicuna-7b --output_dir Pif_from -->
 
 ----------------------------------------------------------------------------------------------------------------------------
 1✓ Cypher Attack
@@ -137,6 +136,7 @@ U tohoto utoku jsou dve varianty a obe funguji u jinych modelu, takze potom budu
 ----------------------------------------------------------------------------------------------------------------------------
 19 deepinception
 <!-- https://arxiv.org/abs/2311.03191 -->
+<!-- https://github.com/tmlr-group/DeepInception/tree/main -->
 ----------------------------------------------------------------------------------------------------------------------------
 20 base
 <!-- https://arxiv.org/pdf/2505.13862 -->
@@ -149,8 +149,9 @@ U tohoto utoku jsou dve varianty a obe funguji u jinych modelu, takze potom budu
 <!-- https://arxiv.org/pdf/2505.13862 -->
 
 ----------------------------------------------------------------------------------------------------------------------------
-23 cold 
-<!-- https://arxiv.org/pdf/2505.13862 -->
+23 Implicit reference
+<!-- https://github.com/Lucas-TY/llm_Implicit_reference -->
+<!-- https://arxiv.org/pdf/2410.03857v2 -->
 
 ----------------------------------------------------------------------------------------------------------------------------
 24 autodan 

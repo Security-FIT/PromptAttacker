@@ -1,29 +1,25 @@
-AutoDan:
-  attacker_cls: "AutoDanAttacker"
-  attacker_name: "AutoDan"
+AutodanAttackConfig:
+  victim_llm_path: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf"
 
-  target_llm_config:
-    llm_type: "HuggingFaceLLM"
-    model_name: "models/Llama-2-7b-hf"
-    device_map: cuda:6
-  target_llm_gen_config:
-    max_n_tokens: 4096
-    temperature: 1.0
-    logprobs: False
-    seed: null
+  model_template_name: "llama2"
+  dataset_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/flip.csv"
 
-  adv_prompts_size: 256
-  batch_size: 32
-  num_points: 5
-  num_steps: 250
-  iter: 5
+  init_prompt_path: "/storage/brno2/home/xkaska01/master/my_implementation/attacks/_24_Autodan/autodan_initial_prompt.txt"
 
-  num_elites: 0.1
-  crossover: 0.5
-  mutation: 0.01
+  output_directory: "results"
+  device_id: 0
 
-  allow_non_ascii: False
-  llm_mutation: False
+  num_steps: 100       
+  batch_size: 256      
+  num_elites_ratio: 0.05 
+  crossover_rate: 0.5    
+  num_crossover_points: 5
+  mutation_rate: 0.01
+  generation_max_new_tokens: 200 
+  generation_temperature: 0.7    
+  generation_top_p: 0.9          
 
-  init_adv_prompts_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/autoDan_prompt_group.yaml"
-  data_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/adv_ica.csv"
+  start_index: 0
+  end_index: 520 
+
+  api_key: null

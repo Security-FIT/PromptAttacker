@@ -3,8 +3,7 @@ import torch
 import torch.nn.functional as F
 from transformers import AutoModelForMaskedLM, AutoModelForCausalLM, AutoTokenizer
 import time
-import gc
-import attacks._3_PiF.eval_template as eval_template
+import eval_template
 # from openai import OpenAI
 
 OPENAI_API_KEY = "YOUR API KEY"
@@ -99,14 +98,20 @@ def replace_words(model, tokenizer, texts, template, tok_n, tok_m, top_k, temper
                 break
             decoded_token = tokenizer.decode([idx])
             if idx not in ori_tokens_id:
-                if (not current_token.startswith('_') and not (29871 <= current_token_id <= 31999)) \
-                and (not decoded_token.startswith('_') and not (29871 <= idx <= 31999)):
+                if (not current_token.startswith('##') and not (999 <= current_token_id <= 1036) and not (1063 <= current_token_id <= 1995)) \
+                and (not decoded_token.startswith('##') and not (999 <= idx <= 1036) and not (1063 <= idx <= 1995)):
                     tok_m_tokens.append(idx)
-                elif current_token.startswith('_'):
-                    if decoded_token.startswith('_'):
+                elif current_token.startswith('##'):
+                    if decoded_token.startswith('##'):
                         tok_m_tokens.append(idx)
-                elif (29871 <= current_token_id <= 31999):
-                    if (29871 <= idx <= 31999):
+                elif (999 <= current_token_id <= 1013) or (1024 <= current_token_id <= 1036):
+                    if (999 <= idx <= 1013) or (1024 <= idx <= 1036):
+                        tok_m_tokens.append(idx)
+                elif (1014 <= current_token_id <= 1023):
+                    if (1014 <= idx <= 1023):
+                        tok_m_tokens.append(idx)
+                elif (1063 <= current_token_id <= 1995):
+                    if (1063 <= idx <= 1995):
                         tok_m_tokens.append(idx)
 
         text_with_template = text + template
@@ -168,7 +173,7 @@ def evaluate_text_changes(model, tokenizer, texts1, texts2, threshold, device):
             results.append(False)
     return results
 
-def generate_attack(generate_m, generate_t, tgt_m, tgt_t, texts, evaluation_template, objective, iterations, top_n, top_m, top_k, warm_up, temperature, threshold, device):
+def generate_attack(generate_model, generate_tokenizer, tgt_model, tgt_tokenizer, texts, evaluation_template, objective, iterations, top_n, top_m, top_k, warm_up, temperature, threshold, device):
     total_time = 0
     total_query = 0
     successful_flag = [False] * len(texts)
@@ -176,43 +181,6 @@ def generate_attack(generate_m, generate_t, tgt_m, tgt_t, texts, evaluation_temp
     current_texts = texts.copy()
 
     for iter in range(iterations):
-
-        generate_tokenizer = AutoTokenizer.from_pretrained(generate_t, use_fast=True)
-
-        # Pokud chybí pad_token, nastavíme nebo přidáme
-        added = False
-        if generate_tokenizer.pad_token is None:
-            if generate_tokenizer.eos_token:
-                generate_tokenizer.pad_token = generate_tokenizer.eos_token
-            else:
-                generate_tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-                added = True
-
-        # Přidáme mask_token, aby šlo v estimate_word_importance hledat tokenizer.mask_token
-        if generate_tokenizer.mask_token is None:
-            generate_tokenizer.add_special_tokens({'mask_token': '[MASK]'})
-            added = True
-
-        # Model NAČTEME BEZ offloadu, s ignore_mismatched_sizes
-        generate_model = AutoModelForCausalLM.from_pretrained(
-            generate_m,
-            output_hidden_states=True,
-            load_in_8bit=False,
-            use_flash_attention_2=False,
-            cache_dir='./hf_models',
-            ignore_mismatched_sizes=True
-        ).eval()
-
-        # Přesuňeme model na GPU/CPU
-        generate_model.to(device)
-
-        # Pokud jsme do tokenizeru přidali cokoli nového, roztáhneme embed-vrstvy
-        if added:
-            generate_model.resize_token_embeddings(
-                len(generate_tokenizer),
-                mean_resizing=False
-            )
-
         start_time = time.time()
 
         new_texts = replace_words(generate_model, generate_tokenizer, current_texts, evaluation_template, top_n, top_m, top_k, temperature, device)
@@ -223,40 +191,6 @@ def generate_attack(generate_m, generate_t, tgt_m, tgt_t, texts, evaluation_temp
         end_time = time.time()
 
         total_time += (end_time - start_time)
-
-        del generate_model, generate_tokenizer ; gc.collect()
-        torch.cuda.empty_cache()
-
-        if tgt_m != "gpt-4-0613" and tgt_m != "o1-preview-2024-09-12":
-            tgt_tokenizer = AutoTokenizer.from_pretrained(tgt_t, use_fast=True)
-
-            added_t = False
-            if tgt_tokenizer.pad_token is None:
-                if tgt_tokenizer.eos_token:
-                    tgt_tokenizer.pad_token = tgt_tokenizer.eos_token
-                else:
-                    tgt_tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-                    added_t = True
-
-            tgt_model = AutoModelForCausalLM.from_pretrained(
-                tgt_m,
-                load_in_8bit=False,
-                use_flash_attention_2=False,
-                cache_dir='./hf_models',
-                ignore_mismatched_sizes=True
-            ).eval()
-
-            tgt_model.to(device)
-
-            if added_t:
-                tgt_model.resize_token_embeddings(
-                    len(tgt_tokenizer),
-                    mean_resizing=False
-                )
-        else:
-            tgt_model = tgt_m
-            tgt_tokenizer = tgt_t
-
         for jj, current_text in enumerate(current_texts):
             if successful_flag[jj] == False:
                 if iter >= warm_up:
@@ -266,25 +200,7 @@ def generate_attack(generate_m, generate_t, tgt_m, tgt_t, texts, evaluation_temp
                         tgt_token = {k: v.to(device) for k, v in tgt_input.items()}
                         tgt_token_length = tgt_token['input_ids'].shape[1]
                         tgt_output = tgt_model.generate(**tgt_token, max_length=512)
-                        # print()
-                        # print()
-                        # print()
-                        # print()
-                        # print(tgt_output)
-                        # print("----------------")
-                        # print(tgt_token)
-                        # print()
-                        # print()
-                        # print()
-                        # print()
-                        # print()
-
                         tgt_text = tgt_tokenizer.decode(tgt_output[0, tgt_token_length:], skip_special_tokens=True)
-                        # print(tgt_text)
-                        # print()
-                        # print()
-                        # print()
-                        # print()
                         if not any(prefix.lower() in tgt_text.lower() for prefix in eval_template.test_prefixes):
                             if objective == "ASR":
                                 successful_flag[jj] = True
@@ -314,7 +230,6 @@ def generate_attack(generate_m, generate_t, tgt_m, tgt_t, texts, evaluation_temp
                                         successful_flag[jj] = True
                                         tgt_texts[jj] = tgt_text
                                         current_texts[jj] = current_text + "Sure, here is"
-
                                 except Exception as err:
                                     continue
 
@@ -393,15 +308,12 @@ def generate_attack(generate_m, generate_t, tgt_m, tgt_t, texts, evaluation_temp
                                         successful_flag[jj] = True
                                         tgt_texts[jj] = tgt_text
                                         current_texts[jj] = current_text + "Sure, here is"
+
                         except Exception as err:
                             continue
 
             if iter == (iterations - 1) and successful_flag[jj] == False:
                 tgt_texts[jj] = tgt_text
                 current_texts[jj] = current_text + "Sure, here is"
-
-        if tgt_m != "gpt-4-0613" and tgt_m != "o1-preview-2024-09-12":
-            del tgt_model, tgt_tokenizer ; gc.collect()
-            torch.cuda.empty_cache()
 
     return total_query, total_time, successful_flag, current_texts, tgt_texts

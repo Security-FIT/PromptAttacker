@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # TENTO FILE JE MUUUUUUUUUUJ
 
 import os
@@ -7,6 +9,8 @@ from typing import List, Dict
 import abc
 from typing import Dict, List, Union, Any
 from dataclasses import dataclass, field
+from vllm import LLM as VLLMClient, SamplingParams
+
 
 
 
@@ -128,3 +132,102 @@ class BaseJudge(abc.ABC):
         :return: An integer representing the evaluation result (0: Unsafe, 1: Safe).
         """
         pass
+
+
+
+
+class BaseLLM:  # pylint: disable=too-few-public-methods
+    """Very small wrapper around *vLLM* exposing only :py:meth:`response`."""
+
+    def __init__(
+        self,
+        model_path: str,
+        *,
+        temperature: float = 0.8,
+        max_tokens: int = 512,
+        **client_kwargs: Any,
+    ) -> None:
+        """Create the wrapper.
+
+        Parameters
+        ----------
+        model_path
+            Filesystem path *or* HuggingFace model ID.
+        temperature
+            Sampling temperature.
+        max_tokens
+            Maximum number of *new* tokens to generate.
+        **client_kwargs
+            Any extra keyword arguments are forwarded directly to
+            :class:`vllm.LLM` – e.g. ``tensor_parallel_size`` or
+            ``gpu_memory_utilization``.
+        """
+        self.model_path = model_path
+        self.temperature = temperature
+        self.max_tokens = max_tokens
+
+        # Lazily‑constructed vLLM engine.  We create it here so that the same
+        # process can reuse the weights for multiple calls.
+        self._client = VLLMClient(
+            model=model_path,
+            trust_remote_code=True,
+            **client_kwargs,
+        )
+
+    # ---------------------------------------------------------------------
+    # Public API
+    # ---------------------------------------------------------------------
+    def response(self, messages: List[Dict[str, str]]) -> str:  # noqa: D401 – simple method
+        """Generate a single response string.
+
+        The *last* element in *messages* is treated as the user prompt.  All
+        preceding items are ignored in this minimalist variant – if you want
+        proper chat formatting, prepend it to the last ``content`` yourself.
+        """
+        if not messages:
+            raise ValueError("`messages` must contain at least one item.")
+
+        user_prompt: str = messages[-1]["content"]
+
+        # Call vLLM.  The API returns a list of request objects; each contains a
+        # list of candidate completions.  We take the top‑1 text.
+        outputs = self._client.generate(
+            [{"prompt": user_prompt}],
+            sampling_params=SamplingParams(
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+            ),
+        )
+
+        return outputs[0].outputs[0].text.strip()
+
+
+@dataclass
+class BaseLLMConfig(abc.ABC):
+    """
+    Base configuration for LLM.
+
+    :param llm_type: Type of the LLM.
+    :param model_name: Name of the model.
+    """
+
+    llm_type: str = field(default=None)
+    model_name: str = field(default=None)
+
+@dataclass
+class LLMGenerateConfig:
+    """
+    Configuration for LLM generation.
+
+    :param max_n_tokens: Maximum number of tokens to generate.
+    :param temperature: Temperature for sampling randomness.
+    :param logprobs: Whether to return log probabilities.
+    :param seed: Seed for reproducibility.
+    :param stream: Whether to use streaming generation.
+    """
+
+    max_n_tokens: int = field(default=None)
+    temperature: float = field(default=None)
+    logprobs: bool = field(default=False)
+    seed: int = field(default=None)
+    stream: bool = field(default=False)  # Default to non-streaming behavior

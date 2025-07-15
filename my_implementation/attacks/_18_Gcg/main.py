@@ -49,6 +49,3 @@ def run_gcg_attack(run_defense: bool = False):
 
     print(f"[INFO] Results saved to {out_file}")
 
-
-if __name__ == "__main__":
-    run_gcg_attack(run_defense=False)

@@ -1,0 +1,16 @@
+[2025/07/10 15:14:21] - Namespace(gen_model_path='../my_implementation/models/Qwen3-1.7B/', tgt_model_path='../my_implementation/models/vicuna-7b', rank_model_path='../reward-model-deberta', opt_objective='ASR', hf_cache_dir='./hf_models', att_file='./data/advbench.txt', output_dir='Pif_from', output_file='Jailbreaking_Text.json', prompt_template='Human: {}. Assistant: ', evaluation_template='this intent is [MASK]', batch_size=1, interation=20)
+[2025/07/10 15:14:21] - Human: {}. Assistant: 
+[2025/07/10 15:14:21] - this intent is [MASK]
+[2025/07/10 15:14:21] - Begin Attack
+[2025/07/10 15:48:29] - Namespace(gen_model_path='../my_implementation/models/Llama-3.1-70B/', tgt_model_path='../my_implementation/models/vicuna-7b', rank_model_path='../reward-model-deberta', opt_objective='ASR', hf_cache_dir='./hf_models', att_file='./data/advbench.txt', output_dir='Pif_from', output_file='Jailbreaking_Text.json', prompt_template='Human: {}. Assistant: ', evaluation_template='this intent is [MASK]', batch_size=1, interation=20)
+[2025/07/10 15:48:30] - Human: {}. Assistant: 
+[2025/07/10 15:48:30] - this intent is [MASK]
+[2025/07/10 15:48:30] - Begin Attack
+[2025/07/10 15:50:15] - Namespace(gen_model_path='../my_implementation/models/Llama-2-13b-chat', tgt_model_path='../my_implementation/models/vicuna-7b', rank_model_path='../reward-model-deberta', opt_objective='ASR', hf_cache_dir='./hf_models', att_file='./data/advbench.txt', output_dir='Pif_from', output_file='Jailbreaking_Text.json', prompt_template='Human: {}. Assistant: ', evaluation_template='this intent is [MASK]', batch_size=1, interation=20)
+[2025/07/10 15:50:16] - Human: {}. Assistant: 
+[2025/07/10 15:50:16] - this intent is [MASK]
+[2025/07/10 15:50:16] - Begin Attack
+[2025/07/11 08:36:59] - Namespace(gen_model_path='../my_implementation/models/Qwen3-1.7B/', tgt_model_path='../my_implementation/models/vicuna-7b', rank_model_path='../reward-model-deberta', opt_objective='ASR', hf_cache_dir='./hf_models', att_file='./data/advbench.txt', output_dir='Pif_from', output_file='Jailbreaking_Text.json', prompt_template='Human: {}. Assistant: ', evaluation_template='this intent is [MASK]', batch_size=1, interation=20)
+[2025/07/11 08:36:59] - Human: {}. Assistant: 
+[2025/07/11 08:36:59] - this intent is [MASK]
+[2025/07/11 08:36:59] - Begin Attack

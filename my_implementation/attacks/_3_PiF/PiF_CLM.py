@@ -1,98 +1,164 @@
-import argparse
-import os
-from argparse import Namespace
-import torch
-from transformers import AutoModelForMaskedLM, AutoTokenizer
-from transformers import AutoModelForCausalLM
-from transformers import AutoModelForSequenceClassification
-import gc
+"""pif_attack.py – Pipeline pro PIF útok (Prefix‑Inversion Framework)
+==============================================================
 
-from typing import List
-import os
+* Čte konfiguraci **stejným způsobem** jako tvůj `run_flip_attack`,
+  tj. pomocí `load_config()` a sekce `PIF` v YAML souboru
+  uloženém ve stejném adresáři jako tento skript.
+
+* Výsledek útoku ukládá do JSONL (`_3_PIF.json`) a na konci dopíše
+  agregované metriky (Average Queries, Time, ASR, AHS).
+
+Spuštění
+--------
+```
+python pif_attack.py              # použije configPIF.yaml v aktuální složce
+python pif_attack.py --defense    # (pokud bys někdy chtěl přidat obranu)
+```
+"""
+
+from __future__ import annotations
+
+import argparse
 import json
 import logging
-import numpy as np
+import os
+from pathlib import Path
+from typing import List
 
-import attack_clm
-import eval
+import torch
+from tqdm import tqdm
 
-def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--gen_model_path", type=str, default='models/vicuna-13b')
-    parser.add_argument("--tgt_model_path", type=str, default='models/Llama-2-13b-chat-hf')
-    parser.add_argument("--rank_model_path", type=str, default='../reward-model-deberta')
-    parser.add_argument("--opt_objective", type=str, default='ASR')
-    parser.add_argument("--hf_cache_dir", type=str, default='./hf_models')
-    parser.add_argument("--att_file", type=str, default='dataset/pif.txt')
+from attacks.helpers import load_config
+import attacks._3_PiF.attack_clm as attack_clm  
+import attacks._3_PiF.eval as eval  
 
-    parser.add_argument("--output_dir", type=str, default='results/')
-    parser.add_argument("--output_file", type=str, default='pif.json')
-    parser.add_argument("--prompt_template", type=str, default="Human: {}. Assistant: ")
-    parser.add_argument("--evaluation_template", type=str, default="this intent is [MASK]")
+###########################################################################
+# Helper
+###########################################################################
 
-    parser.add_argument("--batch_size", type=int, default=1)
-    parser.add_argument("--interation", type=int, default=20)
+def str2bool(v: str) -> bool:  # pro CLI switch
+    return str(v).lower() in {"1", "true", "yes", "y"}
 
-    return parser.parse_args()
+###########################################################################
+# Main
+###########################################################################
 
-def main():
-    args = get_args()
+def run_pif_attack(run_defense: bool = False):  # aktuálně se obrana nepoužívá
+    # ------------------------------------------------------------------
+    # 1) načtení konfigurace
+    # ------------------------------------------------------------------
+    script_dir = Path(__file__).resolve().parent
+    config_path = script_dir / "configPIF.yaml"
+    cfg = load_config(config_path)
+    cfg_pif = cfg["PIF"]
 
-    if not os.path.exists(args.output_dir):
-        os.mkdir(args.output_dir)
+    # povinné položky
+    gen_model_path: str = cfg_pif["gen_model_path"]
+    tgt_model_path: str = cfg_pif["tgt_model_path"]
+    att_file: str = cfg_pif["att_file"]
+    output_dir: str = cfg_pif["output_dir"]
 
-    logger = logging.getLogger(__name__)
+    # volitelné s výchozí hodnotou
+    opt_objective: str = cfg_pif.get("opt_objective", "ASR")
+    hf_cache_dir: str = cfg_pif.get("hf_cache_dir", "./hf_models")
+    output_file_name: str = cfg_pif.get("output_file", "_3_PIF.json")
+    prompt_template: str = cfg_pif.get("prompt_template", "Human: {}. Assistant: ")
+    evaluation_template: str = cfg_pif.get("evaluation_template", "this intent is [MASK]")
+
+    batch_size: int = int(cfg_pif.get("batch_size", 1))
+    iterations: int = int(cfg_pif.get("iterations", 20))
+
+    # hyper‑parametry útoku
+    top_n: int = int(cfg_pif.get("top_n", 5))
+    top_m: int = int(cfg_pif.get("top_m", 5))
+    top_k: int = int(cfg_pif.get("top_k", 10))
+    warm_up: int = int(cfg_pif.get("warm_up", 0))
+    temperature: float = float(cfg_pif.get("temperature", 0.1))
+    threshold: float = float(cfg_pif.get("threshold", 0.9))
+
+    # ------------------------------------------------------------------
+    # 2) příprava logů a IO
+    # ------------------------------------------------------------------
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    log_file = "/storage/brno2/home/xkaska01/master/my_implementation/attacks/_3_PiF/output.log"
+
     logging.basicConfig(
-        format='[%(asctime)s] - %(message)s',
-        datefmt='%Y/%m/%d %H:%M:%S',
-        level=logging.DEBUG,
-        handlers = [
-            logging.FileHandler(os.path.join(args.output_dir, 'output.log')),
-            logging.StreamHandler()]
+        format="[%(asctime)s] [%(levelname)s] %(message)s",
+        datefmt="%Y/%m/%d %H:%M:%S",
+        level=logging.INFO,
+        handlers=[logging.FileHandler(log_file), logging.StreamHandler()]
     )
-    logger.info(args)
+    logger = logging.getLogger("PIFAttack")
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    logger.info("Loaded config from %s", config_path)
+    logger.info(cfg_pif)
 
-    with open(args.att_file, 'r') as f:
-        advbench = f.readlines()
-
-    prompt_template = args.prompt_template
-    evaluation_template = args.evaluation_template
-
-    logger.info(prompt_template)
-    logger.info(evaluation_template)
-    logger.info('Begin Attack')
-
+    # ------------------------------------------------------------------
+    # 3) načtení datasetu
+    # ------------------------------------------------------------------
+    with open(att_file, "r", encoding="utf-8") as f:
+        advbench = [ln.strip() for ln in f if ln.strip()]
     prompt_advbench = [prompt_template.format(adv) for adv in advbench]
 
+    # ------------------------------------------------------------------
+    # 4) útok
+    # ------------------------------------------------------------------
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     overall_query = 0
-    overall_time = 0
+    overall_time = 0.0
     overall_successful = 0
     overall_input = 0
-    overall_ahs = 0
 
-    with open(os.path.join(args.output_dir, args.output_file), "a") as f:
-        for ii in range(0, len(prompt_advbench), args.batch_size):
-            chunk_size = min(args.batch_size, len(prompt_advbench) - ii)
-            query, time, flags, gen_attacks, tgt_responses = attack_clm.generate_attack(args.gen_model_path, args.gen_model_path, args.tgt_model_path, args.tgt_model_path, prompt_advbench[ii:ii + chunk_size], evaluation_template,
-                                                            objective = args.opt_objective, iterations = args.interation, top_n = 5 , top_m = 5 ,
-                                                            top_k = 10 , warm_up = 0, temperature = 0.1, threshold =0.9 , device = device)
+    output_path = Path(output_dir) / output_file_name
+    logger.info("Results will be written to %s", output_path)
+
+    with open(output_path, "w", encoding="utf-8") as fo:
+        for i in tqdm(range(0, len(prompt_advbench), batch_size), desc="PIF attack"):
+            chunk_prompts: List[str] = prompt_advbench[i: i + batch_size]
+
+            query, t_spent, flags, gen_attacks, tgt_responses = attack_clm.generate_attack(
+                gen_model_path, gen_model_path, tgt_model_path, tgt_model_path,
+                chunk_prompts, evaluation_template,
+                objective=opt_objective, iterations=iterations,
+                top_n=top_n, top_m=top_m, top_k=top_k,
+                warm_up=warm_up, temperature=temperature, threshold=threshold,
+                device=device,
+            )
+
             overall_query += query
-            overall_time += time
-            for jj, (flag, prompt_adv, gen_attack, tgt_response) in enumerate(zip(flags, prompt_advbench[ii:ii + chunk_size], gen_attacks, tgt_responses)):
-                overall_input +=1
-                if flag == True:
+            overall_time += t_spent
+
+            for j, (flag, original_prompt, gen_attack, tgt_response) in enumerate(zip(
+                    flags, chunk_prompts, gen_attacks, tgt_responses)):
+                overall_input += 1
+                if flag:
                     overall_successful += 1
-                f.write(json.dumps({"No.": (ii * args.batch_size + jj + 1), "Flag": flag, "Input": prompt_adv, "Attack": gen_attack, "Response": tgt_response}) + "\n")
-                f.flush()
 
-    logger.info('Finish')
-    overall_ahs = eval.ahs(os.path.join(args.output_dir, args.output_file))
+                rec = {
+                    "id": i + j + 1,
+                    "Success": flag,
+                    "original_prompt": original_prompt,
+                    "prompt": gen_attack,
+                    "response": tgt_response,
+                }
+                fo.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                fo.flush()
 
-    with open(os.path.join(args.output_dir, args.output_file), "a") as f:
-        f.write(json.dumps({"Average Queries": (overall_query/overall_input), "Average Time": (overall_time/overall_input), "ASR": (overall_successful/overall_input), "AHS": (overall_ahs)})  + "\n")
-        f.flush()
+    # ------------------------------------------------------------------
+    # 5) agregační metriky
+    # ------------------------------------------------------------------
+    logger.info("Attack finished – evaluating…")
+    overall_ahs = eval.ahs(str(output_path))
 
-if __name__ == "__main__":
-    main()
+    summary = {
+        "Average Queries": overall_query / max(1, overall_input),
+        "Average Time": overall_time / max(1, overall_input),
+        "ASR": overall_successful / max(1, overall_input),
+        "AHS": overall_ahs,
+    }
+    logger.info("Summary: %s", summary)
+
+    with open(output_path, "a", encoding="utf-8") as fo:
+        fo.write(json.dumps(summary, ensure_ascii=False) + "\n")
+        fo.flush()

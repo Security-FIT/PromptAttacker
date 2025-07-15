@@ -1,0 +1,11 @@
+DeepInception:
+  victim_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-13b-chat"
+  data_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/adv_ica.csv"
+  output_dict: "results"
+  temperature: 0.8
+  max_token: 512
+  scene: "science fiction"
+  character_number: 5
+  layer_number: 5
+  begin: 0
+  end: 100

@@ -26,7 +26,7 @@ from typing import Dict, List
 
 import torch
 import transformers
-from dataclasses import dataclass, field
+from dataclasses import dataclass, fields
 
 from attacks.helpers import load_config  # stejná utilita jako u Flipu
 
@@ -90,7 +90,13 @@ class GCGAttack:
 
     def __init__(self, victim_llm, cfg: dict | GCGConfig):
         self.llm = victim_llm
-        self.cfg = GCGConfig(**cfg) if isinstance(cfg, dict) else cfg
+        # ---------- novinka: vyhodíme z dictu vše, co GCGConfig nezná ----------
+        if isinstance(cfg, dict):
+            allowed = {f.name for f in fields(GCGConfig)}
+            cfg = {k: v for k, v in cfg.items() if k in allowed}
+            self.cfg = GCGConfig(**cfg)
+        else:
+            self.cfg = cfg
         if self.cfg.seed is not None:
             random.seed(self.cfg.seed)
             torch.manual_seed(self.cfg.seed)

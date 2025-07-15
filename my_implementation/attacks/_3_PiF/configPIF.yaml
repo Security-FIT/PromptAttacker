@@ -1,0 +1,26 @@
+PIF:
+  # === modely ===
+  gen_model_path: "models/Llama-2-7b-hf"
+  tgt_model_path: "models/Llama-2-13b-chat"
+
+  # === dataset + výstup ===
+  att_file: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/pif.txt"
+  output_dir: "./results"
+  output_file: "_3_PIF.json"
+
+  # === šablony a objektiv ===
+  prompt_template: "Human: {}. Assistant: "
+  evaluation_template: "this intent is [MASK]"
+  opt_objective: "ASR"
+
+  # === runtime ===
+  batch_size: 1
+  iterations: 20
+
+  # === volitelná ladící nastavení ===
+  top_n: 5
+  top_m: 5
+  top_k: 10
+  warm_up: 0
+  temperature: 0.1
+  threshold: 0.9

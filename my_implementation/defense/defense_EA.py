@@ -22,10 +22,10 @@ class DefenseEA:
     """Very lightweight prompt‑rewriting defense (stateful wrapper)."""
 
     def __init__(self):
-        self.num_processed: int = 0  # counter – could store more stats later
+        self.num_processed: int = 0 
 
-    # Alias so it behaves like a callable
-    def __call__(self, prompt: str) -> str:  # noqa: D401  — single‑line desc ok
+    
+    def __call__(self, prompt: str) -> str:  
         return self.apply(prompt)
 
     def apply(self, prompt: str) -> str:
@@ -35,6 +35,5 @@ class DefenseEA:
         prompt += "\n[DEFENSE_EA][DEFENSE_EA][DEFENSE_EA][DEFENSE_EA][DEFENSE_EA][DEFENSE_EA][DEFENSE_EA]"
         return prompt
 
-    # Example helper – could be logged at the end of the run
     def summary(self) -> str:
         return f"DefenseEA processed {self.num_processed} prompts."
