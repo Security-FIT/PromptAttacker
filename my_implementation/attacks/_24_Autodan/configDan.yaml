@@ -1,5 +1,5 @@
 AutodanAttackConfig:
-  victim_llm_path: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf"
+  victim_llm_path: "models/Llama-2-7b-hf/"
 
   model_template_name: "llama2"
   dataset_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/flip.csv"

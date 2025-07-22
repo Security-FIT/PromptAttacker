@@ -1,5 +1,5 @@
 Scav:
-  victim_llm: "./models/Llama-2-13b-chat"
+  victim_llm: "models/Llama-2-7b-hf/"
   output_dict: "results"
   optimized_dataset_8b: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/scav_optimized_instructions_8b.csv"
   optimized_dataset_70b: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/scav_optimized_instructions_70b.csv"

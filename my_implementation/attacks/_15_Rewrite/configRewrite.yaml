@@ -1,5 +1,5 @@
 Rewrite:
-  victim_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-13b-chat"
+  victim_llm: "models/Llama-2-7b-hf/"
   data_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/adv_ica.csv"
   output_dict: "results"
   temperature: 0.7

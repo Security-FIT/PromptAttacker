@@ -1,7 +1,7 @@
 PastTense:
   reformulator_llm: "models/Llama-3.1-70B/" 
   
-  target_llm: "models/Llama-3.1-70B/" 
+  target_llm: "models/Llama-2-13b-chat" 
 
   data_path: "dataset/adv_ica.csv"
   output_dict: "results"

@@ -1,7 +1,7 @@
 PIF:
   # === modely ===
-  gen_model_path: "models/Llama-2-7b-hf"
-  tgt_model_path: "models/Llama-2-13b-chat"
+  gen_model_path: "models/Llama-2-13b-chat"
+  tgt_model_path: "models/Llama-2-7b-hf/"
 
   # === dataset + výstup ===
   att_file: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/pif.txt"

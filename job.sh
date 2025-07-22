@@ -1,7 +1,7 @@
 #!/bin/bash
 #PDs -q default@pbs-m1.metacentrum.cz
 #PBS -N JailBreak_GPU2
-#PBS -l select=1:ncpus=1:ngpus=1:mem=100gb:gpu_mem=40b:scratch_local=100gb
+#PBS -l select=1:ncpus=1:ngpus=1:mem=100gb:gpu_mem=60b:scratch_local=100gb
 #PBS -l walltime=20:00:00
 
 HOMEDIR=/storage/brno2/home/xkaska01/master/
@@ -14,7 +14,7 @@ mamba activate /storage/brno2/home/xkaska01/.conda/envs/diplomka
 
 echo "$PBS_JOBID běží na uzlu `hostname -f`" >> $HOMEDIR/jobs_info.txt
 cd $HOMEDIR
-
+python3 -m pip install --user nltk
 python3 my_implementation/run_pipeline.py --config my_implementation/config.yaml 
 # python3 my_implementation/attacks/Flip/main.py --victim_llm models/Llama-2-13b-chat --temperature 0.8 --max_token 512  --flip_mode FCS --data_name advbench --begin 0 --end 100 --output_dict ./results
 
