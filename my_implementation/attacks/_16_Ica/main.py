@@ -4,7 +4,7 @@ from pathlib import Path
 from tqdm import tqdm
 
 from attacks._16_Ica.ica_attack import ICAAttack
-from attacks._16_Ica.llm import LLM
+from attacks.common.llm import LLM
 from attacks.helpers import load_config
 from defense.defense_EA import DefenseEA   
 

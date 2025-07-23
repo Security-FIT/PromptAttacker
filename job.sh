@@ -1,12 +1,13 @@
 #!/bin/bash
 #PDs -q default@pbs-m1.metacentrum.cz
 #PBS -N JailBreak_GPU2
-#PBS -l select=1:ncpus=1:ngpus=1:mem=100gb:gpu_mem=60b:scratch_local=100gb
+#PBS -l select=1:ncpus=1:ngpus=1:mem=200gb:gpu_mem=80b:scratch_local=400gb
 #PBS -l walltime=20:00:00
 
 HOMEDIR=/storage/brno2/home/xkaska01/master/
 
 
+export CUDA_VISIBLE_DEVICES=0
 module add mambaforge
 mamba activate /storage/brno2/home/xkaska01/.conda/envs/diplomka
 

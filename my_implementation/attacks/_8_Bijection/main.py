@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 # Náš vlastní útok a LLM wrapper
 from attacks._8_Bijection.bijection_digit_attack import DigitAttack
-from attacks._8_Bijection.llm import LLM
+from attacks.common.llm import LLM
 from attacks.helpers import load_config
 from defense.defense_EA import DefenseEA
 

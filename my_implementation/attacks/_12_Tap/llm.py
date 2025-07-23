@@ -29,25 +29,6 @@ class LLM:
         )
 
     # --------------------------------------------------------------------- #
-    # internal helper                                                        #
-    # --------------------------------------------------------------------- #
-    def _params(
-        self,
-        *,
-        temperature: float | None = None,
-        max_tokens: int | None = None,
-        logprobs: bool | None = None,
-        seed: int | None = None,
-    ) -> SamplingParams:
-        """Připrav SamplingParams s výchozími či explicitně předanými hodnotami."""
-        return SamplingParams(
-            temperature=self.temperature if temperature is None else temperature,
-            max_tokens=self.max_tokens if max_tokens is None else max_tokens,
-            logprobs=logprobs,
-            seed=seed,
-        )
-
-    # --------------------------------------------------------------------- #
     # public API – jednoduchý single-turn                                   #
     # --------------------------------------------------------------------- #
     def response(
@@ -61,7 +42,7 @@ class LLM:
         prompt = messages[-1]["content"]
         outputs = self.client.generate(
             [{"prompt": prompt}],
-            sampling_params=self._params(
+            sampling_params=SamplingParams(
                 temperature=temperature,
                 max_tokens=max_tokens,
             ),

@@ -30,15 +30,6 @@ class LLM:
             model=self.model_path,
             trust_remote_code=True,  
         )
-        self.params = SamplingParams(
-            max_tokens=max_tokens,
-            temperature=temperature,
-            top_p=1.0,
-            top_k=-1,
-            logprobs=None,
-            seed=seed,
-            stop=[]
-        )
 
 
     def response(self, messages: list[dict]) -> str:

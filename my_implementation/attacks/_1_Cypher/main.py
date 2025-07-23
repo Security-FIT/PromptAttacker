@@ -3,7 +3,7 @@
 import os
 import json
 import pandas
-from attacks._1_Cypher.llm import LLM
+from attacks.common.llm import LLM
 from tqdm import tqdm
 from attacks._1_Cypher.cypher_attack import CypherAttack
 from defense.defense_EA import DefenseEA

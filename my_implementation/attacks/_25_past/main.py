@@ -5,7 +5,7 @@ import datetime
 import numpy as np
 from tqdm import tqdm
 # Import existing LLM wrapper for vLLM
-from attacks._25_past.llm import LLM 
+from attacks.common.llm import LLM 
 # New attack logic for Past Tense
 from attacks._25_past.attack_past import PastTenseAttack 
 # Helper to load config files
@@ -16,9 +16,6 @@ from defense.defense_EA import DefenseEA
 
 
 def run_past_tense_attack(run_defense: bool = False):
-    # Removed: load_dotenv() - no longer needed without OpenAI/Together clients
-    # Removed: client_oai = openai.OpenAI(...)
-    # Removed: client_together = openai.OpenAI(...)
 
     defense = DefenseEA() # Initialize your defense mechanism, as in your original main.py
 

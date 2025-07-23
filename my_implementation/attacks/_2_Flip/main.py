@@ -3,7 +3,7 @@
 import os
 import json
 import pandas
-from attacks._12_Tap.llm import LLM
+from attacks.common.llm import LLM
 from tqdm import tqdm
 from attacks._2_Flip.flip_attack import FlipAttack
 from defense.defense_EA import DefenseEA

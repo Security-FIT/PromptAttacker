@@ -9,7 +9,7 @@ import json
 import pandas
 from tqdm import tqdm
 
-from attacks._15_Rewrite.llm import LLM
+from attacks.common.llm import LLM
 from attacks._15_Rewrite.attack_rewrite import RewriteAttack
 from defense.defense_EA import DefenseEA
 from attacks.helpers import load_config                 # už existuje ve tvém repu

@@ -6,7 +6,7 @@ import pandas
 from tqdm import tqdm
 
 from attacks.helpers import load_config
-from attacks._10_Random_Search.llm import LLM                       # jednoduchý wrapper
+from attacks.common.llm import LLM                       # jednoduchý wrapper
 from attacks._10_Random_Search.randomSearch_attack import RandomSearchAttack
 from defense.defense_EA import DefenseEA
 

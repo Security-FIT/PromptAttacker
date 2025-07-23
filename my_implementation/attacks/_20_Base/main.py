@@ -4,7 +4,7 @@ from pathlib import Path
 from tqdm import tqdm
 
 from attacks._20_Base.base_attack import BaseAttack, BaseAttackConfig
-from attacks._20_Base.llm import LLM
+from attacks.common.llm import LLM
 from attacks.helpers import load_config
 from defense.defense_EA import DefenseEA
 

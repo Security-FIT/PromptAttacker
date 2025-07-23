@@ -2,7 +2,7 @@ from typing import Dict, List
 from dataclasses import dataclass, field
 from vllm import LLM as VLLMClient, SamplingParams
 
-from attacks._12_Tap.llm import LLM
+from attacks.common.llm import LLM
 
 from attacks._12_Tap.utils import *
 import json

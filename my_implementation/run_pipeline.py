@@ -58,7 +58,8 @@ if __name__ == "__main__":
     print(f"[INFO] Running FlipAttack with config: {cfg.get('run_defense', False)}")
     run_cypher_attack(cfg.get('run_defense', False))
     run_flip_attack(cfg.get('run_defense', False))
-    run_pif_attack(cfg.get('run_defense', False))  
+    # exit(0)
+    # run_pif_attack(cfg.get('run_defense', False))  
     run_sql_attack(cfg.get('run_defense', False))
     run_suffix_attack(cfg.get('run_defense', False))
     run_sequential_attack(cfg.get('run_defense', False))
@@ -66,18 +67,18 @@ if __name__ == "__main__":
     run_bijection_attack(cfg.get('run_defense', False))
     run_dialog_attack(cfg.get('run_defense', False))
     run_random_attack(cfg.get('run_defense', False))
-    run_pair_attack(cfg.get('run_defense', False))  
-    run_GPTcypher_attack(cfg.get('run_defense', False))
-    run_scav_attack(cfg.get('run_defense', False))
-    run_rewrite_attack(cfg.get('run_defense', False))  
-    run_ica_attack(cfg.get('run_defense', False))
-    run_overload_attack(cfg.get('run_defense', False))
-    # run_gcg_attack(cfg.get('run_defense', False)) #zatim nefunguje 
-    run_inception_attack(cfg.get('run_defense', False))
-    run_base_attack(cfg.get('run_defense', False))
-    run_renellm_attack(cfg.get('run_defense', False))
-    run_past_tense_attack(cfg.get('run_defense', False))
-    # run_autodan_attack(cfg.get('run_defense', False)) # zatim nefunguje kvuli balicku nltk
+    # run_pair_attack(cfg.get('run_defense', False))  
+    # run_GPTcypher_attack(cfg.get('run_defense', False))
+    # run_scav_attack(cfg.get('run_defense', False))
+    # run_rewrite_attack(cfg.get('run_defense', False))  
+    # run_ica_attack(cfg.get('run_defense', False))
+    # run_overload_attack(cfg.get('run_defense', False))
+    # run_gcg_attack(cfg.get('run_defense', False)) #zatim nefunguje -------
+    # run_inception_attack(cfg.get('run_defense', False))
+    # run_base_attack(cfg.get('run_defense', False))
+    # run_renellm_attack(cfg.get('run_defense', False))
+    # run_past_tense_attack(cfg.get('run_defense', False))
+    # run_autodan_attack(cfg.get('run_defense', False)) 
 
     # run_artprompt_attack(cfg.get('run_defense', False)) #zatim nefunguje 
     # run_tap_attack(cfg.get('run_defense',False))  # Moc slozity asi to nebudu nakonec delat, zatim nefunguje a stravil jsem na nem uz skoro 3 dny

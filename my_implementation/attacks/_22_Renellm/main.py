@@ -5,7 +5,7 @@ from tqdm import tqdm
 import os
 
 from attacks._22_Renellm.renellm_attack import ReNeLLMAttack, ReNeLLMConfig
-from attacks._22_Renellm.llm import LLM
+from attacks.common.llm import LLM
 from attacks.helpers import load_config
 from defense.defense_EA import DefenseEA
 

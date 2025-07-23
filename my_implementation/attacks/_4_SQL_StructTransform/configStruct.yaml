@@ -1,8 +1,8 @@
 SQL:
-  attacker_llm: "models/Llama-2-13b-chat"
-  target_llm: "models/Llama-2-7b-hf/"
-  data_path: "dataset/sql.csv"
-  output_dir: "results"
+  attacker_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-13b-chat"
+  target_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf/"
+  data_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/sql.csv"
+  output_dir: "/storage/brno2/home/xkaska01/master/my_implementation/results"
   temperature_attack: 0.7
   temperature_target: 0.8
   max_tokens: 512

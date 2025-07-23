@@ -25,24 +25,14 @@ class LLM:
         self.gpu_mem_util         = gpu_memory_utilization
         self.quantization         = quantization
 
+        self.client = VLLMClient(model=self.model_path)
+
+
     def response(self, messages: list[dict]) -> str:
         prompt = messages[-1]["content"]
 
-        client_args = {
-            "model":               self.model_path,
-            "trust_remote_code":   True,
-            "tensor_parallel_size": self.tp_size,
-            "swap_space":          self.swap_space,
-            "gpu_memory_utilization": self.gpu_mem_util,
-        }
-        if self.engine_url:
-            client_args["engine_url"] = self.engine_url
-        if self.quantization:
-            client_args["quantization"] = self.quantization
 
-        client = VLLMClient(**client_args)
-
-        outs = client.generate(
+        outs = self.client.generate(
             [{"prompt": prompt}],
             sampling_params=SamplingParams(
                 temperature=self.temperature,

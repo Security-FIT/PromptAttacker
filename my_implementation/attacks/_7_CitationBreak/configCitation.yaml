@@ -1,6 +1,6 @@
 Citation:
-  victim_llm: "models/Llama-2-7b-hf/"
-  data_path: "dataset/darkCite.jsonl"
-  output_dir: "results"
+  victim_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf/"
+  data_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/darkCite.jsonl"
+  output_dir: "/storage/brno2/home/xkaska01/master/my_implementation/results"
   temperature: 0.0
   max_token: 512

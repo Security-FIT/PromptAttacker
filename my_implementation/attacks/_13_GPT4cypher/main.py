@@ -23,7 +23,7 @@ from attacks._13_GPT4cypher.attack_cypher import (
     GPT4CipherAttackerConfig,
 )
 from attacks.helpers import load_config
-from attacks._13_GPT4cypher.llm import LLM  # sdílíme jednoduchý wrapper
+from attacks.common.llm import LLM  # sdílíme jednoduchý wrapper
 from defense.defense_EA import DefenseEA
 
 

@@ -1,7 +1,7 @@
 import os
 import json
 import pandas as pd
-from attacks._6_Sequential.llm import LLM
+from attacks.common.llm import LLM
 from attacks._6_Sequential.sequential_attack import SequentialAttack   
 from attacks.helpers import load_config
 from defense.defense_EA import DefenseEA

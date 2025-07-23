@@ -3,7 +3,7 @@ import os, json, argparse, time, random, tqdm, yaml, pandas as pd
 from pathlib import Path
 
 from attacks._7_CitationBreak.citation_attack import CitationAttack, get_attack_prompt
-from attacks._7_CitationBreak.llm import LLM
+from attacks.common.llm import LLM
 from attacks.helpers import load_config         
 from defense.defense_EA import DefenseEA        
 

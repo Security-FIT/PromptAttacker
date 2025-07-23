@@ -10,7 +10,7 @@ import pandas
 from tqdm import tqdm
 
 # Re-use existující wrapper (nemusíš duplikovat kód)
-from attacks._19_Deepinception.llm import LLM          # stejné jako dříve :contentReference[oaicite:10]{index=10}
+from attacks.common.llm import LLM          # stejné jako dříve :contentReference[oaicite:10]{index=10}
 from attacks._19_Deepinception.deep_inception_attack import DeepInceptionAttack
 from defense.defense_EA import DefenseEA
 from attacks.helpers import load_config      

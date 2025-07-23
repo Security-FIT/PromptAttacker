@@ -1,7 +1,7 @@
 import os
 import json
 import pandas as pd
-from attacks._9_Dialog_completition.llm import LLM
+from attacks.common.llm import LLM
 from attacks._9_Dialog_completition.dialog_attack import DialogCompletionAttack   
 from attacks.helpers import load_config
 from tqdm import tqdm

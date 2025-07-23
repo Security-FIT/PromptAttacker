@@ -3,7 +3,7 @@ import os, json, pandas
 from tqdm import tqdm
 
 from attacks._18_Gcg.gcg_attack import GCGAttack
-from attacks._18_Gcg.llm import LLM               # Re‑use existing wrapper
+from attacks.common.llm import LLM               # Re‑use existing wrapper
 from attacks.helpers import load_config
 from defense.defense_EA import DefenseEA
 

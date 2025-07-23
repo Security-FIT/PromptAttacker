@@ -1,7 +1,7 @@
 Cypher:
-  victim_llm: "models/Llama-2-7b-hf/"
-  data_path: "dataset/cypher.csv"
-  output_dict: "results"
+  victim_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf/"
+  data_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/cysecbench_adv.csv"
+  output_dict: "/storage/brno2/home/xkaska01/master/my_implementation/results"
   temperature: 0.8
   max_token: 512
   cypher_mode: "WS"

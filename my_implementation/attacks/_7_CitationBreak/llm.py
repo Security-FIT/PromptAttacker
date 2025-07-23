@@ -17,6 +17,11 @@ class LLM:
         self.temperature = temperature
         self.max_tokens = max_tokens
 
+        self.client = VLLMClient(
+            model=self.model_path,
+            trust_remote_code=True,
+        )
+
     def response(self, messages: list[dict]) -> str:
         """
         messages: seznam zpráv s poli 'role' a 'content'. Poslední zpráva
@@ -25,12 +30,9 @@ class LLM:
         """
         user_prompt = messages[-1]["content"]
 
-        client = VLLMClient(
-            model=self.model_path,
-            trust_remote_code=True,
-        )
 
-        outputs = client.generate(
+
+        outputs = self.client.generate(
             [{"prompt": user_prompt}],
             sampling_params=SamplingParams(
                 temperature=self.temperature,

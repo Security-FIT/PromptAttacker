@@ -5,7 +5,7 @@ from tqdm import tqdm
 import gc
 import torch
 
-from attacks._4_SQL_StructTransform.llm import LLM
+from attacks.common.llm import LLM
 from attacks._4_SQL_StructTransform.SQL_attack import SQLAttack
 from defense.defense_EA import DefenseEA 
 from attacks.helpers import load_config 
