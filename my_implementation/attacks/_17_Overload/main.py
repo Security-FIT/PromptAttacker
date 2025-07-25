@@ -13,9 +13,9 @@ from attacks._17_Overload.llm import LLM
 from defense.defense_EA import DefenseEA
 
 
-def run_overload_attack(run_defense: bool = False) -> None:
+def run_overload_attack(victim_llm_path, results_dir, dataset_path,  api_ollama_vllm, what_ollama_model):
     """Spustí OverloadAttack podle YAML konfigurace."""
-    defense = DefenseEA() if run_defense else None
+    # defense = DefenseEA() if run_defense else None
 
     # --- Načtení konfigurace ------------------------------------------------ #
     cfg = load_config(os.path.join(os.path.dirname(__file__), "configOverload.yaml"))
@@ -23,23 +23,25 @@ def run_overload_attack(run_defense: bool = False) -> None:
 
     # --- LLM ---------------------------------------------------------------- #
     victim_llm = LLM(
-        model_path=cfg_ol["victim_llm"],
+        model_path=victim_llm_path,
         temperature=cfg_ol.get("temperature", 0.0),
         max_tokens=cfg_ol.get("max_token", 512),
+        ollama_model=what_ollama_model,
+        use_ollama=api_ollama_vllm, 
     )
 
     # --- Dataset ------------------------------------------------------------ #
-    data_file = cfg_ol["data_path"]
-    df = pd.read_csv(data_file, index_col=0)          # bezejmenný první sloupec = index
-    if "Goal" not in df.columns:
-        raise KeyError(f"Column 'Goal' not found in {data_file}. "
-                       f"Current columns: {list(df.columns)}")
-    prompts = df["Goal"].dropna().tolist()
+    # data_file = cfg_ol["data_path"]
+    df = pd.read_csv(dataset_path)          # bezejmenný první sloupec = index
+    # if "goal" not in df.columns:
+        # raise KeyError(f"Column 'goal' not found in {dataset_path}. "
+                    #    f"Current columns: {list(df.columns)}")
+    # prompts = df["goal"].dropna().tolist()
 
     # --- Výstup ------------------------------------------------------------- #
-    out_dir  = cfg_ol["output_dict"]
-    os.makedirs(out_dir, exist_ok=True)
-    out_file = os.path.join(out_dir, "_17_overload.jsonl")  # JSON Lines
+    # out_dir  = cfg_ol["output_dict"]
+    os.makedirs(results_dir, exist_ok=True)
+    out_file = os.path.join(results_dir, "_17_overload.jsonl")  # JSON Lines
     attacker_field_names = {f.name for f in fields(OverloadAttackerConfig)}
 
     # ↓ odfiltrujeme vše, co dataclass nezná
@@ -50,11 +52,11 @@ def run_overload_attack(run_defense: bool = False) -> None:
 
     # --- Hlavní smyčka ------------------------------------------------------ #
     with open(out_file, "w", encoding="utf-8") as fo:
-        for idx, prompt in tqdm(enumerate(prompts), total=len(prompts)):
+        for idx, prompt in tqdm(enumerate(df["goal"])):
             attack_messages = attacker.attack([{"role": "user", "content": prompt}])
 
-            if defense:
-                attack_messages[-1]["content"] = defense(attack_messages[-1]["content"])
+            # if defense:
+                # attack_messages[-1]["content"] = defense(attack_messages[-1]["content"])
 
             llm_resp = victim_llm.response(attack_messages[-1]["content"] )
 

@@ -1,9 +1,7 @@
 # run.py
 
-import os
-import json
-import argparse
-import yaml
+import os, time, json, argparse, yaml
+from datetime import timedelta
 
 from attacks._1_Cypher.main import run_cypher_attack
 from attacks._2_Flip.main import run_flip_attack  
@@ -32,6 +30,11 @@ from attacks._24_Autodan.attack_dan import run_autodan_attack
 
 from defense.defense_EA import DefenseEA
 
+def log_and_print(msg: str, fh):
+    """Vytiskne na stdout + zapíše do souboru."""
+    print(msg)
+    if fh:
+        fh.write(msg + "\n")
 
 def load_config(path):
     ext = os.path.splitext(path)[1].lower()
@@ -54,37 +57,73 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     cfg = load_config(args.config_file)
+    victim_llm_path = cfg.get("victim_llm")
+    results_dir = cfg.get("results_dir")
+    dataset_path = cfg.get("dataset_path")
+    api_ollama_vllm = cfg.get("use_ollama")
+    what_ollama_model = cfg.get("ollama_model")
+
+
+    print(f"[INFO] Victim LLM Path: {victim_llm_path}"
+          f"\n[INFO] Results Directory: {results_dir}")
     
     print(f"[INFO] Running FlipAttack with config: {cfg.get('run_defense', False)}")
-    run_cypher_attack(cfg.get('run_defense', False))
-    run_flip_attack(cfg.get('run_defense', False))
-    # exit(0)
-    # run_pif_attack(cfg.get('run_defense', False))  
-    run_sql_attack(cfg.get('run_defense', False))
-    run_suffix_attack(cfg.get('run_defense', False))
-    run_sequential_attack(cfg.get('run_defense', False))
-    run_cite_attack(cfg.get('run_defense', False))
-    run_bijection_attack(cfg.get('run_defense', False))
-    run_dialog_attack(cfg.get('run_defense', False))
-    run_random_attack(cfg.get('run_defense', False))
-    # run_pair_attack(cfg.get('run_defense', False))  
-    # run_GPTcypher_attack(cfg.get('run_defense', False))
-    # run_scav_attack(cfg.get('run_defense', False))
-    # run_rewrite_attack(cfg.get('run_defense', False))  
-    # run_ica_attack(cfg.get('run_defense', False))
-    # run_overload_attack(cfg.get('run_defense', False))
-    # run_gcg_attack(cfg.get('run_defense', False)) #zatim nefunguje -------
-    # run_inception_attack(cfg.get('run_defense', False))
-    # run_base_attack(cfg.get('run_defense', False))
-    # run_renellm_attack(cfg.get('run_defense', False))
-    # run_past_tense_attack(cfg.get('run_defense', False))
-    # run_autodan_attack(cfg.get('run_defense', False)) 
 
-    # run_artprompt_attack(cfg.get('run_defense', False)) #zatim nefunguje 
-    # run_tap_attack(cfg.get('run_defense',False))  # Moc slozity asi to nebudu nakonec delat, zatim nefunguje a stravil jsem na nem uz skoro 3 dny
-    # print(defense.apply(" some prompt  "))  
+    os.makedirs(results_dir, exist_ok=True)
+    log_file_path = os.path.join(results_dir, "log_runtime.txt")
+    log_fh = open(log_file_path, "w", encoding="utf-8")
+    attacks_to_run = [
+        ("cypher", run_cypher_attack),
+        ("flip", run_flip_attack),
+        # ("pif", run_pif_attack),# dve llmka
+        # ("sql", run_sql_attack),# dve llmka
+        ("suffix", run_suffix_attack),
+        ("sequential", run_sequential_attack),
+        ("cite", run_cite_attack),
+        ("bijection", run_bijection_attack),
+        ("dialog", run_dialog_attack),
+        ("random", run_random_attack),
+        # ("pair", run_pair_attack),# dve llmka
+        ("gptcypher", run_GPTcypher_attack),
+        ("scav", run_scav_attack),
+        # ("tap", run_tap_attack), # Moc slozity asi to nebudu nakonec delat, zatim nefunguje a stravil jsem na nem uz skoro 3 dny  # dve llmka
+        ("rewrite", run_rewrite_attack),
+        ("ica", run_ica_attack),
+        ("overload", run_overload_attack),
+        # ("gcg", run_gcg_attack),#zatim nefunguje -------
+        ("inception", run_inception_attack),
+        ("base", run_base_attack),
+        ("artprompt", run_artprompt_attack),#zatim nefunguje -------
+        ("renellm", run_renellm_attack),
+        # ("past_tense", run_past_tense_attack),# dve llmka
+        # ("autodan", run_autodan_attack), #zatim nefunguje -------
+    ]
+
+    timings = {}
+    total_start = time.perf_counter()
+
+    for name, fn in attacks_to_run:
+        log_and_print(f"\n[INFO] ➜ Spouštím {name}…", log_fh)
+        if name != "artprompt":
+            continue  # Prozatím spouštím jen artprompt, ostatní jsou vypnuté
+        t0 = time.perf_counter()
+        fn(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model)
+        elapsed = time.perf_counter() - t0
+        timings[name] = elapsed
+        log_and_print(f"[INFO]   {name} hotovo za {timedelta(seconds=elapsed)}", log_fh)
+
+    total_elapsed = time.perf_counter() - total_start
+
+    log_and_print("\n========== Souhrn ==========", log_fh)
+    for name, secs in timings.items():
+        log_and_print(f"{name:12s}: {timedelta(seconds=secs)}", log_fh)
+    log_and_print(f"{'TOTAL':12s}: {timedelta(seconds=total_elapsed)}", log_fh)
+
+    log_and_print(f"\n[INFO] Runtime log uložen do {log_file_path}", log_fh)
+    log_fh.close()
+    
+     # print(defense.apply(" some prompt  "))  
 
     
     
-    # 22 utoku zatim
 # python3 run_pipeline.py --config_file config.yaml

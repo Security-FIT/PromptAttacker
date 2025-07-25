@@ -36,7 +36,7 @@ def load_prompts(csv_path: str) -> list[str]:
 # --------------------------------------------------------------------------- #
 #                                 Hlavní běh                                  #
 # --------------------------------------------------------------------------- #
-def run_scav_attack(run_defense: bool = False) -> None:
+def run_scav_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
     yaml_path = os.path.join(os.path.dirname(__file__), "configScav.yaml")
     cfg       = load_config(yaml_path)["Scav"]
 
@@ -54,15 +54,17 @@ def run_scav_attack(run_defense: bool = False) -> None:
 
     # ------------------------- inicializace LLM --------------------------- #
     victim_llm = LLM(
-        model_path = cfg["victim_llm"],
+        model_path = victim_llm_path,
         temperature = cfg.get("temperature", 0.0),
         max_tokens = cfg.get("max_token", 512),
+        ollama_model=what_ollama_model,
+        use_ollama=api_ollama_vllm, 
     )
 
     # --------------------------- výstupní soubor -------------------------- #
-    out_dir  = cfg["output_dict"]
-    os.makedirs(out_dir, exist_ok=True)
-    out_file = os.path.join(out_dir, f"_14_scav{model_size}.jsonl")
+    
+    os.makedirs(results_dir, exist_ok=True)
+    out_file = os.path.join(results_dir, f"_14_scav{model_size}.jsonl")
 
     # --------------------------- útočník ---------------------------------- #
     attacker_fields = {f.name for f in fields(ScavAttackerConfig)}
@@ -70,16 +72,13 @@ def run_scav_attack(run_defense: bool = False) -> None:
     attacker_kwargs["model_size"] = model_size
     attacker = ScavAttacker(ScavAttackerConfig(**attacker_kwargs))
 
-    defense = DefenseEA() if run_defense else None
+
 
     # ----------------------------- hlavní smyčka -------------------------- #
     with open(out_file, "w", encoding="utf-8") as fo:
         for idx, prompt in tqdm(enumerate(prompts), total=len(prompts)):
             messages = [{"role": "user", "content": prompt}]
             messages = attacker.attack(messages)
-
-            if defense:
-                messages[-1]["content"] = defense(messages[-1]["content"])
 
             llm_resp = victim_llm.response(messages[-1]["content"])
 

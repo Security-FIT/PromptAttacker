@@ -9,22 +9,24 @@ from attacks.common.llm import LLM
 from attacks.helpers import load_config
 from defense.defense_EA import DefenseEA
 
-def run_renellm_attack(use_defense=False):
+def run_renellm_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     cfg = load_config(script_dir + "/configRenellm.yaml")["ReNeLLM"]
 
 
     # ---------- config hodnoty -----------------------------------------
-    model_path = cfg["victim_llm"]
-    data_csv   = cfg["data_path"]
-    out_dir    = Path(cfg["output_dir"]); out_dir.mkdir(parents=True, exist_ok=True)
+    # model_path = cfg["victim_llm"]
+    # data_csv   = cfg["data_path"]
+    out_dir    = Path(results_dir); out_dir.mkdir(parents=True, exist_ok=True)
     params     = ReNeLLMConfig(iter_max=cfg.get("iter_max", 20),
                                use_cot=cfg.get("cot", False))
 
-    llm     = LLM(model_path,
+    llm = LLM(victim_llm_path,
                   cfg.get("temperature", 0.0),
-                  cfg.get("max_token", 512))
+                  cfg.get("max_token", 512),
+                ollama_model=what_ollama_model,
+                use_ollama=api_ollama_vllm)
 
     # stejný gen-config použijeme pro rewrite i pro inference
     gen_cfg = dict(max_n_tokens=cfg.get("max_token", 512),
@@ -33,9 +35,9 @@ def run_renellm_attack(use_defense=False):
 
     attack  = ReNeLLMAttack(params, rewrite_llm=llm.client,
                             rewrite_gen_cfg=gen_cfg)
-    defense = DefenseEA() if use_defense else None
+    # defense = DefenseEA() if use_defense else None
 
-    df = pd.read_csv(data_csv)
+    df = pd.read_csv(dataset_path)
     df.columns = [c.lower() for c in df.columns]
 
 
@@ -51,8 +53,8 @@ def run_renellm_attack(use_defense=False):
                                    rewrite_gen_cfg=gen_cfg)
             for method, log, messages in attack.generate_all(harmful):
                 # volitelná obrana
-                if defense:
-                    messages[-1]["content"] = defense(messages[-1]["content"])
+                # if defense:
+                #     messages[-1]["content"] = defense(messages[-1]["content"])
 
                 # poslat prompt do modelu
                 try:

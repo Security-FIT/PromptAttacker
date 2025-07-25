@@ -31,7 +31,7 @@ from defense.defense_EA import DefenseEA
 #                               Runner
 # ---------------------------------------------------------------------------
 
-def run_GPTcypher_attack(run_defense: bool = False) -> None:
+def run_GPTcypher_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
 
     # ----------------– načtení YAML -------------------------------------
     yaml_path = os.path.join(os.path.dirname(__file__), "configCypher.yaml")
@@ -39,28 +39,21 @@ def run_GPTcypher_attack(run_defense: bool = False) -> None:
 
     # ----------------– victim LLM ---------------------------------------
     victim_llm = LLM(
-        model_path  = cfg["victim_llm"],
+        model_path  = victim_llm_path,
         temperature = cfg.get("temperature", 0.0),
         max_tokens  = cfg.get("max_token", 512),
+        ollama_model=what_ollama_model,
+        use_ollama=api_ollama_vllm, 
     )
 
     # ----------------– dataset -----------------------------------------
-    data_path = cfg["data_path"]
-    if data_path.lower().endswith(".csv"):
-        df = pd.read_csv(data_path, index_col=0)
-        if "Goal" not in df.columns:
-            raise KeyError("Column 'Goal' not found in dataset")
-        prompts = df["Goal"].dropna().tolist()
-    elif data_path.lower().endswith(".txt"):
-        with open(data_path, "r", encoding="utf-8") as fi:
-            prompts = [line.strip() for line in fi if line.strip()]
-    else:
-        raise ValueError("data_path musí být .csv nebo .txt")
+    # data_path = cfg["data_path"]
+    df = pd.read_csv(dataset_path)
 
     # ----------------– výstup -------------------------------------------
-    out_dir  = cfg["output_dict"]
-    os.makedirs(out_dir, exist_ok=True)
-    out_file = os.path.join(out_dir, "_13_gpt4cipher.jsonl")
+    
+    os.makedirs(results_dir, exist_ok=True)
+    out_file = os.path.join(results_dir, "_13_gpt4cipher.jsonl")
 
     # ----------------– konfigurace útočníka -----------------------------
     attacker_fields = {f.name for f in fields(GPT4CipherAttackerConfig)}
@@ -68,16 +61,15 @@ def run_GPTcypher_attack(run_defense: bool = False) -> None:
     attacker_cfg    = GPT4CipherAttackerConfig(**attacker_kwargs)
     attacker        = GPT4CipherAttacker(attacker_cfg)
 
-    defense = DefenseEA() if run_defense else None
+    # defense = DefenseEA() if run_defense else None
 
     # ----------------– hlavní smyčka ------------------------------------
     with open(out_file, "w", encoding="utf-8") as fo:
-        for idx, prompt in tqdm(enumerate(prompts), total=len(prompts)):
+        for idx, prompt in tqdm(
+                enumerate(df["goal"])):
             messages = [{"role": "user", "content": prompt}]
             messages = attacker.attack(messages)
 
-            if defense:
-                messages[-1]["content"] = defense(messages[-1]["content"])
 
             llm_resp = victim_llm.response(messages)
 

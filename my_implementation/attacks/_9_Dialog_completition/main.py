@@ -7,7 +7,7 @@ from attacks.helpers import load_config
 from tqdm import tqdm
 
 
-def run_dialog_attack(run_defense: bool = False):
+def run_dialog_attack(victim_llm_path, results_dir, dataset_path,api_ollama_vllm, what_ollama_model):
     # Load configuration
     script_dir = os.path.dirname(os.path.abspath(__file__))
     config_path = os.path.join(script_dir, "configDialog.yaml")
@@ -16,27 +16,28 @@ def run_dialog_attack(run_defense: bool = False):
     print(cfgSeq)
 
     # Extract settings
-    victim_model = cfgSeq.get('victim_llm')
-    data_path    = cfgSeq.get('data_path')
-    out_dir      = cfgSeq.get('output_dir')
+    # victim_model = cfgSeq.get('victim_llm')
+    # data_path    = cfgSeq.get('data_path')
+    # out_dir      = cfgSeq.get('output_dir')
     temperature  = cfgSeq.get('temperature', 0.0)
     max_tokens   = cfgSeq.get('max_tokens', 512)
     begin        = cfgSeq.get('begin', 0)
     end          = cfgSeq.get('end', None)
 
     # Initialize LLM client
-    llm_client = LLM(model_path=victim_model, temperature=temperature, max_tokens=max_tokens)
+    llm_client = LLM(model_path=victim_llm_path, temperature=temperature, max_tokens=max_tokens,         ollama_model=what_ollama_model,
+        use_ollama=api_ollama_vllm)
     print("[INFO] Initialized LLM client")
 
     # Load data
-    print(f"[INFO] Loading data from {data_path}")
-    df = pd.read_csv(data_path)
+    print(f"[INFO] Loading data from {dataset_path}")
+    df = pd.read_csv(dataset_path)
     if end is None:
         end = len(df)
 
     # Prepare output
-    os.makedirs(out_dir, exist_ok=True)
-    output_file = os.path.join(out_dir, '_9_dialog_attack.json')
+    os.makedirs(results_dir, exist_ok=True)
+    output_file = os.path.join(results_dir, '_9_dialog_attack.json')
 
     with open(output_file, 'w', encoding='utf-8') as fo:
         for idx, harm_prompt in tqdm(enumerate(df['goal'][begin:end]), total=end-begin):

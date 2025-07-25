@@ -1,5 +1,5 @@
 PastTense:
-  reformulator_llm: "models/Llama-3.1-70B/" 
+  reformulator_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf/" 
   
   target_llm: "models/Llama-2-13b-chat" 
 
@@ -14,5 +14,5 @@ PastTense:
 
   attack_type: "past" 
   begin: 0
-  end: 100
+  end: 13282
   n_restarts: 2

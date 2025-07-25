@@ -43,7 +43,7 @@ def str2bool(v: str) -> bool:  # pro CLI switch
 # Main
 ###########################################################################
 
-def run_pif_attack(run_defense: bool = False):  # aktuálně se obrana nepoužívá
+def run_pif_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model, api_ollama_vllm):  # aktuálně se obrana nepoužívá
     # ------------------------------------------------------------------
     # 1) načtení konfigurace
     # ------------------------------------------------------------------
@@ -54,9 +54,9 @@ def run_pif_attack(run_defense: bool = False):  # aktuálně se obrana nepouží
 
     # povinné položky
     gen_model_path: str = cfg_pif["gen_model_path"]
-    tgt_model_path: str = cfg_pif["tgt_model_path"]
-    att_file: str = cfg_pif["att_file"]
-    output_dir: str = cfg_pif["output_dir"]
+    # tgt_model_path: str = cfg_pif["tgt_model_path"]
+    # att_file: str = cfg_pif["att_file"]
+    # output_dir: str = cfg_pif["output_dir"]
 
     # volitelné s výchozí hodnotou
     opt_objective: str = cfg_pif.get("opt_objective", "ASR")
@@ -79,7 +79,7 @@ def run_pif_attack(run_defense: bool = False):  # aktuálně se obrana nepouží
     # ------------------------------------------------------------------
     # 2) příprava logů a IO
     # ------------------------------------------------------------------
-    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    Path(results_dir).mkdir(parents=True, exist_ok=True)
     log_file = "/storage/brno2/home/xkaska01/master/my_implementation/attacks/_3_PiF/output.log"
 
     logging.basicConfig(
@@ -96,7 +96,7 @@ def run_pif_attack(run_defense: bool = False):  # aktuálně se obrana nepouží
     # ------------------------------------------------------------------
     # 3) načtení datasetu
     # ------------------------------------------------------------------
-    with open(att_file, "r", encoding="utf-8") as f:
+    with open(dataset_path, "r", encoding="utf-8") as f:
         advbench = [ln.strip() for ln in f if ln.strip()]
     prompt_advbench = [prompt_template.format(adv) for adv in advbench]
 
@@ -110,7 +110,7 @@ def run_pif_attack(run_defense: bool = False):  # aktuálně se obrana nepouží
     overall_successful = 0
     overall_input = 0
 
-    output_path = Path(output_dir) / output_file_name
+    output_path = Path(results_dir) / output_file_name
     logger.info("Results will be written to %s", output_path)
 
     with open(output_path, "w", encoding="utf-8") as fo:
@@ -118,7 +118,7 @@ def run_pif_attack(run_defense: bool = False):  # aktuálně se obrana nepouží
             chunk_prompts: List[str] = prompt_advbench[i: i + batch_size]
 
             query, t_spent, flags, gen_attacks, tgt_responses = attack_clm.generate_attack(
-                gen_model_path, gen_model_path, tgt_model_path, tgt_model_path,
+                gen_model_path, gen_model_path, victim_llm_path, victim_llm_path,
                 chunk_prompts, evaluation_template,
                 objective=opt_objective, iterations=iterations,
                 top_n=top_n, top_m=top_m, top_k=top_k,

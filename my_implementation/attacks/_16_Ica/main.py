@@ -8,45 +8,50 @@ from attacks.common.llm import LLM
 from attacks.helpers import load_config
 from defense.defense_EA import DefenseEA   
 
-def run_ica_attack(use_defense: bool = False):
+def run_ica_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
     # ------------ načti yaml config ------------------------------------
     script_dir = os.path.dirname(os.path.abspath(__file__))
     cfg = load_config(script_dir + "/configIca.yaml")["ICA"]
 
-    victim_llm  = cfg["victim_llm"]
-    data_path   = cfg["data_path"]
-    out_dir     = Path(cfg["output_dir"]); out_dir.mkdir(parents=True, exist_ok=True)
+    # victim_llm  = cfg["victim_llm"]
+    # data_path   = cfg["data_path"]
+    # out_dir     = Path(cfg["output_dir"]); out_dir.mkdir(parents=True, exist_ok=True)
     temperature = cfg.get("temperature", 0.0)
     max_token   = cfg.get("max_token", 512)
     cot         = cfg.get("cot", False)
     begin       = cfg.get("begin", 0)
     end         = cfg.get("end", None)
 
-    print(f"[INFO] ICA-Attack  •  model={victim_llm}  •  COT={cot}")
+    print(f"[INFO] ICA-Attack  •  model={victim_llm_path}  •  COT={cot}")
 
     # ------------ init LLM & attacker ----------------------------------
-    victim   = LLM(victim_llm, temperature, max_token)
+    victim   = LLM(victim_llm_path, temperature, max_token, what_ollama_model, api_ollama_vllm)
     attacker = ICAAttack(cot=cot)
-    defense  = DefenseEA() if use_defense else None
+    # defense  = DefenseEA() if use_defense else None
 
     # ------------ načti dataset ----------------------------------------
-    df = pd.read_csv(data_path)
-    df.columns = [c.lower().strip() for c in df.columns]   # Goal → goal, Target → target …
-    if end is None or end > len(df):
-        end = len(df)
+    df = pd.read_csv(dataset_path)
 
     # ------------ inference smyčka -------------------------------------
-    out_file = out_dir / "_16_ica.json"
-    with out_file.open("w", encoding="utf-8") as fo:
-        for idx, row in enumerate(
-                tqdm(df.iloc[begin:end].itertuples(index=False),
-                     total=end - begin, desc="ICA"),
-                start=begin):
-            harmful_prompt = str(row.goal)
-            log, msgs = attacker.generate(harmful_prompt)
 
-            if defense:
-                msgs[-1]["content"] = defense(msgs[-1]["content"])
+    os.makedirs(results_dir, exist_ok=True)
+    out_file = os.path.join(results_dir, '_16_ica.json')
+    print(f"[INFO] Output file: {out_file}")
+    print()
+    print()
+    print()
+    print()
+
+
+    with open(out_file, "w", encoding="utf-8") as fo:
+        for idx, row in tqdm(
+            enumerate(df["goal"][begin:end]), total=end - begin
+        ):
+            # harmful_prompt = str(row.goal)
+            log, msgs = attacker.generate(row)
+
+            # if defense:
+            #     msgs[-1]["content"] = defense(msgs[-1]["content"])
 
             try:
                 reply = victim.response(msgs)
@@ -56,7 +61,7 @@ def run_ica_attack(use_defense: bool = False):
             fo.write(json.dumps({
                 "id": idx + begin,
                 "category": getattr(row, "category", ""),
-                "original_prompt": harmful_prompt,
+                "original_prompt": row,
                 "prompt": msgs[-1]["content"],
                 "response": reply
             }, ensure_ascii=False) + "\n")

@@ -15,7 +15,7 @@ from attacks.helpers import load_config
 from defense.defense_EA import DefenseEA
 
 
-def run_past_tense_attack(run_defense: bool = False):
+def run_past_tense_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
 
     defense = DefenseEA() # Initialize your defense mechanism, as in your original main.py
 
@@ -26,9 +26,9 @@ def run_past_tense_attack(run_defense: bool = False):
     print(cfg["PastTense"])
 
     reformulator_llm_path = cfgPastTense['reformulator_llm']
-    target_llm_path = cfgPastTense['target_llm']
-    data_path = cfgPastTense['data_path']
-    out_dir = cfgPastTense['output_dict']
+    # target_llm_path = cfgPastTense['target_llm']
+    # data_path = cfgPastTense['data_path']
+    # out_dir = cfgPastTense['output_dict']
     
     reformulator_temperature = cfgPastTense.get('reformulator_temperature', 1.0)
     reformulator_max_tokens = cfgPastTense.get('reformulator_max_tokens', 150)
@@ -41,30 +41,33 @@ def run_past_tense_attack(run_defense: bool = False):
     end = cfgPastTense.get('end', 100)
     n_restarts = cfgPastTense.get('n_restarts', 20)
 
-    print(f"[INFO] Starting Past Tense Attack: reformulator_llm={reformulator_llm_path}, target_llm={target_llm_path}, attack_type={attack_type}, range=[{begin},{end})")
+    print(f"[INFO] Starting Past Tense Attack: reformulator_llm={reformulator_llm_path}, target_llm={victim_llm_path}, attack_type={attack_type}, range=[{begin},{end})")
 
     # Initialize vLLM clients
     reformulator_llm = LLM(
         model_path=reformulator_llm_path,
         temperature=reformulator_temperature,
-        max_tokens=reformulator_max_tokens
+        max_tokens=reformulator_max_tokens,
+        ollama_model=what_ollama_model,
+        use_ollama=api_ollama_vllm, 
     )
     print("[INFO] Initialized Reformulator LLM client")
 
     # target_llm = LLM(
-    #     model_path=target_llm_path,
+    #     model_path=victim_llm_path,
     #     temperature=target_temperature,
-    #     max_tokens=target_max_tokens
+    #     max_tokens=target_max_tokens,
+    #     ollama_model=what_ollama_model,
+    #     use_ollama=api_ollama_vllm, 
     # )
     print("[INFO] Initialized Target LLM client")
 
     # Load data
-    adv_bench = pandas.read_csv(data_path)
-    print(f"[INFO] Loaded data from {data_path}")
+    adv_bench = pandas.read_csv(dataset_path)
+    print(f"[INFO] Loaded data from {dataset_path}")
 
-    os.makedirs(out_dir, exist_ok=True)
-    timestamp_start = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    output_file = os.path.join(out_dir, f'_25_past.jsonl')
+    os.makedirs(results_dir, exist_ok=True)
+    output_file = os.path.join(results_dir, f'_25_past.jsonl')
 
     # This dictionary will store all results for final analysis (without ASR if no judges)
     jb_dict = {
@@ -73,7 +76,7 @@ def run_past_tense_attack(run_defense: bool = False):
     }
 
     with open(output_file, 'w', encoding='utf-8') as fo:
-        for i_request, harm_prompt_original in tqdm(enumerate(adv_bench["Goal"][begin:end])):
+        for i_request, harm_prompt_original in tqdm(enumerate(adv_bench["goal"][begin:end])):
             print(f">>> Request #{i_request}: {harm_prompt_original}")
             
             request_reformulated_str = "" # To store the string representation of the reformulated request
@@ -93,9 +96,9 @@ def run_past_tense_attack(run_defense: bool = False):
 
                 # Apply defense if enabled, mirroring your flip_main.py structure
                 prompt_to_llm = request_reformulated_str
-                if run_defense:
-                    prompt_to_llm = defense(prompt_to_llm) # Apply defense
-                    print(f"[DEBUG] Prompt after defense (before target LLM): {prompt_to_llm[:50]}...")
+                # if run_defense:
+                    # prompt_to_llm = defense(prompt_to_llm) # Apply defense
+                    # print(f"[DEBUG] Prompt after defense (before target LLM): {prompt_to_llm[:50]}...")
                 
                 # Use target LLM to get the final response
                 target_messages = [{"role": "user", "content": prompt_to_llm}]

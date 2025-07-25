@@ -1,4 +1,9 @@
 run_defense: false
+victim_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf/"
+dataset_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/dataset_40_prompts.csv"
+results_dir: "/storage/brno2/home/xkaska01/master/my_implementation/results/results_druhotny_experiment_se_vsim/"
+use_ollama: true # true = ollama, false = vllm 
+ollama_model: "llama3.1:70b" 
 defense:
 
 evaluator:

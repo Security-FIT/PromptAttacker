@@ -1,9 +1,6 @@
 ICA:
-  victim_llm: "models/Llama-2-7b-hf/"
-  data_path:  "dataset/adv_ica.csv"
-  output_dir: "results"
   temperature: 0.0
   max_token: 512
   cot: false          
   begin: 0
-  end: null
+  end: 13282

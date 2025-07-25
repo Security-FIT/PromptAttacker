@@ -9,7 +9,7 @@ from attacks._2_Flip.flip_attack import FlipAttack
 from defense.defense_EA import DefenseEA
 from attacks.helpers import load_config
 
-def run_flip_attack(run_defense: bool = False):
+def run_flip_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
 
     defense = DefenseEA()
 
@@ -19,9 +19,9 @@ def run_flip_attack(run_defense: bool = False):
     cfgFlip = cfg["Flip"]
     print(cfg["Flip"])
 
-    victim_llm = cfgFlip['victim_llm']
-    data_path  = cfgFlip['data_path']
-    out_dir    = cfgFlip['output_dict']
+    # victim_llm = cfgFlip['victim_llm']
+    # data_path  = cfgFlip['data_path']
+    # out_dir    = cfgFlip['output_dict']
     temperature= cfgFlip.get('temperature', 0.0)
     max_token  = cfgFlip.get('max_token', 512)
     flip_mode  = cfgFlip.get('flip_mode', 'FWO')
@@ -29,28 +29,31 @@ def run_flip_attack(run_defense: bool = False):
     lang_gpt   = cfgFlip.get('lang_gpt', False)
     few_shot   = cfgFlip.get('few_shot', False)
     begin      = cfgFlip.get('begin', 0)
-    end        = cfgFlip.get('end', 519)
-    print(f"[INFO] Starting FlipAttack: victim_llm={victim_llm}, flip_mode={flip_mode}, range=[{begin},{end})")
+    end        = cfgFlip.get('end', 13282)
+    # print(f"[INFO] Starting FlipAttack: victim_llm={victim_llm}, flip_mode={flip_mode}, range=[{begin},{end})")
     # data path
 
 
-    if data_path:
-        data_file = data_path
+    if dataset_path:
+        data_file = dataset_path
         print(f"[INFO] Using data file: {data_file}")
 
-    print(f"[INFO] Loading data from {data_path}")
+    print(f"[INFO] Loading data from {dataset_path}")
     # init victim llm
-    victim_llm = LLM(model_path=victim_llm,
+    victim_llm = LLM(model_path=victim_llm_path,
                temperature=temperature,
-               max_tokens=max_token)
+               max_tokens=max_token,
+               ollama_model=what_ollama_model,
+               use_ollama=api_ollama_vllm 
+               )
     print("[INFO] Initialized LLM client")
     # load data
-    adv_bench = pandas.read_csv(data_path)
+    adv_bench = pandas.read_csv(dataset_path)
 
  
 
-    os.makedirs(out_dir, exist_ok=True)
-    output_file = os.path.join(out_dir, '_2_flip.json')
+    os.makedirs(results_dir, exist_ok=True)
+    output_file = os.path.join(results_dir, '_2_flip.json')
 
     with open(output_file, 'w', encoding='utf-8') as fo:
 
@@ -65,10 +68,6 @@ def run_flip_attack(run_defense: bool = False):
             # generate attack
             log, flip_attack = attack_model.generate(harm_prompt)
             
-            # attack llms
-            if run_defense:
-                flip_attack[-1]['content'] = defense(flip_attack[-1]['content'])
-
             llm_response = victim_llm.response(flip_attack)
             
             entry = {

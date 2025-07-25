@@ -6,12 +6,12 @@ import pandas
 from tqdm import tqdm
 
 from attacks.helpers import load_config
-from attacks.common.llm import LLM                       # jednoduchý wrapper
+from attacks.common.llm import LLM
 from attacks._10_Random_Search.randomSearch_attack import RandomSearchAttack
 from defense.defense_EA import DefenseEA
 
 
-def run_random_attack(run_defense: bool = False):
+def run_random_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
     """
     Spustí Random-Search útok nad datasetem definovaným v configRandomSearch.yaml
     a výsledky uloží do JSON řádku po řádku (stejně jako run_flip_attack).
@@ -28,9 +28,9 @@ def run_random_attack(run_defense: bool = False):
     cfgRS = cfg["RandomSearch"]
     print(cfgRS)
 
-    victim_llm_path = cfgRS["victim_llm"]
-    data_path       = cfgRS["data_path"]
-    out_dir         = cfgRS["output_dict"]
+    # victim_llm_path = cfgRS["victim_llm"]
+    # data_path       = cfgRS["data_path"]
+    # out_dir         = cfgRS["output_dict"]
     temperature     = cfgRS.get("temperature", 1.0)
     max_token       = cfgRS.get("max_token", 4096)
     target_str      = cfgRS.get("target_str", "Sure,")
@@ -46,15 +46,17 @@ def run_random_attack(run_defense: bool = False):
 
     victim_llm = LLM(model_path=victim_llm_path,
                      temperature=temperature,
-                     max_tokens=max_token)
+                     max_tokens=max_token,
+                     ollama_model=what_ollama_model,
+                     use_ollama=api_ollama_vllm)
     print("[INFO] Initialized LLM client")
 
-    adv_bench = pandas.read_csv(data_path)
-    os.makedirs(out_dir, exist_ok=True)
-    output_file = os.path.join(out_dir, '_10_randomsearch.json')
+    adv_bench = pandas.read_csv(dataset_path)
+    os.makedirs(results_dir, exist_ok=True)
+    output_file = os.path.join(results_dir, '_10_randomsearch.json')
 
     with open(output_file, 'w', encoding='utf-8') as fo:
-        for idx, harm_prompt in tqdm(enumerate(adv_bench["Goal"][begin:end]), total=end-begin):
+        for idx, harm_prompt in tqdm(enumerate(adv_bench["goal"][begin:end]), total=end-begin):
             print(f"[INFO] Processing id {idx}: {harm_prompt[:50]}...")
 
             attacker = RandomSearchAttack(
@@ -69,9 +71,6 @@ def run_random_attack(run_defense: bool = False):
 
             out = attacker.generate(harm_prompt)
             prompt_adv = out["adversarial_prompt"]
-
-            if run_defense:
-                prompt_adv = defense(prompt_adv)
 
             llm_response = out["model_response"]  
 

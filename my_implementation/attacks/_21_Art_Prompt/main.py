@@ -5,34 +5,37 @@ from tqdm import tqdm
 
 from attacks.helpers import load_config
 from attacks._21_Art_Prompt.art_attack import ArtPromptAttack, ArtPromptConfig
-from attacks._21_Art_Prompt.llm import LLM
+from attacks.common.llm import LLM
 from defense.defense_EA import DefenseEA
 
 
-def run_artprompt_attack(use_defense=False):
+def run_artprompt_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model, api_ollama_vllm):
     here = Path(__file__).parent
     cfg  = load_config(here / "configArt.yaml")["ArtPrompt"]
 
-    mask_llm = LLM(cfg["mask_llm_path"],
-                   cfg.get("mask_temperature", 0.7),
-                   cfg.get("mask_max_token", 256))
+    # mask_llm = LLM(cfg["mask_llm_path"],
+    #                cfg.get("mask_temperature", 0.7),
+    #                cfg.get("mask_max_token", 256),
+    #                what_ollama_model,
+    #                api_ollama_vllm)
 
-    victim = LLM(cfg["victim_llm_path"],
+    victim = LLM(victim_llm_path,
                  cfg.get("temperature", 0.0),
-                 cfg.get("max_token", 512))
+                 cfg.get("max_token", 512),
+                 api_ollama_vllm,
+                 what_ollama_model)
 
     attack = ArtPromptAttack(ArtPromptConfig(
-        mask_llm        = mask_llm,
+        mask_llm        = victim,
         ascii_font_file = cfg["ascii_font_file"],
-        rewrite_template= cfg["rewrite_template"],
         use_cot         = cfg.get("cot", False)
     ))
-    defense = DefenseEA() if use_defense else None
+    # defense = DefenseEA() if use_defense else None
 
-    df = pd.read_csv(cfg["data_path"])
+    df = pd.read_csv(dataset_path)
     df.columns = [c.lower().strip() for c in df.columns]
 
-    out_dir = Path(cfg["output_dir"]); out_dir.mkdir(parents=True, exist_ok=True)
+    out_dir = Path(results_dir); out_dir.mkdir(parents=True, exist_ok=True)
     out_file = out_dir / "_21_artprompt.json"
 
     with out_file.open("w", encoding="utf-8") as fo:
@@ -44,8 +47,8 @@ def run_artprompt_attack(use_defense=False):
             harmful = str(row.goal)
             log, messages = attack.generate(harmful)
 
-            if defense:
-                messages[-1]["content"] = defense(messages[-1]["content"])
+            # if defense:
+                # messages[-1]["content"] = defense(messages[-1]["content"])
 
             if not messages[-1]["content"]:
                 continue
@@ -57,7 +60,6 @@ def run_artprompt_attack(use_defense=False):
 
             entry = {
                 "id":               idx,
-                "category":         getattr(row, "category", ""),
                 "original_prompt":  harmful,
                 "prompt":           messages[-1]["content"],
                 "response":         reply

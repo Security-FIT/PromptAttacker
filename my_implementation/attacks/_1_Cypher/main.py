@@ -9,8 +9,8 @@ from attacks._1_Cypher.cypher_attack import CypherAttack
 from defense.defense_EA import DefenseEA
 from attacks.helpers import load_config
 
-def run_cypher_attack(run_defense: bool = False):
 
+def run_cypher_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
     defense = DefenseEA()
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -18,9 +18,9 @@ def run_cypher_attack(run_defense: bool = False):
     cfg = load_config(config_path)
     cfgCypher = cfg["Cypher"]
 
-    victim_llm = cfgCypher['victim_llm']
-    data_path  = cfgCypher['data_path']
-    out_dir    = cfgCypher['output_dict']
+    # victim_llm = cfgCypher['victim_llm']
+    # data_path  = cfgCypher['data_path']
+    # out_dir    = cfgCypher['output_dict']
     temperature= cfgCypher.get('temperature', 0.0)
     max_token  = cfgCypher.get('max_token', 512)
     cypher_mode  = cfgCypher.get('cypher_mode', 'WSWR')
@@ -28,28 +28,31 @@ def run_cypher_attack(run_defense: bool = False):
     lang_gpt   = cfgCypher.get('lang_gpt', False)
     few_shot   = cfgCypher.get('few_shot', False)
     begin      = cfgCypher.get('begin', 0)
-    end        = cfgCypher.get('end', 519)
-    print(f"[INFO] Starting CypherAttack: victim_llm={victim_llm}, flip_mode={cypher_mode}, range=[{begin},{end})")
+    end        = cfgCypher.get('end', 13282)
+    # print(f"[INFO] Starting CypherAttack: victim_llm={victim_llm}, flip_mode={cypher_mode}, range=[{begin},{end})")
     # data path
 
 
-    if data_path:
-        data_file = data_path
+    if dataset_path:
+        data_file = dataset_path
         print(f"[INFO] Using data file: {data_file}")
 
-    print(f"[INFO] Loading data from {data_path}")
+    print(f"[INFO] Loading data from {dataset_path}")
     # init victim llm
-    victim_llm = LLM(model_path=victim_llm,
+    victim_llm = LLM(model_path=victim_llm_path,
                temperature=temperature,
-               max_tokens=max_token)
+               max_tokens=max_token,
+               ollama_model=what_ollama_model,
+               use_ollama=api_ollama_vllm, 
+               )
     print("[INFO] Initialized LLM client")
     # load data
-    adv_bench = pandas.read_csv(data_path)
+    adv_bench = pandas.read_csv(dataset_path)
 
  
 
-    os.makedirs(out_dir, exist_ok=True)
-    output_file = os.path.join(out_dir, '_1_cypher.json')
+    os.makedirs(results_dir, exist_ok=True)
+    output_file = os.path.join(results_dir, '_1_cypher.json')
 
     with open(output_file, 'w', encoding='utf-8') as fo:
 
@@ -65,10 +68,6 @@ def run_cypher_attack(run_defense: bool = False):
             # generate attack
             log, cypher_attack = attack_model.generate(harm_prompt)
             
-            # attack llms
-            if run_defense:
-                cypher_attack[-1]['content'] = defense(cypher_attack[-1]['content'])
-
             llm_response = victim_llm.response(cypher_attack)
             
             entry = {
@@ -81,5 +80,7 @@ def run_cypher_attack(run_defense: bool = False):
 
             fo.write(json.dumps(entry, ensure_ascii=False) + '\n')
             fo.flush()
+
+
 
     print(f"[INFO] Results saved to {output_file}")

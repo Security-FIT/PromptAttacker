@@ -8,26 +8,26 @@ from attacks.common.llm import LLM
 from attacks.helpers import load_config
 from defense.defense_EA import DefenseEA
 
-def run_base_attack(use_defense: bool = False):
+def run_base_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model, api_ollama_vllm):
     here = Path(__file__).parent
     cfg_root = load_config(here / "configBase.yaml")["BaseAttack"]
 
-    model_path = cfg_root["victim_llm"]
-    data_csv   = cfg_root["data_path"]
-    out_dir    = cfg_root["output_dict"]
+    # model_path = cfg_root["victim_llm"]
+    # data_csv   = cfg_root["data_path"]
+    # out_dir    = cfg_root["output_dict"]
     temperature= cfg_root.get("temperature", 0.0)
     max_token  = cfg_root.get("max_token", 512)
 
 
-    victim = LLM(model_path, temperature, max_token)
+    victim = LLM(victim_llm_path, temperature, max_token, api_ollama_vllm, what_ollama_model)
     attack_cfg = BaseAttackConfig()
     attacker = BaseAttack(attack_cfg)
-    defense  = DefenseEA() if use_defense else None
+    # defense  = DefenseEA() if use_defense else None
 
-    df = pd.read_csv(data_csv)
+    df = pd.read_csv(dataset_path)
     df.columns = [c.lower().strip() for c in df.columns]
 
-    out_file = out_dir + "/" + "_20_base.json"
+    out_file = results_dir + "/" + "_20_base.json"
     with open(out_file, 'w', encoding='utf-8') as fo:
         fo.write("[\n")
         first = True
@@ -40,8 +40,8 @@ def run_base_attack(use_defense: bool = False):
 
             messages = attacker.attack(messages)
 
-            if defense:
-                messages[-1]["content"] = defense(messages[-1]["content"])
+            # if defense:
+                # messages[-1]["content"] = defense(messages[-1]["content"])
 
             try:
                 reply = victim.response(messages)

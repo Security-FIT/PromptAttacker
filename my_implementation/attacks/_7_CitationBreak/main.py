@@ -10,7 +10,7 @@ from defense.defense_EA import DefenseEA
 
 META = {"topic", "key", "cata"}          # sloupce, které ignorujeme
 
-def run_cite_attack(run_defense: bool = False):
+def run_cite_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
     defense = DefenseEA()
 
     # načtení configu
@@ -20,11 +20,12 @@ def run_cite_attack(run_defense: bool = False):
 
     # dataset
     rows        = [json.loads(l) for l in Path(cp["data_path"]).open()]
-    out_file    = Path(cp["output_dir"]) / "_9_citation.json"
+    out_file    = Path(results_dir) / "_7_citation.json"
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     # LLM + attacker
-    victim   = LLM(cp["victim_llm"], cp.get("temperature",0.0), cp.get("max_token",512))
+    victim   = LLM(victim_llm_path, cp.get("temperature",0.0), cp.get("max_token",512), what_ollama_model,
+        api_ollama_vllm)
     attacker = CitationAttack()
 
     with out_file.open("w", encoding="utf-8") as fo:
@@ -44,13 +45,12 @@ def run_cite_attack(run_defense: bool = False):
                     continue
                 citation_items.append((name, val))
 
-            # vygenerujeme prompt pro každý typ
             for cit_type, raw_block in citation_items:
                 cit_block = f"1. {raw_block}"
                 messages  = attacker.generate(key, goal, cit_block, style=cit_type)
 
-                if run_defense:
-                    messages[-1]["content"] = defense(messages[-1]["content"])
+                # if run_defense:
+                    # messages[-1]["content"] = defense(messages[-1]["content"])
 
                 try:
                     reply = victim.response(messages)

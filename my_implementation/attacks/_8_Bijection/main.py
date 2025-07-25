@@ -12,7 +12,7 @@ from attacks.common.llm import LLM
 from attacks.helpers import load_config
 from defense.defense_EA import DefenseEA
 
-def run_bijection_attack(run_defense: bool = False):
+def run_bijection_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm,what_ollama_model):
     defense = DefenseEA()
 
     # 1) Najdu a načtu configBijection.yaml
@@ -25,9 +25,9 @@ def run_bijection_attack(run_defense: bool = False):
     cfg_digit = cfg["Digit"]
 
     # 2) Rozbalím proměnné z configu
-    victim_llm_path = cfg_digit["victim_llm"]
-    data_path = cfg_digit["data_path"]
-    output_dir = cfg_digit["output_dir"]
+    # victim_llm_path = cfg_digit["victim_llm"]
+    # data_path = cfg_digit["data_path"]
+    # output_dir = cfg_digit["output_dir"]
     temperature = cfg_digit["temperature"]
     max_token = cfg_digit["max_token"]
     begin = cfg_digit.get("begin", 0)
@@ -35,14 +35,14 @@ def run_bijection_attack(run_defense: bool = False):
     kt = cfg_digit.get("kt", 1)
     kp = cfg_digit.get("kp", 1)
 
-    print(f"[INFO] Spouštím DigitAttack s victim_llm={victim_llm_path}, data_path={data_path}")
+    print(f"[INFO] Spouštím DigitAttack s victim_llm={victim_llm_path}, data_path={dataset_path}")
 
     # 3) Zkontroluji, že CSV existuje
-    if not os.path.isfile(data_path):
-        sys.exit(f"Soubor s daty nenalezen: {data_path}")
+    if not os.path.isfile(dataset_path):
+        sys.exit(f"Soubor s daty nenalezen: {dataset_path}")
 
     # 4) Načtu flip.csv pomocí Pandas
-    df = pd.read_csv(data_path)
+    df = pd.read_csv(dataset_path)
 
     # Ověřím, že sloupec 'goal' existuje
     if "goal" not in df.columns:
@@ -52,24 +52,26 @@ def run_bijection_attack(run_defense: bool = False):
     total_rows = len(df)
     if end is None or end > total_rows:
         end = total_rows
-    df = df.iloc[begin:end].reset_index(drop=True)
+    # df = df.iloc[begin:end].reset_index(drop=True)
 
     # 5) Připravím výstupní adresář a JSONL soubor
-    os.makedirs(output_dir, exist_ok=True)
-    output_file = os.path.join(output_dir, "_8_bijection_results.jsonl")
+    os.makedirs(results_dir, exist_ok=True)
+    output_file = os.path.join(results_dir, "_8_bijection_results.jsonl")
 
     # 6) Inicializuji LLM wrapper
     victim_llm = LLM(
         model_path=victim_llm_path,
         temperature=temperature,
-        max_tokens=max_token
+        max_tokens=max_token,
+        ollama_model=what_ollama_model,
+        use_ollama=api_ollama_vllm, 
     )
 
     with open(output_file, "w", encoding="utf-8") as fo:
-        for idx, row in enumerate(tqdm(df.itertuples(index=False), desc="Zpracování CSV"), start=begin):
-            original_prompt = str(row.goal).strip()
-            if not original_prompt:
-                continue
+        for idx, row in tqdm(
+                enumerate(df["goal"][begin:end]),
+                total=end-begin):
+
 
             # --- START OPRAVENÉ ČÁSTI ---
 
@@ -77,7 +79,7 @@ def run_bijection_attack(run_defense: bool = False):
             attack_model = DigitAttack(kt=kt, kp=kp)
 
             # 2) Vygeneruji seznam zpráv (system, teaching, practice, a zakončený zakódovaným promptem)
-            messages = attack_model.generate(original_prompt)
+            messages = attack_model.generate(row)
 
             # 3) Odešlu `messages` do LLM
             try:
@@ -93,7 +95,7 @@ def run_bijection_attack(run_defense: bool = False):
             # 5) Složím JSON objekt a zapíšu ho jako jeden řádek JSONL
             entry = {
                 "id": idx,
-                "original_prompt": original_prompt,
+                "original_prompt": row,
                 "encoded_prompt": encoded_prompt,
                 "model_reply": llm_reply
             }

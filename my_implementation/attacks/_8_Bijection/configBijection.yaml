@@ -1,8 +1,8 @@
 Digit:
   victim_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf/"
-  data_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/flip.csv"
+  data_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/cysecbench_adv.csv"
   output_dir: "/storage/brno2/home/xkaska01/master/my_implementation/results"
   temperature: 0.0
   max_token: 512
   begin: 0
-  end: null
+  end: 13282

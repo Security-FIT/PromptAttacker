@@ -12,7 +12,7 @@ from attacks.helpers import load_config
 
 
 # ---------- PIPELINE -------------------------------------------
-def run_sql_attack(run_defense: bool = False):
+def run_sql_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model, api_ollama_vllm):
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     config_path = os.path.join(script_dir, "configStruct.yaml")
@@ -23,36 +23,37 @@ def run_sql_attack(run_defense: bool = False):
     # exit(0)
 
     # LLM instance – M_attack
-    attacker = LLM(
-        model_path  = cfg['attacker_llm'],
-        temperature = cfg['temperature_attack'],
-        max_tokens  = cfg['max_tokens'],
-    )
+    # attacker = LLM(
+    #     model_path  = cfg['attacker_llm'],
+    #     temperature = cfg['temperature_attack'],
+    #     max_tokens  = cfg['max_tokens'],
+    #     ollama_model=what_ollama_model,
+    #     use_ollama=api_ollama_vllm, 
+    # )
     # LLM instance – M_target
     target = LLM(
-        model_path  = cfg['target_llm'],
+        model_path  = victim_llm_path,
         temperature = cfg['temperature_target'],
         max_tokens  = cfg['max_tokens'],
+        ollama_model=what_ollama_model,
+        use_ollama=api_ollama_vllm, 
     )
     sql_attack = SQLAttack(
-        attacker_llm = attacker,
+        attacker_llm = target, # zde ma patrit attacker_llm, ale zatim jsem nechal stejne na utok tak i na vyhodnoceni protoze se to nevejde na disk
         few_shot     = cfg['few_shot'],
         num_attempts = cfg['num_attempts']
     )
     defense = DefenseEA()
 
-    df = pd.read_csv(cfg["data_path"])
-    os.makedirs(cfg["output_dir"], exist_ok=True)
-    out_path = os.path.join(cfg["output_dir"], "_4_sql.jsonl")
+    df = pd.read_csv(dataset_path)
+    os.makedirs(results_dir, exist_ok=True)
+    out_path = os.path.join(results_dir, "_4_sql.json")
 
     with open(out_path, "w", encoding="utf-8") as fo:
         for idx, goal in tqdm(
-                enumerate(df["query"][cfg["begin"]:cfg["end"]]),
+                enumerate(df["goal"][cfg["begin"]:cfg["end"]]),
                 total=cfg["end"]-cfg["begin"]):
             log, prompts = sql_attack.generate(goal)
-
-            if run_defense:
-                prompts[-1]["content"] = defense(prompts[-1]["content"])
 
             response = target.response(prompts)
 
