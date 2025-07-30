@@ -1,0 +1,7 @@
+Chameleon:
+  BinaryTree:
+  max_new_tokens: 1024
+  temperature: 1.0
+  top_p: 0.9
+  do_sample: true
+

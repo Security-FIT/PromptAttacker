@@ -2,7 +2,7 @@ AutodanAttackConfig:
   victim_llm_path: "models/Llama-2-7b-hf/"
 
   model_template_name: "llama2"
-  dataset_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/flip.csv"
+  dataset_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/cysecbench_adv_test.csv"
 
   init_prompt_path: "/storage/brno2/home/xkaska01/master/my_implementation/attacks/_24_Autodan/autodan_initial_prompt.txt"
 

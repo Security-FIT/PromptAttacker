@@ -1,8 +1,0 @@
-Scav:
-  victim_llm: "models/Llama-2-7b-hf/"
-  output_dict: "results"
-  optimized_dataset_8b: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/scav_optimized_instructions_8b.csv"
-  optimized_dataset_70b: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/scav_optimized_instructions_70b.csv"
-  temperature: 0
-  max_token: 512
-  8b_or_70b: "70b"

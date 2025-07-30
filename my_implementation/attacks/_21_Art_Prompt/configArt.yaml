@@ -1,7 +1,4 @@
 ArtPrompt:
-  data_path:      "dataset/adv_ica.csv"
-  output_dir:     "results"
-  victim_llm_path: "models/mixtral_7b"
   max_token:       512
   mask_llm_path:   "models/Llama-2-7b-hf"
   mask_temperature: 0.7

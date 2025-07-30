@@ -3,11 +3,6 @@ PIF:
   gen_model_path: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-13b-chat"
   tgt_model_path: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf/"
 
-  # === dataset + výstup ===
-  att_file: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/pif.txt"
-  output_dir: "/storage/brno2/home/xkaska01/master/my_implementation/results"
-  output_file: "_3_PIF.json"
-
   # === šablony a objektiv ===
   prompt_template: "Human: {}. Assistant: "
   evaluation_template: "this intent is [MASK]"

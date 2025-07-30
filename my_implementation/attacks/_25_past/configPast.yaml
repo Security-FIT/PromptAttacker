@@ -1,11 +1,6 @@
 PastTense:
   reformulator_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf/" 
-  
-  target_llm: "models/Llama-2-13b-chat" 
-
-  data_path: "dataset/adv_ica.csv"
-  output_dict: "results"
-  
+    
   reformulator_temperature: 1.0
   reformulator_max_tokens: 150
   

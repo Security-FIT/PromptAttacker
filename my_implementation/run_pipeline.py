@@ -16,7 +16,7 @@ from attacks._10_Random_Search.main import run_random_attack
 from attacks._11_Pair.main import run_pair_attack
 from attacks._12_Tap.main import run_tap_attack
 from attacks._13_GPT4cypher.main import run_GPTcypher_attack
-from attacks._14_Scav.main import run_scav_attack
+from attacks._14_MultiLang.main import run_Multilang_attack
 from attacks._15_Rewrite.main import run_rewrite_attack
 from attacks._16_Ica.main import run_ica_attack
 from attacks._17_Overload.main import run_overload_attack
@@ -25,8 +25,10 @@ from attacks._19_Deepinception.main import run_inception_attack
 from attacks._20_Base.main import run_base_attack
 from attacks._21_Art_Prompt.main import run_artprompt_attack
 from attacks._22_Renellm.main import run_renellm_attack
-from attacks._25_past.main import run_past_tense_attack
+from attacks._23_Cold.main import run_cold_attack
 from attacks._24_Autodan.attack_dan import run_autodan_attack
+from attacks._25_past.main import run_past_tense_attack
+from attacks._26_Chameleon.main import run_chameleon_attack
 
 from defense.defense_EA import DefenseEA
 
@@ -45,6 +47,48 @@ def load_config(path):
             return json.load(f)
         else:
             raise ValueError(f"Unsupported config file: {path}")
+
+works = [
+    ("cypher",      run_cypher_attack),
+    ("flip",        run_flip_attack),
+    ("suffix",      run_suffix_attack),
+    ("sequential",  run_sequential_attack),
+    ("cite",        run_cite_attack),
+    ("bijection",   run_bijection_attack),
+    ("dialog",      run_dialog_attack),
+    ("random",      run_random_attack),
+    ("gptcypher",   run_GPTcypher_attack),
+    ("rewrite",     run_rewrite_attack),
+    ("ica",         run_ica_attack),
+    ("overload",    run_overload_attack),
+    ("inception",   run_inception_attack),
+    ("base",        run_base_attack),
+    ("artprompt",   run_artprompt_attack),
+    ("renellm",     run_renellm_attack),
+    ("sql",        run_sql_attack), 
+    ("chameleon", run_chameleon_attack),
+]
+
+special_runs = [
+    ("pif",        run_pif_attack), # Netestováno
+    ("tap",        run_tap_attack), # Netestováno
+    ("past_tense", run_past_tense_attack),
+]
+test = [
+    ("MultiLang",        run_Multilang_attack),
+    # ("gcg",         run_gcg_attack),
+    # ("autodan",    run_autodan_attack),
+    # ("pair",       run_pair_attack), # Netestováno
+    # ("cold", run_cold_attack)
+]
+
+all_attack_categories = [
+    # works,
+    # special_runs,
+    test,
+]
+
+
 
 if __name__ == "__main__":
 
@@ -72,45 +116,23 @@ if __name__ == "__main__":
     os.makedirs(results_dir, exist_ok=True)
     log_file_path = os.path.join(results_dir, "log_runtime.txt")
     log_fh = open(log_file_path, "w", encoding="utf-8")
-    attacks_to_run = [
-        ("cypher", run_cypher_attack),
-        ("flip", run_flip_attack),
-        # ("pif", run_pif_attack),# dve llmka
-        # ("sql", run_sql_attack),# dve llmka
-        ("suffix", run_suffix_attack),
-        ("sequential", run_sequential_attack),
-        ("cite", run_cite_attack),
-        ("bijection", run_bijection_attack),
-        ("dialog", run_dialog_attack),
-        ("random", run_random_attack),
-        # ("pair", run_pair_attack),# dve llmka
-        ("gptcypher", run_GPTcypher_attack),
-        ("scav", run_scav_attack),
-        # ("tap", run_tap_attack), # Moc slozity asi to nebudu nakonec delat, zatim nefunguje a stravil jsem na nem uz skoro 3 dny  # dve llmka
-        ("rewrite", run_rewrite_attack),
-        ("ica", run_ica_attack),
-        ("overload", run_overload_attack),
-        # ("gcg", run_gcg_attack),#zatim nefunguje -------
-        ("inception", run_inception_attack),
-        ("base", run_base_attack),
-        ("artprompt", run_artprompt_attack),#zatim nefunguje -------
-        ("renellm", run_renellm_attack),
-        # ("past_tense", run_past_tense_attack),# dve llmka
-        # ("autodan", run_autodan_attack), #zatim nefunguje -------
-    ]
 
     timings = {}
     total_start = time.perf_counter()
 
-    for name, fn in attacks_to_run:
-        log_and_print(f"\n[INFO] ➜ Spouštím {name}…", log_fh)
-        if name != "artprompt":
-            continue  # Prozatím spouštím jen artprompt, ostatní jsou vypnuté
-        t0 = time.perf_counter()
-        fn(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model)
-        elapsed = time.perf_counter() - t0
-        timings[name] = elapsed
-        log_and_print(f"[INFO]   {name} hotovo za {timedelta(seconds=elapsed)}", log_fh)
+    for category in all_attack_categories:
+        for name, fn in category:
+            log_and_print(f"\n[INFO] ➜ Spouštím {name}…", log_fh)
+            t0 = time.perf_counter()
+            try:
+                fn(victim_llm_path, results_dir, dataset_path,
+                   api_ollama_vllm, what_ollama_model)
+            except Exception as e:
+                log_and_print(f"[ERROR] {name} selhal: {e}", log_fh)
+                continue
+            elapsed = time.perf_counter() - t0
+            timings[name] = elapsed
+            log_and_print(f"[INFO]   {name} hotovo za {timedelta(seconds=elapsed)}", log_fh)
 
     total_elapsed = time.perf_counter() - total_start
 

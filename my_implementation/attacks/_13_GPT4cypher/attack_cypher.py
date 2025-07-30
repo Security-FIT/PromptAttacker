@@ -13,7 +13,6 @@ potom zůstává na downstream LLM.
 ```yaml
 GPT4Cipher:
   victim_llm: "./models/Llama-3.1-8b-In"
-  data_path: "dataset/adv_ica.csv"
   output_dict: "results"
   rewrite_template: "Decrypt this: "        # volitelné, může být prázdné
   cipher_shift: 3                            # volitelný int ≥ 1
