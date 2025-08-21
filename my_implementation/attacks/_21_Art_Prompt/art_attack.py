@@ -66,19 +66,25 @@ class ArtPromptAttack:
             {"role": "system", "content": rewrite_template},
             {"role": "user",   "content": harmful_prompt}
         ]
-        # resp = self.cfg.mask_llm.response(messages).strip()
+        resp = self.cfg.mask_llm.response(messages).strip()
 
 
-        words, instr = self._parse_mask(messages[-1]["content"])
-        art_prompt   = self._build_artprompt(words, instr)
-        if self.cfg.use_cot:
-            art_prompt += "\n\nPlease reason step-by-step."
+        words, instr = self._parse_mask(resp)
         print("ZDEEE")
         print("ZDEEE")
+        print(words)
+        print()
+        print()
+        print()
+
         print(instr)
 
         print("ZDEEE")
         print("ZDEEE")
+        art_prompt   = self._build_artprompt(words, instr)
+        if self.cfg.use_cot:
+            art_prompt += "\n\nPlease reason step-by-step."
+
 
         log      = f"TASK is '{harmful_prompt}'"
         messages = [{"role": "user", "content": art_prompt}]

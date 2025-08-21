@@ -13,11 +13,11 @@ def run_artprompt_attack(victim_llm_path, results_dir, dataset_path, what_ollama
     here = Path(__file__).parent
     cfg  = load_config(here / "configArt.yaml")["ArtPrompt"]
 
-    # mask_llm = LLM(cfg["mask_llm_path"],
-    #                cfg.get("mask_temperature", 0.7),
-    #                cfg.get("mask_max_token", 256),
-    #                what_ollama_model,
-    #                api_ollama_vllm)
+    mask_llm = LLM(cfg["mask_llm_path"],
+                   cfg.get("mask_temperature", 0.7),
+                   cfg.get("mask_max_token", 256),
+                   "qwen2.5:7b",
+                   api_ollama_vllm)
 
     victim = LLM(victim_llm_path,
                  cfg.get("temperature", 0.0),
@@ -26,7 +26,7 @@ def run_artprompt_attack(victim_llm_path, results_dir, dataset_path, what_ollama
                  what_ollama_model)
 
     attack = ArtPromptAttack(ArtPromptConfig(
-        mask_llm        = victim,
+        mask_llm        = mask_llm,
         ascii_font_file = cfg["ascii_font_file"],
         use_cot         = cfg.get("cot", False)
     ))
