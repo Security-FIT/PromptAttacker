@@ -8,9 +8,9 @@ CSV: goal,translation_of_goal,target
 """
 
 # ====== Uprav jen toto ================================================
-IN_CSV     = "/storage/brno2/home/xkaska01/master/my_implementation/dataset/dataset_40_prompts.csv"      # vstupní soubor
-OUT_CSV    = "/storage/brno2/home/xkaska01/master/my_implementation/dataset/cysecbench_40_FR.csv"   # cílový soubor
-MODEL_NAME = "gemma3:27b"            # model běžící v Ollamě
+IN_CSV     = "/storage/brno2/home/xkaska01/master/my_implementation/supporting_scripts/dataset_40_prompts_proportional_unique_targets.csv"      # vstupní soubor
+OUT_CSV    = "/storage/brno2/home/xkaska01/master/my_implementation/dataset/dataset_40_ZH.csv"   # cílový soubor
+MODEL_NAME = "deepseek-r1:70b"            # model běžící v Ollamě
 # ======================================================================
 
 import os, time

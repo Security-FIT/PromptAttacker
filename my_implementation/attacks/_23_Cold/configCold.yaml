@@ -1,0 +1,66 @@
+Cold:
+  # --- meta (používá run_cold_attack pro IO) ----------------------------
+  victim_llm      : "Llama-2-7b-chat-hf"        # zůstává jen pro úplnost
+  data_path       : "./data/advbench/harmful_behaviors_custom.csv"
+  output_dir      : "./outputs"
+
+  # --- rozsah datasetu --------------------------------------------------
+  begin           : 0
+  end             : 50
+
+  # --- shell skript parametry ------------------------------------------
+  seed            : 12
+  mode            : "default"          # proměnná $mode ze skriptu
+  pretrained_model: "Llama-2-7b-chat-hf"
+
+  # teploty, délky
+  init_temp       : 1
+  length          : 20
+  max_length      : 20
+  output_lgt_temp : 1
+
+  # optimalizační iterace
+  num_iters       : 2000
+  min_iters       : 0
+  win_anneal_iters: 1000
+
+  # váhy ve ztrátové funkci
+  goal_weight     : 100
+  rej_weight      : 100
+
+  # gradient‑step a šum
+  stepsize        : 0.1
+  stepsize_ratio  : 1
+  noise_iters     : 1
+  large_noise_iters: [50, 200, 500, 1500]     # YAML seznam
+  large_gs_std     : [0.1, 0.05, 0.01, 0.001]
+
+  # top‑k, repeat, batch
+  topk            : 10
+  batch_size      : 8
+  repeat_batch    : 1          # pokud funkce používá
+
+  # LR porce při kombinaci NLL a COLD ztráty
+  lr_nll_portion  : 1.0
+
+  # tisk & ladění
+  verbose         : true       # --verbose
+  print_every     : 1000
+
+  # módy počítání
+  straight_through: true       # --straight-through
+  fp16            : true       # --fp16
+
+  # případné parametry pro list keywordů, rej model, atd.
+  if_zx         : false
+  large_noise_std_ratio : 1.0
+  abductive_filterx : false
+  use_sysprompt : true
+  init_mode : "original"
+  wandb : false
+  prefix_length : 0
+  stepsize_iters : 50
+  frozen_length : 2
+  input_lgt_temp : 1
+  temperature : 0.7
+  max_token : 512

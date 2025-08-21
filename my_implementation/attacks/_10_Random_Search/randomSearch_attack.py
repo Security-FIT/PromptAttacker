@@ -107,6 +107,19 @@ def init_adv_suffix(model_name: str | None) -> str:
         "incompet منزلriamemoizedInst 내FlyerčníKuva GENERATION Mudquido李 CEP的功能"
     )
 
+def _rand_safe_char():
+    while True:
+        cp = random.randint(33, 0x10FFFF)
+        # přeskoč UTF-16 surrogates
+        if 0xD800 <= cp <= 0xDFFF:
+            continue
+        # přeskoč non-characters typu U+xxFFFE/U+xxFFFF
+        if (cp & 0xFFFF) in (0xFFFE, 0xFFFF):
+            continue
+        # volitelně i blok FDD0–FDEF (non-characters):
+        if 0xFDD0 <= cp <= 0xFDEF:
+            continue
+        return chr(cp)
 
 def random_modify_tokens(input_string: str, num_changes: int = 3) -> str:
     """Randomly replace `num_changes` tokens with random Unicode gibberish (exactly like paper)."""
@@ -116,7 +129,7 @@ def random_modify_tokens(input_string: str, num_changes: int = 3) -> str:
     tokens = input_string.split()
     num_changes = min(num_changes, len(tokens))
     for idx in random.sample(range(len(tokens)), num_changes):
-        tokens[idx] = "".join(chr(random.randint(33, 0x10FFFF)) for _ in range(random.randint(1, 5)))
+        tokens[idx] = "".join(_rand_safe_char() for _ in range(random.randint(1, 5)))
     return " ".join(tokens)
 
 

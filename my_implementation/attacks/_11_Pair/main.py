@@ -36,7 +36,7 @@ def run_pair_attack(run_defense: bool = False):
     # ------------------------------------------------------------------------------------------------
     data = pd.read_csv(cfgP["data_path"])
     
-    found_goal_col = [col for col in data.columns if col == "Goal"]
+    found_goal_col = [col for col in data.columns if col == "goal"]
     goal_col = found_goal_col[0] 
 
     begin, end = cfgP.get("begin", 0), cfgP.get("end", len(data))

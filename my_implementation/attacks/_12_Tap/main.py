@@ -73,7 +73,7 @@ def run_tap_attack(run_defense: bool = False) -> None:
 
     # --- iterace --------------------------------------------------------------
     with out_file.open("w", encoding="utf-8") as fo:
-        series = adv_bench["Goal"][begin:end]
+        series = adv_bench["goal"][begin:end]
         for idx, rec in tqdm(series.items()):
             goal = rec["goal"] if isinstance(rec, dict) else rec
             print(f"[INFO] Goal {idx}: {goal[:60]}…")

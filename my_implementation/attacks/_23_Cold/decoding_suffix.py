@@ -4,6 +4,9 @@ import numpy as np
 import time
 import wandb
 
+import nltk
+nltk.download('punkt_tab')
+nltk.download('averaged_perceptron_tagger_eng')
 from nltk import tokenize
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
@@ -19,7 +22,7 @@ from matplotlib import pyplot as plt
 
 stop_words = set(stopwords.words('english'))
 
-def decode(model, tokenizer, device, x="", z="", constraints=None, args=None, sys_prompt=None, prefix=None, model_back=None, zz=None):
+def decode(model, tokenizer, device, x="", z="", constraints=None, args=None, sys_prompt=None, prefix=None, zz=None):
     '''
     x: left context   (prompt in lexical lexical task)
     z: optimization target  (original ending in counterfactual task)

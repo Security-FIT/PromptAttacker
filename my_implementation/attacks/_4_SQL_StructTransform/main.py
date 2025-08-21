@@ -12,7 +12,7 @@ from attacks.helpers import load_config
 
 
 # ---------- PIPELINE -------------------------------------------
-def run_sql_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model, api_ollama_vllm):
+def run_sql_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     config_path = os.path.join(script_dir, "configStruct.yaml")
@@ -56,6 +56,7 @@ def run_sql_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model
             log, prompts = sql_attack.generate(goal)
 
             response = target.response(prompts)
+            print("[INFO] Response:", response)
 
             fo.write(json.dumps({
                 "id": idx,

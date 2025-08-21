@@ -60,7 +60,6 @@ def run_ica_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
 
             fo.write(json.dumps({
                 "id": idx + begin,
-                "category": getattr(row, "category", ""),
                 "original_prompt": row,
                 "prompt": msgs[-1]["content"],
                 "response": reply

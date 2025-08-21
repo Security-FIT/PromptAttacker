@@ -99,6 +99,7 @@ tady jsem vzal pouze jednu modifikaci sequential utoku. A to teplate 1 pro Dialo
 ----------------------------------------------------------------------------------------------------------------------------
 10✓  Random Search
 <!-- https://arxiv.org/pdf/2404.02151 -->
+<!-- https://github.com/tml-epfl/llm-adaptive-attacks -->
 
 ----------------------------------------------------------------------------------------------------------------------------
 11 pair
@@ -112,18 +113,20 @@ Je strasne moc pametove narocny a nejspis ho vyskrtnu
 Tady taky potrebuji dva modely a nemam vyresene, co s tim druhym, protoze dva se z tezi vejdou do VRAM metacentra, aktualne zkousim 60GB 
 
 ----------------------------------------------------------------------------------------------------------------------------
-13 GPT4cypher
+13✓ GPT4cypher
 <!-- https://arxiv.org/abs/2308.06463 -->
 
 ----------------------------------------------------------------------------------------------------------------------------
-14✓ scav
-<!-- https://arxiv.org/abs/2404.12038 -->
-U tohoto utoku jsou dve varianty a obe funguji u jinych modelu, takze potom budu chtit vyzkouset obe na vice variantach
+14✓ A Cross-Language Investigation into Jailbreak Attacks in Large Language Models
+<!-- https://arxiv.org/pdf/2401.16765 -->
+
+
+přeložil jsem puvodní dataset pomocí deepseek modelu
 ----------------------------------------------------------------------------------------------------------------------------
-15 rewrite
+15✓ rewrite
 <!-- https://arxiv.org/pdf/2505.13862 -->
 ----------------------------------------------------------------------------------------------------------------------------
-16 overload
+16✓ overload
 <!-- https://arxiv.org/pdf/2410.04190 -->
 
 ----------------------------------------------------------------------------------------------------------------------------
@@ -131,14 +134,14 @@ U tohoto utoku jsou dve varianty a obe funguji u jinych modelu, takze potom budu
 <!-- https://github.com/EasyJailbreak/EasyJailbreak/tree/master -->
 
 ----------------------------------------------------------------------------------------------------------------------------
-18 gcg 
+18✓gcg 
 <!-- https://arxiv.org/abs/2307.15043 -->
 ----------------------------------------------------------------------------------------------------------------------------
-19 deepinception
+19✓ deepinception
 <!-- https://arxiv.org/abs/2311.03191 -->
 <!-- https://github.com/tmlr-group/DeepInception/tree/main -->
 ----------------------------------------------------------------------------------------------------------------------------
-20 base
+20✓ base
 <!-- https://arxiv.org/pdf/2505.13862 -->
 ----------------------------------------------------------------------------------------------------------------------------
 21✓ Art prompt
@@ -149,9 +152,9 @@ U tohoto utoku jsou dve varianty a obe funguji u jinych modelu, takze potom budu
 <!-- https://arxiv.org/pdf/2505.13862 -->
 
 ----------------------------------------------------------------------------------------------------------------------------
-23 Implicit reference
-<!-- https://github.com/Lucas-TY/llm_Implicit_reference -->
-<!-- https://arxiv.org/pdf/2410.03857v2 -->
+23✓ COLD
+<!-- https://arxiv.org/pdf/2402.08679 -->
+<!-- https://github.com/Yu-Fangxu/COLD-Attack -->
 
 ----------------------------------------------------------------------------------------------------------------------------
 24 autodan 
@@ -164,6 +167,10 @@ U tohoto utoku jsou dve varianty a obe funguji u jinych modelu, takze potom budu
 
 tento utok budu muset jeste trochu upravit, protoze jako ostatni nevejde se moc dobre ani na 60GB Vram, takze to v budoucnu budu muset resit asi pres API. Zatim v kodu pouzivam stejne llmko attacker i target
 ----------------------------------------------------------------------------------------------------------------------------
+26✓ Chameleon
+<!-- https://arxiv.org/pdf/2402.16717 -->
+<!-- https://github.com/huizhang-L/CodeChameleon -->
+
 ----------------------------------------------------------------------------------------------------------------------------
 
 

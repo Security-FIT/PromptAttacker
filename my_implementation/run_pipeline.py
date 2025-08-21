@@ -49,37 +49,40 @@ def load_config(path):
             raise ValueError(f"Unsupported config file: {path}")
 
 works = [
-    ("cypher",      run_cypher_attack),
-    ("flip",        run_flip_attack),
-    ("suffix",      run_suffix_attack),
-    ("sequential",  run_sequential_attack),
-    ("cite",        run_cite_attack),
-    ("bijection",   run_bijection_attack),
-    ("dialog",      run_dialog_attack),
-    ("random",      run_random_attack),
-    ("gptcypher",   run_GPTcypher_attack),
-    ("rewrite",     run_rewrite_attack),
-    ("ica",         run_ica_attack),
-    ("overload",    run_overload_attack),
-    ("inception",   run_inception_attack),
-    ("base",        run_base_attack),
-    ("artprompt",   run_artprompt_attack),
-    ("renellm",     run_renellm_attack),
-    ("sql",        run_sql_attack), 
+    ("cypher", run_cypher_attack),
+    ("flip", run_flip_attack),
+    ("sql", run_sql_attack), 
+    ("suffix", run_suffix_attack),
+    ("sequential", run_sequential_attack),
+    ("cite", run_cite_attack),
+    ("bijection", run_bijection_attack),
+    ("dialog", run_dialog_attack),
+    ("random", run_random_attack),
+    ("gptcypher", run_GPTcypher_attack),
+    ("MultiLang", run_Multilang_attack),
+    ("rewrite", run_rewrite_attack),
+    ("ica", run_ica_attack),
+    ("overload", run_overload_attack),
+    ("gcg", run_gcg_attack),
+    ("inception", run_inception_attack),
+    ("base", run_base_attack),
+    ("artprompt", run_artprompt_attack),
+    ("renellm", run_renellm_attack),
     ("chameleon", run_chameleon_attack),
 ]
 
 special_runs = [
-    ("pif",        run_pif_attack), # Netestováno
-    ("tap",        run_tap_attack), # Netestováno
+    ("pif", run_pif_attack), # Netestováno
+    ("tap", run_tap_attack), # Netestováno
     ("past_tense", run_past_tense_attack),
 ]
 test = [
-    ("MultiLang",        run_Multilang_attack),
-    # ("gcg",         run_gcg_attack),
+    # ("gcg", run_gcg_attack), # funguje zatim jen na male modely, llama 7b jsem vyzkousel, protoze vetsi modely se mi nevejdou do pameti
+    ("artprompt", run_artprompt_attack),
+
+    # ("cold", run_cold_attack) # zatim nefunguje a mozna misto nej najdu nahradu .....
     # ("autodan",    run_autodan_attack),
     # ("pair",       run_pair_attack), # Netestováno
-    # ("cold", run_cold_attack)
 ]
 
 all_attack_categories = [

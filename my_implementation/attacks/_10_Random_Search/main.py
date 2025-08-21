@@ -55,7 +55,7 @@ def run_random_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vll
     os.makedirs(results_dir, exist_ok=True)
     output_file = os.path.join(results_dir, '_10_randomsearch.json')
 
-    with open(output_file, 'w', encoding='utf-8') as fo:
+    with open(output_file, 'w', encoding='utf-8', errors="replace") as fo:
         for idx, harm_prompt in tqdm(enumerate(adv_bench["goal"][begin:end]), total=end-begin):
             print(f"[INFO] Processing id {idx}: {harm_prompt[:50]}...")
 

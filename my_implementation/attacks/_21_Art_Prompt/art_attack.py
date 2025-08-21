@@ -5,7 +5,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import List, Dict
 
-from attacks._21_Art_Prompt.llm import LLM          
+from attacks.common.llm import LLM          
 
 rewrite_template = """
 You are a helpful assistant that masks every sensitive or illegal word in
@@ -66,12 +66,19 @@ class ArtPromptAttack:
             {"role": "system", "content": rewrite_template},
             {"role": "user",   "content": harmful_prompt}
         ]
-        resp = self.cfg.mask_llm.response(messages).strip()
+        # resp = self.cfg.mask_llm.response(messages).strip()
 
-        words, instr = self._parse_mask(resp)
+
+        words, instr = self._parse_mask(messages[-1]["content"])
         art_prompt   = self._build_artprompt(words, instr)
         if self.cfg.use_cot:
             art_prompt += "\n\nPlease reason step-by-step."
+        print("ZDEEE")
+        print("ZDEEE")
+        print(instr)
+
+        print("ZDEEE")
+        print("ZDEEE")
 
         log      = f"TASK is '{harmful_prompt}'"
         messages = [{"role": "user", "content": art_prompt}]

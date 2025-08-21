@@ -56,7 +56,7 @@ def run_bijection_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
 
     # 5) Připravím výstupní adresář a JSONL soubor
     os.makedirs(results_dir, exist_ok=True)
-    output_file = os.path.join(results_dir, "_8_bijection_results.jsonl")
+    output_file = os.path.join(results_dir, "_8_bijection_results.json")
 
     # 6) Inicializuji LLM wrapper
     victim_llm = LLM(
@@ -96,8 +96,8 @@ def run_bijection_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
             entry = {
                 "id": idx,
                 "original_prompt": row,
-                "encoded_prompt": encoded_prompt,
-                "model_reply": llm_reply
+                "prompt": encoded_prompt,
+                "response": llm_reply
             }
             fo.write(json.dumps(entry, ensure_ascii=False) + "\n")
             fo.flush()

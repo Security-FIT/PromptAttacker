@@ -50,8 +50,8 @@ def run_artprompt_attack(victim_llm_path, results_dir, dataset_path, what_ollama
             # if defense:
                 # messages[-1]["content"] = defense(messages[-1]["content"])
 
-            if not messages[-1]["content"]:
-                continue
+            # if not messages[-1]["content"]:
+                # continue
 
             try:
                 reply = victim.response(messages)

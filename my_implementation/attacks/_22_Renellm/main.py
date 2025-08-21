@@ -26,7 +26,7 @@ def run_renellm_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vl
                   cfg.get("temperature", 0.0),
                   cfg.get("max_token", 512),
                 ollama_model=what_ollama_model,
-                use_ollama=api_ollama_vllm)
+                use_ollama=False)
 
     # stejný gen-config použijeme pro rewrite i pro inference
     gen_cfg = dict(max_n_tokens=cfg.get("max_token", 512),
@@ -51,7 +51,7 @@ def run_renellm_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vl
             attack = ReNeLLMAttack(params,
                                    rewrite_llm=llm.client,
                                    rewrite_gen_cfg=gen_cfg)
-            for method, log, messages in attack.generate_all(harmful):
+            for method, log, messages in attack.generate(harmful):
                 # volitelná obrana
                 # if defense:
                 #     messages[-1]["content"] = defense(messages[-1]["content"])
@@ -65,10 +65,7 @@ def run_renellm_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vl
                 # zapsat JSONL
                 fo.write(json.dumps({
                     "id":               idx,
-                    "method":           method,
-                    "category":         getattr(row, "category", ""),
                     "original_prompt":  harmful,
-                    "log":              log,
                     "final_prompt":     messages[-1]["content"],
                     "response":         response
                 }, ensure_ascii=False) + "\n")

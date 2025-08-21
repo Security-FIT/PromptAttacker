@@ -39,7 +39,7 @@ def dataframe_to_jsonl(df: pd.DataFrame, file_path: str):
                 "prompt": str(row.get("prompt_with_adv", "")),
                 "response": str(row.get("output", "")),
                 # Keep the raw suffix for possible analysis
-                "adv_suffix": str(row.get("adv", ""))
+                # "adv_suffix": str(row.get("adv", ""))
             }
             fo.write(json.dumps(record, ensure_ascii=False) + "\n")
 
@@ -73,9 +73,10 @@ def run_cold_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm,
     args_dict.setdefault("end", end if end is not None else 10**9)
     args = SimpleNamespace(**args_dict)
 
+
     # ------------------------------------------------------------ run attack --
     print("[INFO] Running cold attack...")
-    df_results = attack_generation(model, tokenizer, device, args)
+    df_results = attack_generation(model, tokenizer, device, args, dataset_path)
 
     # The reference implementation of cold attack does not return anything.
     # If the user hasn't patched attack_suffix.attack_generation to return a
@@ -88,6 +89,6 @@ def run_cold_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm,
         )
 
     # ------------------------------------------------------------- save jsonl --
-    output_file = os.path.join(results_dir, "cold_attack.json")
+    output_file = os.path.join(results_dir, "_23_cold.json")
     dataframe_to_jsonl(df_results, output_file)
     print(f"[INFO] Results saved to {output_file}")

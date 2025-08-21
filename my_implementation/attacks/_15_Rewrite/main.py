@@ -45,7 +45,7 @@ def run_rewrite_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vl
 
     with open(output_file, "w", encoding="utf-8") as fo:
         for idx, harm_prompt in tqdm(
-            enumerate(adv_bench["Goal"][begin:end]), total=end - begin
+            enumerate(adv_bench["goal"][begin:end]), total=end - begin
         ):
             attack_model = RewriteAttack(rewrite_template=rewrite_tmpl)
 

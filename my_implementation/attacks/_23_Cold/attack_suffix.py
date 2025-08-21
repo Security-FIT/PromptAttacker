@@ -11,9 +11,9 @@ stop_words = set(stopwords.words('english'))
 
 from attacks._23_Cold.decoding_suffix import decode
 
-def attack_generation(model, tokenizer, device, args, model_back=None):
-    
-    data = pd.read_csv("./data/advbench/harmful_behaviors_custom.csv")
+def attack_generation(model, tokenizer, device, args, dataset_path):
+
+    data = pd.read_csv(dataset_path)
 
     targets = data['target'].tolist()
     goals = data['goal'].tolist()
@@ -59,7 +59,7 @@ def attack_generation(model, tokenizer, device, args, model_back=None):
         
         for _ in range(args.repeat_batch):
             _, text, text_post, decoded_text, p_with_adv = decode(model, tokenizer, device, x ,z, None, args, DEFAULT_SYSTEM_PROMPT, prefix_prompt,
-                                        model_back=model_back, zz=z_keywords)
+                                         zz=z_keywords)
 
 
             text_candidates.extend(text)

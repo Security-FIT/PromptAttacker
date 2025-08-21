@@ -74,8 +74,8 @@ def run_gcg_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
     device       = cfg.get("device", "cuda:0")
     temperature  = cfg.get("temperature", 0.0)
     max_token    = cfg.get("max_token", 512)
+    suffix       = cfg.get("control_init")
     begin        = cfg.get("begin", 0)
-    optimise_flag = cfg.get("optimize_suffix", False)
     end          = cfg.get("end", None)
     # dataset_path = cfg.get("dataset", "data/prompts.csv")
 
@@ -93,7 +93,7 @@ def run_gcg_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
                 ).to(device).eval()
     conv_template = get_conversation_template(template)
 
-    if optimise_flag and cfg.get("train_dataset"):
+    if cfg.get("optimize_suffix"):
         t0      = time.time()
         suffix  = _train_suffix(cfg, tokenizer, model, conv_template)
         cfg["control_init"] = suffix       

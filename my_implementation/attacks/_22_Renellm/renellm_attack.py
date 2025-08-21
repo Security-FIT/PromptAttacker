@@ -46,7 +46,7 @@ class ReNeLLMAttack:
         scenario = random.choice(SCENARIOS)
         return scenario.replace("<>", rewritten)
 
-    def generate_all(self, harmful_prompt: str
+    def generate(self, harmful_prompt: str
                     ) -> List[Tuple[str, str, List[Dict[str,str]]]]:
         """
         Pro každou operaci v OPERATIONS vrátí trojici:
