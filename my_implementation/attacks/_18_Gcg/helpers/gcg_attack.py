@@ -10,61 +10,58 @@ from attacks._18_Gcg.helpers.attack_manager import get_embedding_matrix, get_emb
 
 
 def token_gradients(model, input_ids, input_slice, target_slice, loss_slice):
-
     """
     Computes gradients of the loss with respect to the coordinates.
-    
-    Parameters
-    ----------
-    model : Transformer Model
-        The transformer model to be used.
-    input_ids : torch.Tensor
-        The input sequence in the form of token ids.
-    input_slice : slice
-        The slice of the input sequence for which gradients need to be computed.
-    target_slice : slice
-        The slice of the input sequence to be used as targets.
-    loss_slice : slice
-        The slice of the logits to be used for computing the loss.
-
-    Returns
-    -------
-    torch.Tensor
-        The gradients of each token in the input_slice with respect to the loss.
     """
-
     embed_weights = get_embedding_matrix(model)
+    vocab_size = embed_weights.shape[0]
+
+    # Získání tokenů z úseku určeného pro útok
+    attack_token_ids = input_ids[input_slice]
+    
+    # Vytvoření masky pro platné tokeny (ID musí být >= 0 a < vocab_size)
+    valid_mask = (attack_token_ids >= 0) & (attack_token_ids < vocab_size)
+    valid_token_ids = attack_token_ids[valid_mask]
+
+    # Vytvoření one-hot tenzoru POUZE pro platné tokeny
     one_hot = torch.zeros(
-        input_ids[input_slice].shape[0],
-        embed_weights.shape[0],
+        valid_token_ids.shape[0],
+        vocab_size,
         device=model.device,
         dtype=embed_weights.dtype
     )
     one_hot.scatter_(
-        1, 
-        input_ids[input_slice].unsqueeze(1),
+        1,
+        valid_token_ids.unsqueeze(1),
         torch.ones(one_hot.shape[0], 1, device=model.device, dtype=embed_weights.dtype)
     )
     one_hot.requires_grad_()
-    input_embeds = (one_hot @ embed_weights).unsqueeze(0)
     
-    # now stitch it together with the rest of the embeddings
+    input_embeds_slice = (one_hot @ embed_weights).unsqueeze(0)
+    
+    # Vytvoření finálního embedding tenzoru
     embeds = get_embeddings(model, input_ids.unsqueeze(0)).detach()
     full_embeds = torch.cat(
         [
-            embeds[:,:input_slice.start,:], 
-            input_embeds, 
-            embeds[:,input_slice.stop:,:]
-        ], 
+            embeds[:, :input_slice.start, :],
+            input_embeds_slice,
+            embeds[:, input_slice.stop:, :]
+        ],
         dim=1)
     
     logits = model(inputs_embeds=full_embeds).logits
     targets = input_ids[target_slice]
-    loss = nn.CrossEntropyLoss()(logits[0,loss_slice,:], targets)
+    loss = nn.CrossEntropyLoss()(logits[0, loss_slice, :], targets)
     
     loss.backward()
+
+    # Vytvoření prázdného tenzoru pro gradienty
+    full_grads = torch.zeros_like(attack_token_ids, dtype=embed_weights.dtype)
     
-    return one_hot.grad.clone()
+    # Přiřazení gradientů na správná místa v tenzoru
+    full_grads[valid_mask] = one_hot.grad.clone().detach().squeeze(0)
+
+    return full_grads
 
 class GCGAttackPrompt(AttackPrompt):
 
@@ -88,23 +85,35 @@ class GCGPromptManager(PromptManager):
         super().__init__(*args, **kwargs)
 
     def sample_control(self, grad, batch_size, topk=256, temp=1, allow_non_ascii=True):
+        
+        # 1. Filtrace neplatných ID tokenů z non_ascii_toks, pokud existují
+        if not allow_non_ascii and hasattr(self, '_nonascii_toks'):
+            # Vytvoření masky pro platné indexy
+            vocab_size = grad.shape[1]
+            valid_nonascii_toks = self._nonascii_toks[(self._nonascii_toks < vocab_size) & (self._nonascii_toks >= 0)]
+            
+            # Nastavení gradientů na nekonečno, pouze pro platné indexy
+            grad[:, valid_nonascii_toks.to(grad.device)] = np.inf
 
-        if not allow_non_ascii:
-            grad[:, self._nonascii_toks.to(grad.device)] = np.inf
+        # 2. Získání top K indexů s nejvyššími gradienty
         top_indices = (-grad).topk(topk, dim=1).indices
         control_toks = self.control_toks.to(grad.device)
         original_control_toks = control_toks.repeat(batch_size, 1)
+
+        # 3. Náhodný výběr nového tokenu z top K
         new_token_pos = torch.arange(
             0, 
             len(control_toks), 
             len(control_toks) / batch_size,
             device=grad.device
         ).type(torch.int64)
+
         new_token_val = torch.gather(
             top_indices[new_token_pos], 1, 
-            torch.randint(0, topk, (batch_size, 1),
-            device=grad.device)
+            torch.randint(0, topk, (batch_size, 1), device=grad.device)
         )
+        
+        # 4. Nahrazení starých tokenů novými
         new_control_toks = original_control_toks.scatter_(1, new_token_pos.unsqueeze(-1), new_token_val)
         return new_control_toks
 

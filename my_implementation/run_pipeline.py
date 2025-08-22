@@ -26,7 +26,7 @@ from attacks._20_Base.main import run_base_attack
 from attacks._21_Art_Prompt.main import run_artprompt_attack
 from attacks._22_Renellm.main import run_renellm_attack
 from attacks._23_Cold.main import run_cold_attack
-from attacks._24_Autodan.attack_dan import run_autodan_attack
+from attacks._24_Autodan.main import run_autodan_attack
 from attacks._25_past.main import run_past_tense_attack
 from attacks._26_Chameleon.main import run_chameleon_attack
 
@@ -49,8 +49,8 @@ def load_config(path):
             raise ValueError(f"Unsupported config file: {path}")
 
 works = [
-    ("cypher", run_cypher_attack),
-    ("flip", run_flip_attack),
+    ("cypher", run_cypher_attack), #funguje
+    ("flip", run_flip_attack), #funguje
     ("pif", run_pif_attack), # FUNGUJE ALE OPATRENE S NIM - POUZIVA KNIHOVNU TRANSFORMERS, TEDY KONTROLUJ VELIKOST MODELU !!!
     ("sql", run_sql_attack), 
     ("suffix", run_suffix_attack),
@@ -63,34 +63,36 @@ works = [
     ("tap", run_tap_attack), 
     ("gptcypher", run_GPTcypher_attack),
     ("MultiLang", run_Multilang_attack),
-    ("rewrite", run_rewrite_attack),
+    ("rewrite", run_rewrite_attack), 
     ("ica", run_ica_attack),
-    ("overload", run_overload_attack),
+    ("overload", run_overload_attack), #funguje
     ("gcg", run_gcg_attack),
     ("inception", run_inception_attack),
-    ("base", run_base_attack),
-    ("artprompt", run_artprompt_attack),
-    ("renellm", run_renellm_attack),
-    ("past_tense", run_past_tense_attack),
+    ("base", run_base_attack), #funguje
+    ("artprompt", run_artprompt_attack), #funguje
+    ("renellm", run_renellm_attack), #funguje
+    ("autodan",    run_autodan_attack), #funguje
+    ("past_tense", run_past_tense_attack), #funguje
     ("chameleon", run_chameleon_attack),
 ]
 
 special_runs = [
-    # ("pair",       run_pair_attack), # Netestováno
+    # ("pair",       run_pair_attack), 
 
     ("tap", run_tap_attack), 
 ]
 test = [
     # ("gcg", run_gcg_attack), # funguje zatim jen na male modely, llama 7b jsem vyzkousel, protoze vetsi modely se mi nevejdou do pameti
+    ("overload", run_overload_attack),
+    
 
     # ("cold", run_cold_attack) # zatim nefunguje a mozna misto nej najdu nahradu .....
-    # ("autodan",    run_autodan_attack),
 ]
 
 all_attack_categories = [
     # works,
-    special_runs,
-    # test,
+    # special_runs,
+    test,
 ]
 
 

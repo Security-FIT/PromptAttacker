@@ -9,7 +9,7 @@ from dataclasses import fields
 
 from attacks._17_Overload.overload_attack import OverloadAttacker, OverloadAttackerConfig
 from attacks.helpers import load_config
-from attacks._17_Overload.llm import LLM
+from attacks.common.llm import LLM
 from defense.defense_EA import DefenseEA
 
 
@@ -41,7 +41,7 @@ def run_overload_attack(victim_llm_path, results_dir, dataset_path,  api_ollama_
     # --- Výstup ------------------------------------------------------------- #
     # out_dir  = cfg_ol["output_dict"]
     os.makedirs(results_dir, exist_ok=True)
-    out_file = os.path.join(results_dir, "_17_overload.jsonl")  # JSON Lines
+    out_file = os.path.join(results_dir, "_17_overload.json")  # JSON Lines
     attacker_field_names = {f.name for f in fields(OverloadAttackerConfig)}
 
     # ↓ odfiltrujeme vše, co dataclass nezná
@@ -58,42 +58,42 @@ def run_overload_attack(victim_llm_path, results_dir, dataset_path,  api_ollama_
             # if defense:
                 # attack_messages[-1]["content"] = defense(attack_messages[-1]["content"])
 
-            llm_resp = victim_llm.response(attack_messages[-1]["content"] )
+            llm_resp = victim_llm.response(attack_messages)
 
-            print()
-            print()
-            print()
-            print()
-            print()
-            print(attack_messages)
-            print()
-            print()
-            print()
-            print()
-            print()
-            print()
-            print()
-            print()
-            print()
-            print()
-            print()
-            print()
-            print()
-            print(llm_resp)
-            print()
-            print()
-            print()
-            print()
-            print()
-            print()
-            print()
+            # print()
+            # print()
+            # print()
+            # print()
+            # print()
+            # print(attack_messages[-1]["content"])
+            # print()
+            # print()
+            # print()
+            # print()
+            # print()
+            # print()
+            # print()
+            # print()
+            # print()
+            # print()
+            # print()
+            # print()
+            # print()
+            # print(llm_resp)
+            # print()
+            # print()
+            # print()
+            # print()
+            # print()
+            # print()
+            # print()
 
 
             json.dump(
                 {
                     "id": idx,
-                    "prompt_original": prompt,
-                    "prompt_attack": attack_messages[-1]["content"],
+                    "original_prompt": prompt,
+                    "prompt": attack_messages[-1]["content"],
                     "response": llm_resp,
                 },
                 fo,

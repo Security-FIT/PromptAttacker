@@ -36,10 +36,14 @@ class ReNeLLMAttack:
     def __init__(self,
                  cfg: ReNeLLMConfig,
                  rewrite_llm,
-                 rewrite_gen_cfg):
+                 rewrite_gen_cfg,
+                 api_ollama_vllm,
+                 what_ollama_model):
         self.cfg             = cfg
         self.rewrite_llm     = rewrite_llm
         self.rewrite_gen_cfg = rewrite_gen_cfg
+        self.api_ollama_vllm = api_ollama_vllm
+        self.what_ollama_model = what_ollama_model
 
     def _nest(self, rewritten: str) -> str:
         """Zabalí přepsaný prompt do náhodného scénáře."""
@@ -72,5 +76,19 @@ class ReNeLLMAttack:
             # 4) připraví zprávu
             messages = [{"role":"user", "content": nested}]
             results.append((op.__name__, base_log, messages))
+        print("ZEDDEE")
+        print("ZEDDEE")
+        print("ZEDDEE")
+        print("ZEDDEE")
+        print("ZEDDEE")
+
+        print(results)
+
+        print("ZEDDEE")
+        print("ZEDDEE")
+        print("ZEDDEE")
+        print("ZEDDEE")
+        print("ZEDDEE")
+
 
         return results

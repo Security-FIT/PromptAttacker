@@ -13,21 +13,23 @@ def shortenSentence(model, config, sentence: str) -> str:
     )
     user_input = rewrite_prompt + sentence
 
-    params = SamplingParams(
-        temperature=config["temperature"],
-        max_tokens=config["max_n_tokens"]
-    )
+    # params = SamplingParams(
+    #     temperature=config["temperature"],
+    #     max_tokens=config["max_n_tokens"]
+    # )
 
     # U VLLMClient je volání generate(requests, sampling_params=params)
-    outputs = model.generate(
-        [{"prompt": user_input}],
-        sampling_params=params
-    )
+    # outputs = model.generate(
+    #     [{"prompt": user_input}],
+    #     sampling_params=params
+    # )
+    # text = outputs[0].outputs[0].text.strip()
+
+    outputs = model.response([{"role": "user", "content": user_input}])
     # Vezmeme text prvního výsledku
-    text = outputs[0].outputs[0].text.strip()
 
     # Rozbijeme do řádků, náhodně vybereme jeden
-    candidates = [ln for ln in text.splitlines() if ln.strip()]
+    candidates = [ln for ln in outputs.splitlines() if ln.strip()]
     pick = random.choice(candidates) if candidates else sentence
     return remove_number_prefix(pick)
 
@@ -45,16 +47,20 @@ def misrewriteSentence(model, config, sentence: str) -> str:
     )
     user_input = rewrite_prompt + sentence
 
-    params = SamplingParams(
-        temperature=config["temperature"],
-        max_tokens=config["max_n_tokens"]
-    )
+    # params = SamplingParams(
+    #     temperature=config["temperature"],
+    #     max_tokens=config["max_n_tokens"]
+    # )
 
-    outputs = model.generate(
-        [{"prompt": user_input}],
-        sampling_params=params
-    )
-    return outputs[0].outputs[0].text.strip()
+    # outputs = model.generate(
+        # [{"prompt": user_input}],
+        # sampling_params=params
+    # )
+    # return outputs[0].outputs[0].text.strip()
+
+    return model.response([{"role": "user", "content": user_input}])
+
+
 
 
 # ——————————————————————————————————————————————————————————————————————
@@ -69,16 +75,17 @@ def changeOrder(model, config, sentence: str) -> str:
     )
     user_input = rewrite_prompt + sentence
 
-    params = SamplingParams(
-        temperature=config["temperature"],
-        max_tokens=config["max_n_tokens"]
-    )
+    # params = SamplingParams(
+    #     temperature=config["temperature"],
+    #     max_tokens=config["max_n_tokens"]
+    # )
 
-    outputs = model.generate(
-        [{"prompt": user_input}],
-        sampling_params=params
-    )
-    return outputs[0].outputs[0].text.strip()
+    # outputs = model.generate(
+    #     [{"prompt": user_input}],
+    #     sampling_params=params
+    # )
+    # return outputs[0].outputs[0].text.strip()
+    return  model.response([{"role": "user", "content": user_input}])
 
 
 # ——————————————————————————————————————————————————————————————————————
@@ -93,16 +100,17 @@ def addChar(model, config, sentence: str) -> str:
     )
     user_input = rewrite_prompt + sentence
 
-    params = SamplingParams(
-        temperature=config["temperature"],
-        max_tokens=config["max_n_tokens"]
-    )
+    # params = SamplingParams(
+    #     temperature=config["temperature"],
+    #     max_tokens=config["max_n_tokens"]
+    # )
 
-    outputs = model.generate(
-        [{"prompt": user_input}],
-        sampling_params=params
-    )
-    return outputs[0].outputs[0].text.strip()
+    # outputs = model.generate(
+    #     [{"prompt": user_input}],
+    #     sampling_params=params
+    # )
+    # return outputs[0].outputs[0].text.strip()
+    return model.response([{"role": "user", "content": user_input}])
 
 
 # ——————————————————————————————————————————————————————————————————————
@@ -117,16 +125,17 @@ def languageMix(model, config, sentence: str) -> str:
     )
     user_input = rewrite_prompt + sentence
 
-    params = SamplingParams(
-        temperature=config["temperature"],
-        max_tokens=config["max_n_tokens"]
-    )
+    # params = SamplingParams(
+    #     temperature=config["temperature"],
+    #     max_tokens=config["max_n_tokens"]
+    # )
 
-    outputs = model.generate(
-        [{"prompt": user_input}],
-        sampling_params=params
-    )
-    return outputs[0].outputs[0].text.strip()
+    # outputs = model.generate(
+    #     [{"prompt": user_input}],
+    #     sampling_params=params
+    # )
+    # return outputs[0].outputs[0].text.strip()
+    return model.response([{"role": "user", "content": user_input}])
 
 
 # ——————————————————————————————————————————————————————————————————————
@@ -140,13 +149,14 @@ def styleChange(model, config, sentence: str) -> str:
     )
     user_input = rewrite_prompt + sentence
 
-    params = SamplingParams(
-        temperature=config["temperature"],
-        max_tokens=config["max_n_tokens"]
-    )
+    # params = SamplingParams(
+    #     temperature=config["temperature"],
+    #     max_tokens=config["max_n_tokens"]
+    # )
 
-    outputs = model.generate(
-        [{"prompt": user_input}],
-        sampling_params=params
-    )
-    return outputs[0].outputs[0].text.strip()
+    # outputs = model.generate(
+    #     [{"prompt": user_input}],
+    #     sampling_params=params
+    # )
+    # return outputs[0].outputs[0].text.strip()
+    return model.response([{"role": "user", "content": user_input}])

@@ -14,6 +14,8 @@ from attacks._18_Gcg.helpers.gcg_attack import (
     GCGMultiPromptAttack  as MultiPromptAttack,
 )
 
+from attacks._18_Gcg.helpers.attack_manager import get_embedding_layer, get_embeddings
+
 import queue
 class _SyncWorker:
     def __init__(self, model, tokenizer, conv_template):
@@ -88,7 +90,8 @@ def run_gcg_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
     # ---------- 2) načti model & tokenizer ------------------------------------
     tokenizer = AutoTokenizer.from_pretrained(victim_llm_path, trust_remote_code=True)
     model     = AutoModelForCausalLM.from_pretrained(
-                    victim_llm_path, torch_dtype=torch.float16,
+                    victim_llm_path,
+                    torch_dtype=torch.float16,
                     trust_remote_code=True
                 ).to(device).eval()
     conv_template = get_conversation_template(template)
