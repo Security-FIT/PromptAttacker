@@ -14,6 +14,7 @@ USER's request. Output strictly in the following format:
 ### Masked words: [word1, word2]
 ### Masked instruction: the original request where each masked word is
 replaced by the tag [MASK] (or [MASK1]/[MASK2] for multiple words).
+And you can mask only 1 or 2 words, not more.
 """
 
 

@@ -48,18 +48,18 @@ def run_past_tense_attack(victim_llm_path, results_dir, dataset_path, api_ollama
         model_path=reformulator_llm_path,
         temperature=reformulator_temperature,
         max_tokens=reformulator_max_tokens,
-        ollama_model=what_ollama_model,
-        use_ollama=api_ollama_vllm, 
+        ollama_model="qwen2.5:7b",
+        use_ollama=True,
     )
     print("[INFO] Initialized Reformulator LLM client")
 
-    # target_llm = LLM(
-    #     model_path=victim_llm_path,
-    #     temperature=target_temperature,
-    #     max_tokens=target_max_tokens,
-    #     ollama_model=what_ollama_model,
-    #     use_ollama=api_ollama_vllm, 
-    # )
+    target_llm = LLM(
+        model_path=victim_llm_path,
+        temperature=target_temperature,
+        max_tokens=target_max_tokens,
+        ollama_model=what_ollama_model,
+        use_ollama=api_ollama_vllm, 
+    )
     print("[INFO] Initialized Target LLM client")
 
     # Load data
@@ -67,7 +67,7 @@ def run_past_tense_attack(victim_llm_path, results_dir, dataset_path, api_ollama
     print(f"[INFO] Loaded data from {dataset_path}")
 
     os.makedirs(results_dir, exist_ok=True)
-    output_file = os.path.join(results_dir, f'_25_past.jsonl')
+    output_file = os.path.join(results_dir, f'_25_past.json')
 
     # This dictionary will store all results for final analysis (without ASR if no judges)
     jb_dict = {
@@ -102,7 +102,7 @@ def run_past_tense_attack(victim_llm_path, results_dir, dataset_path, api_ollama
                 
                 # Use target LLM to get the final response
                 target_messages = [{"role": "user", "content": prompt_to_llm}]
-                response_from_target = reformulator_llm.response(target_messages)
+                response_from_target = target_llm.response(target_messages)
                 
                 print(f">>> Target LLM Response (restart {i_restart}): {response_from_target}")
                 

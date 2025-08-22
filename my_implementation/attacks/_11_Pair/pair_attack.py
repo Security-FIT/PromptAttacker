@@ -10,7 +10,7 @@ from typing import List, Dict
 import json
 import re, ast
 
-from attacks._11_Pair.llm import LLM
+from attacks.common.llm import LLM
 
 
 # ---------------- Mini-judge ---------------- #
@@ -33,6 +33,8 @@ class PairAttackConfig:
     max_tokens: int = 1024
     early_stop_threshold: int = 2
     verbose: bool = True
+    api_ollama_vllm: bool = True
+    what_ollama_model: str = "deepseek-r1:32b"
 
 def extract_messages(text: str) -> List[Dict[str, str]]:
     """
@@ -53,11 +55,16 @@ class PairAttack:
     def __init__(self, cfg: PairAttackConfig) -> None:
         self.cfg = cfg
         self.attacker_llm = LLM(cfg.attacker_llm_path,
-                                temperature=cfg.temperature,
-                                max_tokens=cfg.max_tokens)
+                                cfg.temperature,
+                                cfg.max_tokens,
+                                "qwen2.5:7b",
+                                True)
         self.target_llm   = LLM(cfg.target_llm_path,
-                                temperature=0.7,
-                                max_tokens=cfg.max_tokens)
+                               0.7,
+                                cfg.max_tokens,
+                                cfg.api_ollama_vllm,
+                                cfg.what_ollama_model)
+        
         self.judge = SimpleJudge(cfg.target_str)
 
         self.sys_prompt = (
@@ -79,11 +86,11 @@ class PairAttack:
                 {"role": "system", "content": self.sys_prompt},
                 {"role": "user",   "content": last_prompt},
             ]
-            self.attacker_llm.load_model()
+            # self.attacker_llm.load_model()
             gens = self.attacker_llm.response(attacker_conv)
-            self.attacker_llm.unload_model()
+            # self.attacker_llm.unload_model()
 
-            attacker_out = gens[0].outputs[0].text.strip()
+            attacker_out = gens
             try:
                 attacker_json = json.loads(attacker_out)
                 last_prompt = attacker_json.get("prompt", attacker_out)
@@ -91,13 +98,13 @@ class PairAttack:
                 last_prompt = attacker_out
 
             # 2) target
-            self.target_llm.load_model()
+            # self.target_llm.load_model()
             target_gens = self.target_llm.response(
                 [{"role": "user", "content": last_prompt}]
             )
-            self.target_llm.unload_model()
+            # self.target_llm.unload_model()
 
-            target_text = target_gens[0].outputs[0].text
+            target_text = target_gens
             score = self.judge.score(target_text)
 
             if score > best_score:

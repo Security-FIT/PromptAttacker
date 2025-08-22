@@ -3,7 +3,7 @@ victim_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-
 dataset_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/dataset_40_ZH.csv"
 results_dir: "/storage/brno2/home/xkaska01/master/my_implementation/results/results_dataset_na_testovani_rozhodovaciho_modelu/"
 use_ollama: true # true = ollama, false = vllm 
-ollama_model: "deepseek-r1:70b" 
+ollama_model:  "deepseek-r1:32b"
 defense:
 
 evaluator:

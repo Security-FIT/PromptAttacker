@@ -162,16 +162,20 @@ class TAPAttacker():
         self.depth = config.depth
 
         self.attack_llm = LLM(
-            model_path=config.attack_llm_config.model,
-            temperature=config.attack_llm_gen_config.temperature or 0.8,
-            max_tokens=config.attack_llm_gen_config.max_tokens or 512, 
+            config.attack_llm_config.model,
+            config.attack_llm_gen_config.temperature or 0.8,
+            config.attack_llm_gen_config.max_tokens or 512, 
+            "qwen2.5:7b",
+            True
         )
-        self.target_llm = self.attack_llm
 
-        # self.target_llm = LLM(
-        #     model_path=config.target_llm_config,
-        #     trust_remote_code=True,  
-        # )
+        self.target_llm = LLM(
+            config.target_llm_config,
+            config.attack_llm_gen_config.temperature or 0.8,
+            config.attack_llm_gen_config.max_tokens or 512, 
+            "deepseek-r1:32b",
+            True
+        )
 
         self.target_llm_gen_config = config.target_llm_gen_config
         self.attack_llm_gen_config = config.attack_llm_gen_config
@@ -281,8 +285,6 @@ class TAPAttacker():
                 prompt_txt = self._conv_to_prompt(conv)
                 assistant_out = self.attack_llm.response(
                     [{"role": "user", "content": prompt_txt}],
-                    temperature=self.attack_llm_gen_config.temperature,
-                    max_tokens=self.attack_llm_gen_config.max_tokens,
                 )
                 print("\n>>> NOVÝ ADVERSARIÁLNÍ PROMPT (attack_llm) <<<\n")
                 print(assistant_out)
@@ -315,8 +317,6 @@ class TAPAttacker():
         for p in adv_prompts:
             r = self.attack_llm.response(
                 [{"role": "user", "content": p}],
-                temperature=self.target_llm_gen_config.temperature,
-                max_tokens=self.target_llm_gen_config.max_tokens,
             )
             responses.append(r)
         return responses

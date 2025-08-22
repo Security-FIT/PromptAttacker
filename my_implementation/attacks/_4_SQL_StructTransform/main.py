@@ -23,13 +23,13 @@ def run_sql_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
     # exit(0)
 
     # LLM instance – M_attack
-    # attacker = LLM(
-    #     model_path  = cfg['attacker_llm'],
-    #     temperature = cfg['temperature_attack'],
-    #     max_tokens  = cfg['max_tokens'],
-    #     ollama_model=what_ollama_model,
-    #     use_ollama=api_ollama_vllm, 
-    # )
+    attacker = LLM(
+        model_path  = cfg['attacker_llm'],
+        temperature = cfg['temperature_attack'],
+        max_tokens  = cfg['max_tokens'],
+        ollama_model="qwen2.5:7b",
+        use_ollama=True, 
+    )
     # LLM instance – M_target
     target = LLM(
         model_path  = victim_llm_path,
@@ -39,7 +39,7 @@ def run_sql_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
         use_ollama=api_ollama_vllm, 
     )
     sql_attack = SQLAttack(
-        attacker_llm = target, # zde ma patrit attacker_llm, ale zatim jsem nechal stejne na utok tak i na vyhodnoceni protoze se to nevejde na disk
+        attacker_llm = attacker, # zde ma patrit attacker_llm, ale zatim jsem nechal stejne na utok tak i na vyhodnoceni protoze se to nevejde na disk
         few_shot     = cfg['few_shot'],
         num_attempts = cfg['num_attempts']
     )

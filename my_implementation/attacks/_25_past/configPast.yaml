@@ -10,4 +10,4 @@ PastTense:
   attack_type: "past" 
   begin: 0
   end: 13282
-  n_restarts: 2
+  n_restarts: 10

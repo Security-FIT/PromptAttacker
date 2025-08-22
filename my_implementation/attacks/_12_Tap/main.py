@@ -17,27 +17,27 @@ from attacks._12_Tap.attack_tap import (
 )
 
 # --------------------------------------------------------------------------- #
-def run_tap_attack(run_defense: bool = False) -> None:
+def run_tap_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model, api_ollama_vllm) -> None:
     """Spustí TAP útok podle `configTap.yaml`."""
     root = Path(__file__).resolve().parent
     cfg  = load_config(root / "configTap.yaml")["TAP"]
 
     # --- YAML ----------------------------------------------------------------
-    data_path   = cfg["data_path"]
+    data_path   = dataset_path
     out_dir     = Path(cfg["output_dir"])
-    victim_path = cfg["victim_llm"]
+    victim_path = victim_llm_path
 
-    attacker_name = cfg.get("attacker_llm")
-    temperature   = cfg.get("temperature", 1.0)
-    max_token     = cfg.get("max_token", 1024)
-    width         = cfg.get("width", 10)
-    branching     = cfg.get("branching", 10)
-    depth         = cfg.get("depth", 10)
-    target_str    = cfg.get("target_str", "Sure.")
-    begin         = cfg.get("begin", 0)
-    end           = cfg.get("end")
-    sleep_sec     = cfg.get("sleep", 0.0)
-    apply_defense = cfg.get("apply_defense", False)
+    attacker_name = victim_llm_path
+    temperature   = 1
+    max_token     = 1024
+    width         = 10
+    branching     = 10
+    depth         = 10
+    target_str    = "Sure."
+    begin         = 0
+    end           = "end"
+    sleep_sec     = 0.0
+    apply_defense = False
 
     print("[INFO] ============ TAP Experiment ============")
     print(f"[INFO] victim model : {victim_path}")
@@ -68,12 +68,12 @@ def run_tap_attack(run_defense: bool = False) -> None:
 
     # --- dataset --------------------------------------------------------------
     adv_bench = pd.read_csv(data_path)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_file = out_dir / "_12_tap.jsonl"
+    out_dir = Path(results_dir); out_dir.mkdir(parents=True, exist_ok=True)
+    out_file = out_dir / "_12_tap.json"
 
     # --- iterace --------------------------------------------------------------
     with out_file.open("w", encoding="utf-8") as fo:
-        series = adv_bench["goal"][begin:end]
+        series = adv_bench["goal"]
         for idx, rec in tqdm(series.items()):
             goal = rec["goal"] if isinstance(rec, dict) else rec
             print(f"[INFO] Goal {idx}: {goal[:60]}…")

@@ -148,6 +148,7 @@ přeložil jsem puvodní dataset pomocí deepseek modelu
 <!-- https://arxiv.org/pdf/2402.11753 -->
 <!-- https://github.com/uw-nsl/ArtPrompt -->
 "qwen2.5:7b" je dobry model na vytvareni utocnych artpromptu !! {resil jsem to 4 hodiny nez jsem nasel vhodny model a upravil kod - tak si na to dej priste pozor :D }
+a mam tam hardcodnuteho toho hodnotice :D
 
 ----------------------------------------------------------------------------------------------------------------------------
 22✓ Renellm

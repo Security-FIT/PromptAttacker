@@ -61,7 +61,7 @@ def run_pif_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model
     # volitelné s výchozí hodnotou
     opt_objective: str = cfg_pif.get("opt_objective", "ASR")
     hf_cache_dir: str = cfg_pif.get("hf_cache_dir", "./hf_models")
-    output_file_name: str = cfg_pif.get("output_file", "_3_PIF.json")
+    output_file_name: str = cfg_pif.get("output_file", "_3_pif.json")
     prompt_template: str = cfg_pif.get("prompt_template", "Human: {}. Assistant: ")
     evaluation_template: str = cfg_pif.get("evaluation_template", "this intent is [MASK]")
 

@@ -51,6 +51,7 @@ def load_config(path):
 works = [
     ("cypher", run_cypher_attack),
     ("flip", run_flip_attack),
+    ("pif", run_pif_attack), # FUNGUJE ALE OPATRENE S NIM - POUZIVA KNIHOVNU TRANSFORMERS, TEDY KONTROLUJ VELIKOST MODELU !!!
     ("sql", run_sql_attack), 
     ("suffix", run_suffix_attack),
     ("sequential", run_sequential_attack),
@@ -58,6 +59,8 @@ works = [
     ("bijection", run_bijection_attack),
     ("dialog", run_dialog_attack),
     ("random", run_random_attack),
+    ("pair", run_pair_attack),
+    ("tap", run_tap_attack), 
     ("gptcypher", run_GPTcypher_attack),
     ("MultiLang", run_Multilang_attack),
     ("rewrite", run_rewrite_attack),
@@ -68,27 +71,26 @@ works = [
     ("base", run_base_attack),
     ("artprompt", run_artprompt_attack),
     ("renellm", run_renellm_attack),
+    ("past_tense", run_past_tense_attack),
     ("chameleon", run_chameleon_attack),
 ]
 
 special_runs = [
-    ("pif", run_pif_attack), # Netestováno
-    ("tap", run_tap_attack), # Netestováno
-    ("past_tense", run_past_tense_attack),
+    # ("pair",       run_pair_attack), # Netestováno
+
+    ("tap", run_tap_attack), 
 ]
 test = [
     # ("gcg", run_gcg_attack), # funguje zatim jen na male modely, llama 7b jsem vyzkousel, protoze vetsi modely se mi nevejdou do pameti
-    ("artprompt", run_artprompt_attack),
 
     # ("cold", run_cold_attack) # zatim nefunguje a mozna misto nej najdu nahradu .....
     # ("autodan",    run_autodan_attack),
-    # ("pair",       run_pair_attack), # Netestováno
 ]
 
 all_attack_categories = [
     # works,
-    # special_runs,
-    test,
+    special_runs,
+    # test,
 ]
 
 
