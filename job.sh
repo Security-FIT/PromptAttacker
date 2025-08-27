@@ -1,8 +1,8 @@
 #!/bin/bash
 #PDs -q default@pbs-m1.metacentrum.cz
 #PBS -N JailBreak_GPU2
-#PBS -l select=1:ncpus=1:ngpus=1:mem=200gb:gpu_mem=80b:scratch_local=400gb
-#PBS -l walltime=20:00:00
+#PBS -l select=1:ncpus=1:ngpus=1:mem=200gb:gpu_mem=92gb:scratch_local=600gb
+#PBS -l walltime=20:59:59
 
 HOMEDIR=/storage/brno2/home/xkaska01/master/
 
@@ -12,7 +12,17 @@ module add mambaforge
 mamba activate /storage/brno2/home/xkaska01/.conda/envs/diplomka
 
 #na zapnuti ollama serveru
-./storage/brno2/home/xkaska01/test/bin/ollama serve & 
+
+/storage/brno2/home/xkaska01/test/bin/ollama pull deepseek-r1:32b
+/storage/brno2/home/xkaska01/test/bin/ollama pull qwen2.5:7b
+# /storage/brno2/home/xkaska01/test/bin/ollama pull llama3.1:70b
+# /storage/brno2/home/xkaska01/test/bin/ollama pull falcon3:10b
+# /storage/brno2/home/xkaska01/test/bin/ollama pull gemma3:27b
+# /storage/brno2/home/xkaska01/test/bin/ollama pull qwen3:32b
+# /storage/brno2/home/xkaska01/test/bin/ollama pull yi:34b
+# /storage/brno2/home/xkaska01/test/bin/ollama pull internlm/internlm2.5:latest
+# /storage/brno2/home/xkaska01/test/bin/ollama pull command-r:35b
+/storage/brno2/home/xkaska01/test/bin/ollama serve > $HOMEDIR/ollama.log 2>&1 &
 
 echo "$PBS_JOBID běží na uzlu `hostname -f`" >> $HOMEDIR/jobs_info.txt
 cd $HOMEDIR

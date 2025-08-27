@@ -50,12 +50,12 @@ class LLM:
         # inicializace vLLM klienta pro inference
 
         # generování textu
-        print(user_prompt)
-        print("ZDE user prompt")
-        print("ZDE user prompt")
-        print("ZDE user prompt")
-        print("ZDE user prompt")
-        print("ZDE user prompt")
+        # print(user_prompt)
+        # print("ZDE user prompt")
+        # print("ZDE user prompt")
+        # print("ZDE user prompt")
+        # print("ZDE user prompt")
+        # print("ZDE user prompt")
 
         if self.use_ollama:
             chat_res = self.client.chat.completions.create(

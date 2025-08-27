@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional, Callable, Any, Tuple
 from dataclasses import dataclass, field
 from vllm import LLM as VLLMClient, SamplingParams
 
@@ -248,61 +248,53 @@ class TAPAttacker():
         txt.append("### Assistant:\n")          
         return "".join(txt)
 
-    def get_attack(
-        self, convs: List[List[Dict[str, str]]], processed_responses: List[str]
-    ) -> List[Dict[str, str]]:
-        """
-        Generate attack prompts by extending the conversation and applying the attack logic.
-
-        :param convs: List of conversations.
-        :type convs: List[List[Dict[str, str]]]
-        :param processed_responses: List of responses already processed.
-        :type processed_responses: List[str]
-        :return: A list of attack prompts.
-        :rtype: List[Dict[str, str]]
-        """
+    def get_attack(self, convs: List[List[Dict[str, str]]], processed_responses: List[str]):
         assert len(convs) == len(processed_responses)
+
         if len(convs[0]) == 1:
-            # only sys prompt
-            init_message = """{\"improvement\": \"\",\"prompt\": \""""
+            init_message = "{\"improvement\": \"\",\"prompt\": \""
         else:
-            init_message = """{\"improvement\": \""""
+            init_message = "{\"improvement\": \""
 
         attack_prompts = []
-        is_success = True
+        # Pozn.: nebudeme selhávat celý útok kvůli jedné větvi
+        is_success_overall = True
 
         for conv, prompt in zip(convs, processed_responses):
             conv.append({"role": "user", "content": prompt})
             conv.append({"role": "assistant", "content": init_message})
 
-            attempt = 0
-            while attempt < 5:
-                print("\n" + "="*60)
-                print("### ÚTOČNÍK – KONVERZACE (dosud) ###")
-                for m in conv:
-                    print(f"{m['role'].upper():9}: {m['content'][:200]}")  # 1. řádek každé zprávy
-                print("="*60 + "\n")
-                prompt_txt = self._conv_to_prompt(conv)
-                assistant_out = self.attack_llm.response(
-                    [{"role": "user", "content": prompt_txt}],
-                )
-                print("\n>>> NOVÝ ADVERSARIÁLNÍ PROMPT (attack_llm) <<<\n")
-                print(assistant_out)
-                print("\n" + "-"*60 + "\n")
-                try:
-                    attack_prompts.append(json.loads(assistant_out))
-                    conv[-1]["content"] = assistant_out
-                    break
-                except Exception as e:
-                    attempt += 1
-                    time.sleep(1)
-                    self._log_retrying(attempt, e, assistant_out)
+            # Jednorázový pokus – nevalidní → přeskočit větev
+            prompt_txt = self._conv_to_prompt(conv)
+            assistant_out = self.attack_llm.response(
+                [{"role": "user", "content": prompt_txt}],
+            )
 
-            if attempt == RETRY:
-                is_success = False
-                break
+            try:
+                obj = json.loads(assistant_out)
+                if not isinstance(obj, dict):
+                    raise ValueError("LLM nevrátil dict JSON.")
 
-        return attack_prompts, is_success
+                # povinný klíč: prompt
+                if "prompt" not in obj or not isinstance(obj["prompt"], str) or not obj["prompt"].strip():
+                    raise KeyError("prompt")
+
+                # volitelný klíč: improvement
+                imp = obj.get("improvement", "")
+                if not isinstance(imp, str):
+                    imp = str(imp)
+                obj["improvement"] = imp
+
+                # uložit normalizovaný JSON do konverzace
+                conv[-1]["content"] = json.dumps(obj, ensure_ascii=False)
+                attack_prompts.append(obj)
+
+            except Exception as e:
+                # zalogujeme a tuto větev prostě přeskočíme
+                self._log_retrying(attempt=1, e=e, error_msg=assistant_out)
+                # NE-nastavujeme is_success_overall = False; jen přeskočíme
+
+        return attack_prompts, is_success_overall
 
     def target_llm_response(self, adv_prompts: List[str]) -> List[str]:
         """
@@ -315,7 +307,7 @@ class TAPAttacker():
         """
         responses = []
         for p in adv_prompts:
-            r = self.attack_llm.response(
+            r = self.target_llm.response(
                 [{"role": "user", "content": p}],
             )
             responses.append(r)
@@ -453,79 +445,104 @@ class TAPAttacker():
             scores.append(int(ratio * 10))          # škála 0-10
         return scores
 
-    def attack(self, messages: List[Dict[str, str]], **kwargs):
+    def attack(
+        self,
+        messages: List[Dict[str, str]],
+        *,
+        progress_hook: Optional[Callable[[Dict[str, Any]], None]] = None,
+        progress_every: int = 10,
+        time_budget_sec: Optional[float] = None,
+        max_nodes: Optional[int] = None,
+        **kwargs
+    ):
         """
-        Perform the adversarial attack on the conversation based on specific goals and parameters.
+        Provede TAP útok. Nově:
+          - progress_hook: volá se průběžně s {"best_prompt": str, "step": int, "meta": {...}}
+          - time_budget_sec: měkký časový limit – po vypršení vrátí best-so-far
+          - max_nodes: max. počet "kroků" (přibližně zpracovaných kandidátů)
+        """
+        t0 = time.time()
+        steps = 0
 
-        :param messages: A list of messages in the conversation.
-        :type messages: List[Dict[str, str]]
-        :param kwargs: Additional parameters passed to the function.
-        :return: A list containing the best attack prompt generated by the process.
-        :rtype: List[Dict[str, str]]
-        """
+        def _report(best_prompt: Optional[str], meta: Dict[str, Any]):
+            if progress_hook and best_prompt:
+                try:
+                    progress_hook({"best_prompt": best_prompt, "step": steps, "meta": meta})
+                except Exception:
+                    pass
+
+        def _time_up() -> bool:
+            return (time_budget_sec is not None) and ((time.time() - t0) >= time_budget_sec)
+
+        def _nodes_up() -> bool:
+            return (max_nodes is not None) and (steps >= max_nodes)
 
         goal, target_str = self._fetch_goal(message=messages)
 
-        # Initialize attack parameters
         attack_params = {
             "width": self.width,
             "branching_factor": self.branching_factor,
             "depth": self.depth,
         }
 
-        # Initialize models and logger
-        system_prompt = self.get_attacker_system_prompt(
-            goal=goal, target_str=target_str
-        )
-
+        system_prompt = self.get_attacker_system_prompt(goal=goal, target_str=target_str)
         init_msg = self.get_init_msg(goal=goal, target=target_str)
         processed_responses = [init_msg]
 
         convs = [[{"role": "system", "content": system_prompt}]]
-        best_attack_prompt = None
+        best_attack_prompt: Optional[str] = None
+        best_meta: Dict[str, Any] = {"score": -1, "depth": 0}
 
         # Begin TAP
-
-        # print("Beginning TAP!", flush=True)
-
         for iteration in range(1, attack_params["depth"] + 1):
-            # print(f"""\n{'='*36}\nTree-depth is: {iteration}\n{'='*36}\n""", flush=True)
+            if _time_up() or _nodes_up():
+                break
 
-            ############################################################
-            #   BRANCH
-            ############################################################
             extracted_attacks = []
             convs_new = []
 
-            for _ in range(attack_params["branching_factor"]):
-                # print(f"Entering branch number {_}", flush=True)
-                convs_copy = copy.deepcopy(convs)
+            # --------- BRANCH ---------
+            for b in range(attack_params["branching_factor"]):
+                if _time_up() or _nodes_up():
+                    break
 
-                extracted_attack, is_success = self.get_attack(
+                convs_copy = copy.deepcopy(convs)
+                branch_attacks, is_success = self.get_attack(
                     convs=convs_copy, processed_responses=processed_responses
                 )
+                steps += 1  # hrubé počítadlo kroků
 
-                # not success, return
                 if not is_success:
                     self._log_failed_attack(goal=goal)
-                    return [{"role": "user", "content": "[ATTACK FAILED]"}]
+                    # vrátíme best-so-far, pokud existuje
+                    return [{"role": "user", "content": best_attack_prompt or "[ATTACK FAILED]"}]
 
-                extracted_attacks.extend(extracted_attack)
+                extracted_attacks.extend(branch_attacks)
                 convs_new.extend(convs_copy)
 
+                # průběžně aktualizuj best-so-far "na slepo" (zatím bez judge)
+                if branch_attacks:
+                    # preferuj poslední prompt v této větvi – rychlý heuristický update
+                    guess_prompt = branch_attacks[-1]["prompt"]
+                    if guess_prompt and not best_attack_prompt:
+                        best_attack_prompt = guess_prompt
+                        best_meta = {"score": None, "depth": iteration, "phase": "branch"}
+                        if steps % progress_every == 0:
+                            _report(best_attack_prompt, best_meta)
+
             convs = copy.deepcopy(convs_new)
+
+            # nic z větvení? pokračuj dalším loopem / nebo skonči pokud vypršel čas
+            if not extracted_attacks:
+                if _time_up() or _nodes_up():
+                    break
+                continue
 
             adv_prompts = [attack["prompt"] for attack in extracted_attacks]
             improvs = [attack["improvement"] for attack in extracted_attacks]
 
-            ############################################################
-            #   PRUNE: PHASE 1
-            ############################################################
-
-            # Get on-topic-scores (does the adv_prompt asks for same info as original prompt)
+            # --------- PRUNE: PHASE 1 ---------
             on_topic_scores = self.on_topic_score(adv_prompts=adv_prompts, goal=goal)
-
-            # Prune attacks which are irrelevant
             (
                 on_topic_scores,
                 _,
@@ -536,30 +553,32 @@ class TAPAttacker():
                 extracted_attacks,
             ) = self.prune(
                 on_topic_scores,
-                None,  # judge_scores
+                None,
                 adv_prompts,
                 improvs,
                 convs,
-                None,  # target_response_list
+                None,
                 extracted_attacks,
                 sorting_score=on_topic_scores,
                 attack_params=attack_params,
             )
 
-            ############################################################
-            #   QUERY AND ASSESS
-            ############################################################
-            target_responses = self.target_llm_response(adv_prompts)
+            if _time_up() or _nodes_up():
+                # ještě zreportuj čistý best z posledního prořezání
+                if adv_prompts:
+                    best_attack_prompt = adv_prompts[0]
+                    best_meta = {"score": None, "depth": iteration, "phase": "prune1"}
+                    _report(best_attack_prompt, best_meta)
+                break
 
-            # Get judge-scores (i.e., likelihood of jailbreak) from Evaluator
+            # --------- QUERY & ASSESS ---------
+            target_responses = self.target_llm_response(adv_prompts)
             judge_scores = self.judge_score(
                 adv_prompts=adv_prompts, target_responses=target_responses, goal=goal
             )
+            steps += len(adv_prompts)
 
-            ############################################################
-            #   PRUNE: PHASE 2
-            ############################################################
-            # Prune attacks which to be fewer than attack_params['width']
+            # --------- PRUNE: PHASE 2 ---------
             (
                 on_topic_scores,
                 judge_scores,
@@ -580,14 +599,20 @@ class TAPAttacker():
                 attack_params=attack_params,
             )
 
-            best_attack_prompt = adv_prompts[0]
-            # Early stopping criterion
-            if any([score == 10 for score in judge_scores]):
-                # print("Found a jailbreak. Exiting.")
+            # aktualizace best-so-far podle judge skóre
+            if adv_prompts:
+                best_attack_prompt = adv_prompts[0]
+                best_meta = {
+                    "score": judge_scores[0] if judge_scores else None,
+                    "depth": iteration,
+                    "phase": "prune2",
+                }
+                _report(best_attack_prompt, best_meta)
+
+            # early stop na plný jailbreak
+            if any([score == 10 for score in judge_scores or []]):
                 break
 
-            # `process_target_response` concatenates the target response, goal, and score
-            #   -- while adding appropriate labels to each
             processed_responses = [
                 self.process_target_response(
                     target_response=target_response,
@@ -595,7 +620,11 @@ class TAPAttacker():
                     goal=goal,
                     target_str=target_str,
                 )
-                for target_response, score in zip(target_responses, judge_scores)
+                for target_response, score in zip(target_responses, judge_scores or [])
             ]
 
-        return [{"role": "user", "content": best_attack_prompt}]
+            if _time_up() or _nodes_up():
+                break
+
+        # finále – vrať nejlepší, co máme
+        return [{"role": "user", "content": best_attack_prompt or "[ATTACK FAILED]"}]

@@ -6,7 +6,8 @@ GCG:
   end: 1119
 
    # ---- TRAIN ----
-  train_dataset: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/train_gcg.csv"  # CSV se sloupci: goal,target
+  victim_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf/"
+  dataset_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/dataset_40_ZH.csv"
   train_steps: 100
   train_batch_size: 500
   optimize_suffix: true                 # když =false, trénink se přeskočí

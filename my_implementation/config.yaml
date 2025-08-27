@@ -1,9 +1,9 @@
 run_defense: false
 victim_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf/"
 dataset_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/dataset_40_ZH.csv"
-results_dir: "/storage/brno2/home/xkaska01/master/my_implementation/results/results_dataset_na_testovani_rozhodovaciho_modelu/"
+results_dir: "/storage/brno2/home/xkaska01/master/my_implementation/results/DATASET_C_Deepseek/"
 use_ollama: true # true = ollama, false = vllm 
-ollama_model:  "deepseek-r1:32b"
+ollama_model:  "deepseek-r1:32b" # llama3.1:70b, falcon3:10b, gemma3:27b, qwen3:32b, yi:34b, internlm/internlm2.5:latest, command-r:35b
 defense:
 
 evaluator:

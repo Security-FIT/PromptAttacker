@@ -53,6 +53,8 @@ def count_unique_targets(input_file: str, row_ranges: Dict[str, Tuple[int, int]]
                         if start_row <= actual_csv_row_num <= end_row:
                             strata_unique_targets[stratum_name].add(target_value)
                             found_stratum = True
+                            print(strata_unique_targets)
+
                             break
                     
                     if not found_stratum:

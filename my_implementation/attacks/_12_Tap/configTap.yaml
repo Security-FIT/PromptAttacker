@@ -5,9 +5,9 @@ TAP:
   attacker_llm: models/Llama-2-7b-hf
   temperature: 0.8    
   max_token: 1024     
-  width: 8            
-  branching: 8        
-  depth: 8            
+  width: 4            
+  branching: 4        
+  depth: 4            
   target_str: "Sure." 
   begin: 0            
   end: 13282            
