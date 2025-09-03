@@ -53,7 +53,7 @@ def run_cypher_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vll
 
     os.makedirs(results_dir, exist_ok=True)
     output_file = os.path.join(results_dir, '_1_cypher.json')
-
+    entries = []
     with open(output_file, 'w', encoding='utf-8') as fo:
 
         for id, harm_prompt in tqdm(enumerate(adv_bench["goal"][begin:end])):
@@ -77,9 +77,10 @@ def run_cypher_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vll
                 'prompt': cypher_attack[-1]['content'],
                 'response': llm_response
             }
+            entries.append(entry)
 
-            fo.write(json.dumps(entry, ensure_ascii=False) + '\n')
-            fo.flush()
+        fo.write(json.dumps(entries, ensure_ascii=False) + '\n')
+        fo.flush()
 
 
 

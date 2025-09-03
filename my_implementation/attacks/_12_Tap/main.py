@@ -71,7 +71,7 @@ def run_tap_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model
     adv_bench = pd.read_csv(data_path)
     out_dir = Path(results_dir); out_dir.mkdir(parents=True, exist_ok=True)
     out_file = out_dir / "_12_tap.json"
-
+    entries = []
     # --- iterace --------------------------------------------------------------
     with out_file.open("w", encoding="utf-8") as fo:
         series = adv_bench["goal"]
@@ -126,8 +126,9 @@ def run_tap_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model
                 "prompt": attack_prompt,
                 "response": response,
             }
-            fo.write(json.dumps(entry, ensure_ascii=False) + "\n")
-            fo.flush()
-            time.sleep(sleep_sec)
+            entries.append(entry)
+        fo.write(json.dumps(entries, ensure_ascii=False) + "\n")
+        fo.flush()
+        time.sleep(sleep_sec)
 
     print(f"[INFO] Results saved to {out_file}")

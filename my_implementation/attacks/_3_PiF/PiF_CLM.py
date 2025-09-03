@@ -18,6 +18,7 @@ python pif_attack.py --defense    # (pokud bys někdy chtěl přidat obranu)
 
 from __future__ import annotations
 
+import pandas
 import argparse
 import json
 import logging
@@ -96,10 +97,7 @@ def run_pif_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model
     # ------------------------------------------------------------------
     # 3) načtení datasetu
     # ------------------------------------------------------------------
-    with open(dataset_path, "r", encoding="utf-8") as f:
-        advbench = [ln.strip() for ln in f if ln.strip()]
-    prompt_advbench = [prompt_template.format(adv) for adv in advbench]
-
+    adv_bench = pandas.read_csv(dataset_path)
     # ------------------------------------------------------------------
     # 4) útok
     # ------------------------------------------------------------------
@@ -112,10 +110,23 @@ def run_pif_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model
 
     output_path = Path(results_dir) / output_file_name
     logger.info("Results will be written to %s", output_path)
-
+    entries = []
+    # ['Human: goal,translation_of_goal,target. Assistant: ']
     with open(output_path, "w", encoding="utf-8") as fo:
-        for i in tqdm(range(0, len(prompt_advbench), batch_size), desc="PIF attack"):
-            chunk_prompts: List[str] = prompt_advbench[i: i + batch_size]
+        for i, harm_prompt in tqdm(enumerate(adv_bench["goal"])):
+
+            chunk_prompts: List[str] = [harm_prompt]
+
+            # print("ADV")
+            # print(chunk_prompts)
+            # print()
+            # print()
+            # print()
+            # print()
+            # print()
+            # print()
+            # exit(0)
+
 
             query, t_spent, flags, gen_attacks, tgt_responses = attack_clm.generate_attack(
                 gen_model_path, gen_model_path, victim_llm_path, victim_llm_path,
@@ -142,8 +153,9 @@ def run_pif_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model
                     "prompt": gen_attack,
                     "response": tgt_response,
                 }
-                fo.write(json.dumps(rec, ensure_ascii=False) + "\n")
-                fo.flush()
+                entries.append(rec)
+        fo.write(json.dumps(entries, ensure_ascii=False) + "\n")
+        fo.flush()
 
     # ------------------------------------------------------------------
     # 5) agregační metriky

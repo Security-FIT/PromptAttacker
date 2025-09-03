@@ -42,7 +42,7 @@ def run_ica_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
     print()
     print()
 
-
+    entries = []
     with open(out_file, "w", encoding="utf-8") as fo:
         for idx, row in tqdm(
             enumerate(df["goal"][begin:end]), total=end - begin
@@ -58,12 +58,14 @@ def run_ica_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
             except Exception as e:
                 reply = f"[ERROR] {e}"
 
-            fo.write(json.dumps({
+            entry = {
                 "id": idx + begin,
                 "original_prompt": row,
                 "prompt": msgs[-1]["content"],
                 "response": reply
-            }, ensure_ascii=False) + "\n")
-            fo.flush()
+            }
+            entries.append(entry)
+        fo.write(json.dumps(entries, ensure_ascii=False) + "\n")
+        fo.flush()
 
     print(f"[INFO] Výstup uložen → {out_file}")

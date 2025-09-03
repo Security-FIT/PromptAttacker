@@ -66,7 +66,7 @@ def run_bijection_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
         ollama_model=what_ollama_model,
         use_ollama=api_ollama_vllm, 
     )
-
+    entries = []
     with open(output_file, "w", encoding="utf-8") as fo:
         for idx, row in tqdm(
                 enumerate(df["goal"][begin:end]),
@@ -99,7 +99,9 @@ def run_bijection_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
                 "prompt": encoded_prompt,
                 "response": llm_reply
             }
-            fo.write(json.dumps(entry, ensure_ascii=False) + "\n")
-            fo.flush()
+            entries.append(entry)
+
+        fo.write(json.dumps(entries, ensure_ascii=False) + "\n")
+        fo.flush()
 
     print(f"[INFO] Výsledky jsou uloženy v {output_file}")

@@ -49,7 +49,7 @@ def run_overload_attack(victim_llm_path, results_dir, dataset_path,  api_ollama_
     # --- Útočník ------------------------------------------------------------ #
     attacker_cfg = OverloadAttackerConfig(**attacker_kwargs)
     attacker     = OverloadAttacker(attacker_cfg)
-
+    entries = []
     # --- Hlavní smyčka ------------------------------------------------------ #
     with open(out_file, "w", encoding="utf-8") as fo:
         for idx, prompt in tqdm(enumerate(df["goal"])):
@@ -89,17 +89,14 @@ def run_overload_attack(victim_llm_path, results_dir, dataset_path,  api_ollama_
             # print()
 
 
-            json.dump(
-                {
-                    "id": idx,
-                    "original_prompt": prompt,
-                    "prompt": attack_messages[-1]["content"],
-                    "response": llm_resp,
-                },
-                fo,
-                ensure_ascii=False,
-            )
-            fo.write("\n")        # JSON na samostatný řádek
-            fo.flush()
+            entry = {
+                "id": idx,
+                "original_prompt": prompt,
+                "prompt": attack_messages[-1]["content"],
+                "response": llm_resp,
+            }
+            entries.append(entry)
+        fo.write(json.dumps(entries, ensure_ascii=False) + "\n")
+        fo.flush()
 
     print(f"[INFO] Results saved to {out_file}")

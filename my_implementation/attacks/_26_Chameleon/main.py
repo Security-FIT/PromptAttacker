@@ -81,6 +81,7 @@ def run_chameleon_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
     # ------------------------------------------------------------------ #
     # 5) Hlavní smyčka: encrypt → prompt → LLM → záznam
     # ------------------------------------------------------------------ #
+    entries = []
     with open(output_file, "w", encoding="utf-8") as fo:
         for idx, original_problem in tqdm(
             enumerate(prompts_series[begin:end]), total=end - begin
@@ -103,11 +104,12 @@ def run_chameleon_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
                 "id": idx,
                 # "encrypt_rule": "binary_tree",
                 # "prompt_style": prompt_style,
-                "original_problem": original_problem,
-                "encrypted_prompt": prompt,
+                "original_prompt": original_problem,
+                "prompt": prompt,
                 "response": llm_response,
             }
-            fo.write(json.dumps(entry, ensure_ascii=False) + "\n")
-            fo.flush()
+            entries.append(entry)
+        fo.write(json.dumps(entries, ensure_ascii=False) + "\n")
+        fo.flush()
 
     print(f"[INFO] Hotovo – uložené výsledky: {output_file}")

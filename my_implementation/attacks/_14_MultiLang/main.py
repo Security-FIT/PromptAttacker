@@ -39,7 +39,7 @@ def run_Multilang_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
     # ---------- výstupní soubor --------------------------------------------
     os.makedirs(results_dir, exist_ok=True)
     output_file = os.path.join(results_dir, "_14_multilang.json")
-
+    entries = []
     # ---------- hlavní smyčka ----------------------------------------------
     with open(output_file, "w", encoding="utf-8") as fo:
         for idx, row in tqdm(df.iloc[begin:end].iterrows(), total=end - begin):
@@ -55,6 +55,7 @@ def run_Multilang_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
                 "prompt": ch_prompt,
                 "response": llm_response,
             }
-            fo.write(json.dumps(entry, ensure_ascii=False) + "\n")
-            fo.flush()
+            entries.append(entry)
+        fo.write(json.dumps(entries, ensure_ascii=False) + "\n")
+        fo.flush()
     print(f"[INFO] Results saved to {output_file}")

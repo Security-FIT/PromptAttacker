@@ -62,7 +62,7 @@ def run_GPTcypher_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
     attacker        = GPT4CipherAttacker(attacker_cfg)
 
     # defense = DefenseEA() if run_defense else None
-
+    entries = []
     # ----------------– hlavní smyčka ------------------------------------
     with open(out_file, "w", encoding="utf-8") as fo:
         for idx, prompt in tqdm(
@@ -73,16 +73,15 @@ def run_GPTcypher_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
 
             llm_resp = victim_llm.response(messages)
 
-            json.dump(
-                {
-                    "id": idx,
-                    "prompt_original": prompt,
-                    "prompt_attack":  messages[-1]["content"],
-                    "response":       llm_resp,
-                },
-                fo,
-                ensure_ascii=False,
-            )
-            fo.write("\n")
+            entry = {
+                "id": idx,
+                "prompt_original": prompt,
+                "prompt":  messages[-1]["content"],
+                "response":       llm_resp,
+            }
+            entries.append(entry)
+
+
+        fo.write(json.dumps(entries, ensure_ascii=False) + "\n")
 
     print(f"[INFO] Výsledky uloženy do {out_file}")

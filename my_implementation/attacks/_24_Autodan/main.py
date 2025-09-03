@@ -252,6 +252,8 @@ def run_autodan_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vl
     # Otevřeme soubor pro zápis v módu 'a' (append) nebo 'w' (write) poprvé
     # Pokud chcete soubor vždy přepsat, použijte 'w'. Pokud doplňovat, použijte 'a'.
     # Pro tento scénář, kdy běžíme pro konkrétní rozsah a chceme nový soubor, 'w' je vhodnější.
+
+    entries = []
     with open(output_path, "w", encoding="utf-8") as fp:
         for idx, harm_prompt in tqdm(enumerate(df['goal'])):
 
@@ -335,9 +337,11 @@ def run_autodan_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vl
                 "response": best_response, 
                 # "is_success": success,
             }
+
+            entries.append(entry)
             
             # Zápis jednoho JSON objektu na řádek
-            fp.write(json.dumps(entry, ensure_ascii=False) + '\n')
-            fp.flush() # Zajištění okamžitého zápisu na disk
+        fp.write(json.dumps(entries, ensure_ascii=False) + '\n')
+        fp.flush() # Zajištění okamžitého zápisu na disk
 
     print(f"\n[INFO] Autodan útok dokončen. Výsledky jsou uloženy v: {output_path}")

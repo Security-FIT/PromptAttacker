@@ -1,0 +1,9 @@
+run_defense: false
+victim_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf/"
+dataset_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/dataset_40.csv"
+results_dir: "/storage/brno2/home/xkaska01/master/my_implementation/results/DATASET_C_falcon3:10b/"
+use_ollama: true # true = ollama, false = vllm 
+ollama_model: "falcon3:10b"
+defense:
+
+evaluator:

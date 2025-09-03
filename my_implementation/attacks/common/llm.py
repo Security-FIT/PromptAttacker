@@ -26,7 +26,7 @@ class LLM:
         # cesta k lokálnímu HF modelu
         self.model_path = model_path
         self.temperature = temperature
-        self.max_tokens = max_tokens
+        self.max_tokens = max_tokens if max_tokens > 1000 else 1000 
         self.ollama_model = ollama_model
         self.use_ollama = use_ollama
 

@@ -47,7 +47,7 @@ def run_inception_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
 
     os.makedirs(results_dir, exist_ok=True)
     output_file = os.path.join(results_dir, '_19_deep_inception.json')
-
+    entries = []
     with open(output_file, "w", encoding="utf-8") as fo:
         for idx, harm_prompt in tqdm(
             enumerate(adv_bench["goal"][begin:end]), total=end - begin
@@ -65,18 +65,15 @@ def run_inception_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
 
             llm_response = llm.response(attack_msgs)
 
-            fo.write(
-                json.dumps(
-                    {
-                        "id": idx,
-                        "original_prompt": log,
-                        "prompt": attack_msgs[-1]["content"],
-                        "response": llm_response,
-                    },
-                    ensure_ascii=False,
-                )
-                + "\n"
-            )
-            fo.flush()
+            entry = {
+                "id": idx,
+                "original_prompt": log,
+                "prompt": attack_msgs[-1]["content"],
+                "response": llm_response,
+            }
+            entries.append(entry)
+        fo.write(json.dumps(entries, ensure_ascii=False) + "\n")
+                
+        fo.flush()
 
     print(f"[INFO] Results saved to {output_file}")

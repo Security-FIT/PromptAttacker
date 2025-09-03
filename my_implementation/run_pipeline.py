@@ -50,7 +50,7 @@ def load_config(path):
 works = [
     ("cypher", run_cypher_attack), #funguje
     ("flip", run_flip_attack), #funguje
-    ("pif", run_pif_attack), # FUNGUJE ALE OPATRENE S NIM - POUZIVA KNIHOVNU TRANSFORMERS, TEDY KONTROLUJ VELIKOST MODELU !!!
+    # ("pif", run_pif_attack), # FUNGUJE ALE OPATRENE S NIM - POUZIVA KNIHOVNU TRANSFORMERS, TEDY KONTROLUJ VELIKOST MODELU !!!
     ("sql", run_sql_attack), 
     ("suffix", run_suffix_attack),
     ("sequential", run_sequential_attack),
@@ -70,22 +70,28 @@ works = [
     ("base", run_base_attack), #funguje
     ("artprompt", run_artprompt_attack), #funguje
     ("renellm", run_renellm_attack), #funguje
-    ("autodan", run_autodan_attack), #funguje
     ("past_tense", run_past_tense_attack), #funguje
     ("chameleon", run_chameleon_attack),
+    ("autodan", run_autodan_attack), #funguje
+    # ("pif", run_pif_attack), #funguje
 ]
 
 special_runs = [
-    # ("pair",       run_pair_attack), 
-
+    # ("pif", run_pif_attack),
+    ("sequential", run_sequential_attack),
+    ("dialog", run_dialog_attack),
 ]
 test = [
     # ("gcg", run_gcg_attack), # funguje zatim jen na male modely, llama 7b jsem vyzkousel, protoze vetsi modely se mi nevejdou do pameti
     # ("overload", run_overload_attack),
-    ("gcg", run_gcg_attack),
+    # ("pif", run_pif_attack),
+    # ("citation", run_cite_attack)
+    # ("gptcypher", run_GPTcypher_attack),
+    # ("MultiLang", run_Multilang_attack),
+    # ("rewrite", run_rewrite_attack), 
+    # ("renellm", run_renellm_attack)
+    ("renellm", run_renellm_attack), # nefunguje
 
-    ("pif", run_pif_attack), 
-    ("tap", run_tap_attack), 
 ]
 does_not_work = [
     ("sql", run_sql_attack), # nefunguje
@@ -98,10 +104,10 @@ does_not_work = [
 ]
 
 all_attack_categories = [
-    works,
-    # does_not_work,
+    # works,
     # special_runs,
-    # test,
+    # does_not_work,
+    test,
 ]
 
 

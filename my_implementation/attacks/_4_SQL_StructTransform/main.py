@@ -48,7 +48,7 @@ def run_sql_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
     df = pd.read_csv(dataset_path)
     os.makedirs(results_dir, exist_ok=True)
     out_path = os.path.join(results_dir, "_4_sql.json")
-
+    entries = []
     with open(out_path, "w", encoding="utf-8") as fo:
         for idx, goal in tqdm(
                 enumerate(df["goal"][cfg["begin"]:cfg["end"]]),
@@ -58,12 +58,15 @@ def run_sql_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
             response = target.response(prompts)
             print("[INFO] Response:", response)
 
-            fo.write(json.dumps({
-                "id": idx,
-                "goal": goal,
-                "sql_prompt": prompts[-1]["content"],
-                "response": response
-            }, ensure_ascii=False) + "\n")
-            fo.flush()
+            entry = {
+                'id': idx,
+                'original_prompt': goal,
+                'prompt': prompts[-1]["content"],
+                'response': response
+            }
+            entries.append(entry)
+
+            # až po cyklu:
+        json.dump(entries, fo, ensure_ascii=False, indent=2)
 
     print(f"[INFO] DirectSQL finished ➜ {out_path}")

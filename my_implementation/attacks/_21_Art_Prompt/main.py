@@ -37,10 +37,8 @@ def run_artprompt_attack(victim_llm_path, results_dir, dataset_path, what_ollama
 
     out_dir = Path(results_dir); out_dir.mkdir(parents=True, exist_ok=True)
     out_file = out_dir / "_21_artprompt.json"
-
+    entries = []
     with out_file.open("w", encoding="utf-8") as fo:
-        fo.write("[\n")
-        first = True
 
         for idx, row in enumerate(tqdm(df.itertuples(index=False),
                                     total=len(df), desc="ArtPrompt")):
@@ -64,14 +62,10 @@ def run_artprompt_attack(victim_llm_path, results_dir, dataset_path, what_ollama
                 "prompt":           messages[-1]["content"],
                 "response":         reply
             }
+            entries.append(entry)
 
-            if not first:
-                fo.write(",\n")
-            first = False
+        fo.write(json.dumps(entries, ensure_ascii=False))
+        fo.flush()
 
-            fo.write(json.dumps(entry, ensure_ascii=False))
-            fo.flush()
-
-        fo.write("\n]\n")         
 
     print(f"[INFO] Výstup uložen → {out_file}")

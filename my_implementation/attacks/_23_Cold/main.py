@@ -31,6 +31,7 @@ def build_model(model_id: str, dtype="auto"):
 
 def dataframe_to_jsonl(df: pd.DataFrame, file_path: str):
     """Save the attack dataframe in the same jsonl format as other attacks."""
+    entries = []
     with open(file_path, "w", encoding="utf-8") as fo:
         for idx, row in df.iterrows():
             record = {
@@ -41,7 +42,8 @@ def dataframe_to_jsonl(df: pd.DataFrame, file_path: str):
                 # Keep the raw suffix for possible analysis
                 # "adv_suffix": str(row.get("adv", ""))
             }
-            fo.write(json.dumps(record, ensure_ascii=False) + "\n")
+            entries.append(record)
+        fo.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
 def run_cold_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):

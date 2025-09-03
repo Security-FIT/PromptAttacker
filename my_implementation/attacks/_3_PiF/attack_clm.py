@@ -173,7 +173,7 @@ def generate_attack(generate_m, generate_t, tgt_m, tgt_t, texts, evaluation_temp
     total_query = 0
     successful_flag = [False] * len(texts)
     tgt_texts = [None] * len(texts)
-    current_texts = texts.copy()
+    current_texts = texts
 
     for iter in range(iterations):
 

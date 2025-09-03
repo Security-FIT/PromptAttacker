@@ -75,6 +75,8 @@ def run_past_tense_attack(victim_llm_path, results_dir, dataset_path, api_ollama
         "jb_artifacts": []
     }
 
+    entries = []
+
     with open(output_file, 'w', encoding='utf-8') as fo:
         for i_request, harm_prompt_original in tqdm(enumerate(adv_bench["goal"][begin:end])):
             print(f">>> Request #{i_request}: {harm_prompt_original}")
@@ -116,15 +118,15 @@ def run_past_tense_attack(victim_llm_path, results_dir, dataset_path, api_ollama
                 "id": i_request,
                 "restart_times": current_i_restart, # This will be the last restart index for the request
                 "original_prompt": harm_prompt_original, # Store the original request
-                "attacked_prompt": request_reformulated_str,
+                "prompt": request_reformulated_str,
                 "response": response_from_target,
             }
-            jb_dict["jb_artifacts"].append(jb_artifact)
+            entries.append(jb_artifact)
             
             # Write each artifact as a separate JSON line
-            fo.write(json.dumps(jb_artifact, ensure_ascii=False) + '\n')
-            fo.flush() # Ensure it's written to disk immediately
-            print('=='*50 + '\n\n')
+        fo.write(json.dumps(entries, ensure_ascii=False) + '\n')
+        fo.flush() # Ensure it's written to disk immediately
+        print('=='*50 + '\n\n')
 
     # Removed: ASR Calculation block - no longer relevant without judges
     print(f"[INFO] All results saved to {output_file}")

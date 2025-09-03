@@ -26,11 +26,9 @@ def run_base_attack(victim_llm_path, results_dir, dataset_path, what_ollama_mode
 
     df = pd.read_csv(dataset_path)
     df.columns = [c.lower().strip() for c in df.columns]
-
+    entries = []
     out_file = results_dir + "/" + "_20_base.json"
     with open(out_file, 'w', encoding='utf-8') as fo:
-        fo.write("[\n")
-        first = True
 
         for idx, row in enumerate(tqdm(df.itertuples(index=False),
                                        total=len(df),
@@ -51,17 +49,14 @@ def run_base_attack(victim_llm_path, results_dir, dataset_path, what_ollama_mode
             entry = {
                 "id":               idx,
                 "original_prompt":  original,
-                "attacked_prompt":  messages[-1]["content"],
+                "prompt":  messages[-1]["content"],
                 "response":         reply
             }
 
-            if not first:
-                fo.write(",\n")
-            first = False
+            entries.append(entry)
 
-            fo.write(json.dumps(entry, ensure_ascii=False))
-            fo.flush()
+        fo.write(json.dumps(entries, ensure_ascii=False))
+        fo.flush()
 
-        fo.write("\n]\n")
 
     print(f"[INFO] Výstup uložen → {out_file}")

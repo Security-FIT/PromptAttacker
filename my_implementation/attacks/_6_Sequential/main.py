@@ -42,7 +42,7 @@ def run_sequential_attack(victim_llm_path, results_dir, dataset_path, api_ollama
     # Prepare output
     os.makedirs(results_dir, exist_ok=True)
     output_file = os.path.join(results_dir, '_6_sequential_attack.json')
-
+    entries = []
     with open(output_file, 'w', encoding='utf-8') as fo:
         for idx, harm_prompt in tqdm(enumerate(df['goal'][begin:end]), total=end-begin):
             print(f"[INFO] Processing id {idx}: {harm_prompt[:50]}...")
@@ -67,8 +67,10 @@ def run_sequential_attack(victim_llm_path, results_dir, dataset_path, api_ollama
                 'prompt': all_user,
                 'response': response
             }
-            fo.write(json.dumps(entry, ensure_ascii=False) + '')
-            fo.flush()
+            entries.append(entry)
+
+        fo.write(json.dumps(entries, ensure_ascii=False) + '\n')
+        fo.flush()
 
     print(f"[INFO] Results saved to {output_file}")
 

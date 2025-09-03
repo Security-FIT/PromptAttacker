@@ -54,7 +54,7 @@ def run_flip_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm,
 
     os.makedirs(results_dir, exist_ok=True)
     output_file = os.path.join(results_dir, '_2_flip.json')
-
+    entries = []
     with open(output_file, 'w', encoding='utf-8') as fo:
 
         for id, harm_prompt in tqdm(enumerate(adv_bench["goal"][begin:end])):
@@ -70,6 +70,7 @@ def run_flip_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm,
             
             llm_response = victim_llm.response(flip_attack)
             
+            
             entry = {
                 'id': id,
                 'flip_type': attack_model.flip_mode,
@@ -77,8 +78,9 @@ def run_flip_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm,
                 'prompt': flip_attack[-1]['content'],
                 'response': llm_response
             }
+            entries.append(entry)
 
-            fo.write(json.dumps(entry, ensure_ascii=False) + '\n')
-            fo.flush()
+        fo.write(json.dumps(entries, ensure_ascii=False) + '\n')
+        fo.flush()
 
     print(f"[INFO] Results saved to {output_file}")

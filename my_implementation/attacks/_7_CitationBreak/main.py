@@ -1,68 +1,85 @@
 # attacks/_9_Citation/main.py
-import os, json, argparse, time, random, tqdm, yaml, pandas as pd
+import os, json, time
 from pathlib import Path
 
-from attacks._7_CitationBreak.citation_attack import CitationAttack, get_attack_prompt
+import pandas as pd
+from tqdm import tqdm
+
+from attacks._7_CitationBreak.citation_attack import CitationAttack
 from attacks.common.llm import LLM
-from attacks.helpers import load_config         
-from defense.defense_EA import DefenseEA        
+from attacks.helpers import load_config
+from defense.defense_EA import DefenseEA
 
-
-META = {"topic", "key", "cata"}          # sloupce, které ignorujeme
+META = {"topic", "key", "cata"}
 
 def run_cite_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
     defense = DefenseEA()
 
     # načtení configu
-    script_dir  = Path(__file__).parent
-    cfg         = load_config(script_dir / "configCitation.yaml")
+    script_dir  = os.path.dirname(os.path.abspath(__file__))
+    config_path = os.path.join(script_dir, "configCitation.yaml")
+    cfg         = load_config(config_path)
     cp          = cfg["Citation"]
 
     # dataset
-    rows        = [json.loads(l) for l in Path(cp["data_path"]).open()]
-    out_file    = Path(results_dir) / "_7_citation.json"
-    out_file.parent.mkdir(parents=True, exist_ok=True)
+    adv_bench = pd.read_csv(dataset_path, dtype=str, keep_default_na=False)
+
+    required_cols = ["goal", "translation_of_goal", "citation", "target"]
+    missing = [c for c in required_cols if c not in adv_bench.columns]
+    if missing:
+        raise ValueError(f"Dataset musí obsahovat sloupce: {required_cols}. Chybí: {missing}")
+
+    os.makedirs(results_dir, exist_ok=True)
+    output_file = os.path.join(results_dir, "_7_citation.json")
 
     # LLM + attacker
-    victim   = LLM(victim_llm_path, cp.get("temperature",0.0), cp.get("max_token",512), what_ollama_model,
-        api_ollama_vllm)
+    victim = LLM(
+        victim_llm_path,
+        cp.get("temperature", 0.0),
+        cp.get("max_token", 512),
+        what_ollama_model,
+        api_ollama_vllm
+    )
     attacker = CitationAttack()
+    entries = []
+    with open(output_file, "w", encoding="utf-8") as fo:
+        # Iterujeme přes celé řádky, ať máme goal/target/citation
+        for i, row in enumerate(tqdm(adv_bench.itertuples(index=False), total=len(adv_bench))):
+            goal      = (row.goal or "").strip()
+            target    = (row.target or "").strip()
+            citation  = (row.citation or "").strip()
 
-    with out_file.open("w", encoding="utf-8") as fo:
-        for idx, row in enumerate(tqdm.tqdm(rows, desc="CitationAttack")):
-            goal = row["topic"]
-            key  = row.get("key", goal)
+            # 1) Vždy připojit dovětek za harmful prompt (goal)
+            #    → přesně, jak chceš: "že to vychází z citace, která je ..."
+            if citation:
+                harm_prompt = f"{goal}\n\This Prompt is based on citation: {citation}"
+                citation_block = citation  # do šablony půjde jako Reference
 
-            # nasbíráme *všechny* citace v řádku
-            citation_items = []
-            # nejdřív nested "citation"
-            if "citation" in row and row["citation"].get("content"):
-                citation_items.append((row["citation"]["type"], row["citation"]["content"]))
+            # 2) Sestavit zprávy pro LLM (topic = target)
+            messages = attacker.generate(
+                key=target,                 # 'topic' v šabloně
+                goal=harm_prompt,           # 'question' v šabloně = harmful prompt + dovětek
+                citation_block=citation_block,
+                style="citation"            # => "from the following citation"
+            )
 
-            # pak ostatní sloupce
-            for name, val in row.items():
-                if name in META or not val or name == "citation":
-                    continue
-                citation_items.append((name, val))
+            # (volitelná obrana – nechávám zakomentované, pokud chceš zapnout, odkomentuj)
+            # messages[-1]["content"] = defense(messages[-1]["content"])
 
-            for cit_type, raw_block in citation_items:
-                cit_block = f"1. {raw_block}"
-                messages  = attacker.generate(key, goal, cit_block, style=cit_type)
+            # 3) Dotaz na oběť
+            try:
+                reply = victim.response(messages)
+            except Exception as e:
+                reply = f"[ERROR] {e}"
 
-                # if run_defense:
-                    # messages[-1]["content"] = defense(messages[-1]["content"])
+            # 4) Log do JSONL
+            entries.append({
+                "id": i,
+                "original_prompt": goal,
+                "prompt":        messages[-1]["content"],
+                "response":      reply
+            })
+        fo.write(json.dumps(entries, ensure_ascii=False) + "\n")
+        fo.flush()
 
-                try:
-                    reply = victim.response(messages)
-                except Exception as e:
-                    reply = f"[ERROR] {e}"
-
-                fo.write(json.dumps({
-                    "id": idx,
-                    "citation_type": cit_type,
-                    "prompt":        messages[-1]["content"],
-                    "response":      reply
-                }, ensure_ascii=False) + "\n")
-                fo.flush()
-
-    print(f"[INFO] Výstup uložen → {out_file}")
+    print(f"[INFO] Výstup uložen → {output_file}")

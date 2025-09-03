@@ -38,7 +38,7 @@ def run_pair_attack(victim_llm_path, results_dir, dataset_path, what_ollama_mode
     adv_bench = pd.read_csv(dataset_path)
 
 
-    
+    entries = []
     out_dir = Path(results_dir); out_dir.mkdir(parents=True, exist_ok=True)
     out_file = out_dir / "_11_pair.json"
     print("ZDEEE")
@@ -52,13 +52,14 @@ def run_pair_attack(victim_llm_path, results_dir, dataset_path, what_ollama_mode
 
             entry = {
                 "id": idx,
-                "goal": goal,
+                "original_prompt": goal,
                 "prompt": prompt_adv,
                 "response": result["model_response"],
                 "score": result["score"],
             }
-            fo.write(json.dumps(entry, ensure_ascii=False) + "\n")
-            fo.flush()
+            entries.append(entry)
+        fo.write(json.dumps(entries, ensure_ascii=False) + "\n")
+        fo.flush()
 
     print(f"[INFO] Výsledky uloženy do {out_file}")
 

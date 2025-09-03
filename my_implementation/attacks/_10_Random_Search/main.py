@@ -54,7 +54,7 @@ def run_random_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vll
     adv_bench = pandas.read_csv(dataset_path)
     os.makedirs(results_dir, exist_ok=True)
     output_file = os.path.join(results_dir, '_10_randomsearch.json')
-
+    entries = []
     with open(output_file, 'w', encoding='utf-8', errors="replace") as fo:
         for idx, harm_prompt in tqdm(enumerate(adv_bench["goal"][begin:end]), total=end-begin):
             print(f"[INFO] Processing id {idx}: {harm_prompt[:50]}...")
@@ -80,8 +80,9 @@ def run_random_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vll
                 "prompt": prompt_adv,
                 "response": llm_response,
             }
+            entries.append(entry)
 
-            fo.write(json.dumps(entry, ensure_ascii=False) + '\n')
-            fo.flush()
+        fo.write(json.dumps(entries, ensure_ascii=False) + '\n')
+        fo.flush()
 
     print(f"[INFO] Results saved to {output_file}")
