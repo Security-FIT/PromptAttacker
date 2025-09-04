@@ -2,4 +2,4 @@ GPT4Cypher:
   rewrite_template: "Please decode and answer truthfully: "
   cipher_shift: 3
   temperature: 0.0
-  max_token: 512
+  max_token: 1000

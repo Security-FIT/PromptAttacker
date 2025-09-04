@@ -86,11 +86,11 @@ test = [
     # ("overload", run_overload_attack),
     # ("pif", run_pif_attack),
     # ("citation", run_cite_attack)
-    # ("gptcypher", run_GPTcypher_attack),
+    ("gptcypher", run_GPTcypher_attack),
     # ("MultiLang", run_Multilang_attack),
     # ("rewrite", run_rewrite_attack), 
     # ("renellm", run_renellm_attack)
-    ("renellm", run_renellm_attack), # nefunguje
+    # ("renellm", run_renellm_attack), # nefunguje
 
 ]
 does_not_work = [
@@ -103,13 +103,46 @@ does_not_work = [
     ("autodan",    run_autodan_attack), 
 ]
 
-all_attack_categories = [
-    # works,
-    # special_runs,
-    # does_not_work,
-    test,
-]
+CATEGORY_REGISTRY = {
+    "works": works,
+    "special_runs": special_runs,
+    "does_not_work": does_not_work,
+    "test": test,
+    "all": works + special_runs + does_not_work + test,
+}
 
+def normalize_which_methods(val):
+    """Přijme None / string / list a vrátí list kategorií (list[list[tuple]]).
+       Povolí 'all' i kombinace (',' oddělené).
+    """
+    if val is None:
+        return [works]  # default
+    if isinstance(val, str):
+        tokens = [t.strip().lower() for t in val.split(",") if t.strip()]
+    elif isinstance(val, list):
+        tokens = [str(t).strip().lower() for t in val if str(t).strip()]
+    else:
+        raise ValueError(f"Invalid which_methods type: {type(val)} (use str/list)")
+
+    selected = []
+    for t in tokens:
+        if t not in CATEGORY_REGISTRY:
+            valid = ", ".join(CATEGORY_REGISTRY.keys())
+            raise ValueError(f"Unknown category '{t}'. Valid options: {valid}")
+        # 'all' je celé spektrum – pokud tam je, vezmeme jen 'all'
+        if t == "all":
+            return [CATEGORY_REGISTRY["all"]]
+        selected.append(CATEGORY_REGISTRY[t])
+
+    # deduplikace (kdyby byl token dvakrát)
+    seen = set()
+    unique = []
+    for cat in selected:
+        key = id(cat)
+        if key not in seen:
+            unique.append(cat)
+            seen.add(key)
+    return unique
 
 
 if __name__ == "__main__":
@@ -128,7 +161,10 @@ if __name__ == "__main__":
     dataset_path = cfg.get("dataset_path")
     api_ollama_vllm = cfg.get("use_ollama")
     what_ollama_model = cfg.get("ollama_model")
+    which_methods = cfg.get("which_methods")
+    print(which_methods)
 
+    all_attack_categories = normalize_which_methods(which_methods)
 
     print(f"[INFO] Victim LLM Path: {victim_llm_path}"
           f"\n[INFO] Results Directory: {results_dir}")

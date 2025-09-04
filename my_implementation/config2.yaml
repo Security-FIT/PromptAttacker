@@ -4,6 +4,7 @@ dataset_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/dat
 results_dir: "/storage/brno2/home/xkaska01/master/my_implementation/results/DATASET_C_gemma3:27b/"
 use_ollama: true # true = ollama, false = vllm 
 ollama_model:  "gemma3:27b"
+which_methods: works
 defense:
 
 evaluator:

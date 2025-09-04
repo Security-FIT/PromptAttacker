@@ -1,7 +1,7 @@
 #!/bin/bash
 #PDs -q default@pbs-m1.metacentrum.cz
-#PBS -N JailBreak_GPU2
-#PBS -l select=1:ncpus=1:ngpus=1:mem=200gb:gpu_mem=92gb:scratch_local=600gb
+#PBS -N job5_GPU2
+#PBS -l select=1:ncpus=1:ngpus=1:mem=200gb:gpu_mem=92gb
 #PBS -l walltime=20:59:59
 
 HOMEDIR=/storage/brno2/home/xkaska01/master/

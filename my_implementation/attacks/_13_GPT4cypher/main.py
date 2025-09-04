@@ -53,7 +53,7 @@ def run_GPTcypher_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
     # ----------------– výstup -------------------------------------------
     
     os.makedirs(results_dir, exist_ok=True)
-    out_file = os.path.join(results_dir, "_13_gpt4cipher.jsonl")
+    out_file = os.path.join(results_dir, "_13_gpt4cipher.json")
 
     # ----------------– konfigurace útočníka -----------------------------
     attacker_fields = {f.name for f in fields(GPT4CipherAttackerConfig)}
@@ -72,12 +72,12 @@ def run_GPTcypher_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
 
 
             llm_resp = victim_llm.response(messages)
-
+            deciphered_answer = attacker._caesar_decipher(llm_resp)  
             entry = {
                 "id": idx,
                 "prompt_original": prompt,
                 "prompt":  messages[-1]["content"],
-                "response":       llm_resp,
+                "response":       deciphered_answer,
             }
             entries.append(entry)
 
