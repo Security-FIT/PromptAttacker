@@ -1,6 +1,6 @@
 # run.py
 
-import os, time, json, argparse, yaml
+import os, time, json, argparse, yaml, subprocess
 from datetime import timedelta
 
 from attacks._1_Cypher.main import run_cypher_attack
@@ -129,12 +129,10 @@ def normalize_which_methods(val):
         if t not in CATEGORY_REGISTRY:
             valid = ", ".join(CATEGORY_REGISTRY.keys())
             raise ValueError(f"Unknown category '{t}'. Valid options: {valid}")
-        # 'all' je celé spektrum – pokud tam je, vezmeme jen 'all'
         if t == "all":
             return [CATEGORY_REGISTRY["all"]]
         selected.append(CATEGORY_REGISTRY[t])
 
-    # deduplikace (kdyby byl token dvakrát)
     seen = set()
     unique = []
     for cat in selected:
@@ -143,6 +141,27 @@ def normalize_which_methods(val):
             unique.append(cat)
             seen.add(key)
     return unique
+
+def qsub_submit(job_sh_path: str, attack_name: str, job_name_prefix: str = "atk", extra_env: dict = None):
+    """
+    Odešle job skript job_sh_path do PBS přes qsub.
+    Předá proměnnou ATTACK_NAME jako environment proměnnou (qsub -v ATTACK_NAME=...).
+    Vrací (returncode, stdout, stderr).
+    """
+    env_assignment = f"ATTACK_NAME={attack_name}"
+    if extra_env:
+        extra_pairs = ",".join(f"{k}={v}" for k, v in extra_env.items())
+        env_assignment = env_assignment + ("," + extra_pairs if extra_pairs else "")
+
+    safe_attack = "".join(c if c.isalnum() or c in ("_", "-") else "_" for c in attack_name)[:30]
+    job_name = f"{job_name_prefix}_{safe_attack}"
+
+    cmd = ["qsub", "-N", job_name, "-v", env_assignment, job_sh_path]
+    try:
+        proc = subprocess.run(cmd, check=False, capture_output=True, text=True)
+        return (proc.returncode, proc.stdout.strip(), proc.stderr.strip())
+    except Exception as e:
+        return (1, "", f"Exception while running qsub: {e}")
 
 
 if __name__ == "__main__":
@@ -182,17 +201,21 @@ if __name__ == "__main__":
 
     for category in all_attack_categories:
         for name, fn in category:
-            log_and_print(f"\n[INFO] ➜ Spouštím {name}…", log_fh)
-            t0 = time.perf_counter()
-            try:
-                fn(victim_llm_path, results_dir, dataset_path,
-                   api_ollama_vllm, what_ollama_model)
-            except Exception as e:
-                log_and_print(f"[ERROR] {name} selhal: {e}", log_fh)
-                continue
-            elapsed = time.perf_counter() - t0
-            timings[name] = elapsed
-            log_and_print(f"[INFO]   {name} hotovo za {timedelta(seconds=elapsed)}", log_fh)
+            log_and_print(f"[INFO] Odesílám PBS job pro útok '{name}' pomocí '{job_script}'...", log_fh)
+            rc, out, err = qsub_submit(job_script, name, job_name_prefix="atk", extra_env={
+                "CONFIG_FILE": os.path.abspath(config_file),
+                "RESULTS_DIR": os.path.abspath(results_dir) if results_dir else "",
+                "VICTIM_LLM": str(victim_llm_path) if victim_llm_path else "",
+                "DATASET_PATH": str(dataset_path) if dataset_path else "",
+            })
+            if rc == 0:
+                log_and_print(f"[OK] qsub stdout: {out}", log_fh)
+                if err:
+                    log_and_print(f"[qsub stderr] {err}", log_fh)
+            else:
+                log_and_print(f"[ERROR] qsub failed (rc={rc}). stderr: {err}", log_fh)
+            # krátké čekání, aby se nezahltil login node (malá ochrana)
+            time.sleep(0.2)
 
     total_elapsed = time.perf_counter() - total_start
 
@@ -203,9 +226,3 @@ if __name__ == "__main__":
 
     log_and_print(f"\n[INFO] Runtime log uložen do {log_file_path}", log_fh)
     log_fh.close()
-    
-     # print(defense.apply(" some prompt  "))  
-
-    
-    
-# python3 run_pipeline.py --config_file config.yaml

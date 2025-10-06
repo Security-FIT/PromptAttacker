@@ -1,8 +1,8 @@
 #!/bin/bash
 #PDs -q default@pbs-m1.metacentrum.cz
 #PBS -N job_GPU2
-#PBS -l select=1:ncpus=1:ngpus=1:mem=200gb:gpu_mem=92gb
-#PBS -l walltime=20:59:59
+#PBS -l select=1:ncpus=1:ngpus=1:mem=64gb:gpu_mem=45gb
+#PBS -l walltime=96:00:00
 
 HOMEDIR=/storage/brno2/home/xkaska01/master/
 

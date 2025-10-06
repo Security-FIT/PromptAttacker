@@ -118,46 +118,42 @@ Tady taky potrebuji dva modely a nemam vyresene, co s tim druhym, protoze dva se
 
 ----------------------------------------------------------------------------------------------------------------------------
 14✓ A Cross-Language Investigation into Jailbreak Attacks in Large Language Models
-<!-- https://arxiv.org/pdf/2401.16765 -->
+<!-- https://arxiv.org/abs/2401.16765 -->
 
 
 přeložil jsem puvodní dataset pomocí deepseek modelu
 ----------------------------------------------------------------------------------------------------------------------------
 15✓ rewrite
-<!-- https://arxiv.org/pdf/2505.13862 -->
+<!-- https://arxiv.org/abs/2309.00614 -->
+
 ----------------------------------------------------------------------------------------------------------------------------
 16✓ overload
-<!-- https://arxiv.org/pdf/2410.04190 -->
-
+<!-- https://arxiv.org/abs/2410.04190 -->
 ----------------------------------------------------------------------------------------------------------------------------
 17✓ ica
-<!-- https://github.com/EasyJailbreak/EasyJailbreak/tree/master -->
+<!-- https://arxiv.org/abs/2310.06387 -->
 
-----------------------------------------------------------------------------------------------------------------------------
-18✓gcg 
-<!-- https://arxiv.org/abs/2307.15043 -->
-<!-- https://github.com/llm-attacks/llm-attacks -->
 ----------------------------------------------------------------------------------------------------------------------------
 19✓ deepinception
 <!-- https://arxiv.org/abs/2311.03191 -->
 <!-- https://github.com/tmlr-group/DeepInception/tree/main -->
 ----------------------------------------------------------------------------------------------------------------------------
 20✓ base
-<!-- https://arxiv.org/pdf/2505.13862 -->
+benchmark attack
 ----------------------------------------------------------------------------------------------------------------------------
 21✓ Art prompt
-<!-- https://arxiv.org/pdf/2402.11753 -->
+<!-- https://arxiv.org/abs/2402.11753 -->
 <!-- https://github.com/uw-nsl/ArtPrompt -->
 "qwen2.5:7b" je dobry model na vytvareni utocnych artpromptu !! {resil jsem to 4 hodiny nez jsem nasel vhodny model a upravil kod - tak si na to dej priste pozor :D }
 a mam tam hardcodnuteho toho hodnotice :D
 
 ----------------------------------------------------------------------------------------------------------------------------
 22✓ Renellm
-<!-- https://arxiv.org/pdf/2505.13862 -->
+<!-- https://arxiv.org/abs/2311.08268 -->
 
 ----------------------------------------------------------------------------------------------------------------------------
 23✓ COLD
-<!-- https://arxiv.org/pdf/2402.08679 -->
+<!-- https://arxiv.org/abs/2402.08679 -->
 <!-- https://github.com/Yu-Fangxu/COLD-Attack -->
 
 ----------------------------------------------------------------------------------------------------------------------------
@@ -166,13 +162,13 @@ a mam tam hardcodnuteho toho hodnotice :D
 <!-- https://github.com/SheltonLiu-N/AutoDAN/blob/main/utils/opt_utils.py#L176 -->
 ----------------------------------------------------------------------------------------------------------------------------
 25✓ Past tense
-<!-- https://arxiv.org/pdf/2407.11969 -->
+<!-- https://arxiv.org/abs/2407.11969 -->
 <!-- https://github.com/tml-epfl/llm-past-tense/blob/main/main.py -->
 
 tento utok budu muset jeste trochu upravit, protoze jako ostatni nevejde se moc dobre ani na 60GB Vram, takze to v budoucnu budu muset resit asi pres API. Zatim v kodu pouzivam stejne llmko attacker i target
 ----------------------------------------------------------------------------------------------------------------------------
 26✓ Chameleon
-<!-- https://arxiv.org/pdf/2402.16717 -->
+<!-- https://arxiv.org/abs/2402.16717 -->
 <!-- https://github.com/huizhang-L/CodeChameleon -->
 
 ----------------------------------------------------------------------------------------------------------------------------
