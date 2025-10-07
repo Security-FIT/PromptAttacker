@@ -1,77 +1,73 @@
-# TENTO FILE JE MUUUUUUUUUUJ
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
+import requests
 from vllm import LLM as VLLMClient, SamplingParams
 from openai import OpenAI
 
 class LLM:
     """
-    Very simple wrapper around vLLM for local inference.
-
-    Example:
-        victim = LLM(
-            model_path="./models/Llama-2-13b-chat",  # lokální složka s config.json apod.
-            temperature=0.8,
-            max_tokens=512,
-            gpu_ids=[0],  # nebo [] pro CPU-only
-        )
-        response = victim.response([{"role":"user","content":"Ahoj, jak se máš?"}])
+    Wrapper kolem vLLM nebo Ollama s podporou timeoutu.
     """
     def __init__(self,
                  model_path: str,
                  temperature: float = 0.8,
                  max_tokens: int = 512,
-                 ollama_model = "llama3.1:8b",
-                 use_ollama = True
+                 ollama_model: str = "llama3.1:8b",
+                 use_ollama: bool = True,
+                 timeout: int = 1200
                  ):
-        # cesta k lokálnímu HF modelu
         self.model_path = model_path
         self.temperature = temperature
-        self.max_tokens = max_tokens if max_tokens > 1000 else 1000 
+        self.max_tokens = max_tokens if max_tokens > 1000 else 1000
         self.ollama_model = ollama_model
         self.use_ollama = use_ollama
+        self.timeout = timeout
 
-
-        if self.use_ollama:
-            # nakonfigurujeme OpenAI klient na lokální Ollamu
-            self.client = OpenAI(
-                api_key="ollama",
-                base_url="http://127.0.0.1:11434/v1"
-            )
-        else:
-            # klasický vLLM klient
+        if not self.use_ollama:
             self.client = VLLMClient(model=self.model_path)
-
-        # vytvoříme klienta až v response(), abychom mohli znovu použít wrapper
+        else:
+            # Ollama poběží přes HTTP API
+            self.OLLAMA_HOST = "http://127.0.0.1:11434"
 
     def response(self, messages: list[dict]) -> str:
-        # očekáváme seznam zpráv, kde poslední obsahuje prompt od uživatele
+        """Vrátí odpověď modelu s ošetřením timeoutu."""
         user_prompt = messages[-1]["content"]
 
-        # inicializace vLLM klienta pro inference
-
-        # generování textu
-        # print(user_prompt)
-        # print("ZDE user prompt")
-        # print("ZDE user prompt")
-        # print("ZDE user prompt")
-        # print("ZDE user prompt")
-        # print("ZDE user prompt")
-
         if self.use_ollama:
-            chat_res = self.client.chat.completions.create(
-                model=self.ollama_model,
-                messages=messages,
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-            )
-            return chat_res.choices[0].message.content.strip()
+            payload = {
+                "model": self.ollama_model,
+                "prompt": user_prompt,
+                "stream": False,
+                "options": {
+                    "temperature": self.temperature,
+                    "num_predict": self.max_tokens
+                }
+            }
+            try:
+                resp = requests.post(
+                    f"{self.OLLAMA_HOST}/api/generate",
+                    json=payload,
+                    timeout=self.timeout
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                return data.get("response", "").strip()
+            except requests.Timeout:
+                return f"[TIMEOUT ERROR] Model neodpověděl do {self.timeout} sekund."
+            except requests.RequestException as e:
+                return f"[REQUEST ERROR] {e}"
 
         else:
-            outputs = self.client.generate(
-                [{"prompt": user_prompt}],
-                sampling_params=SamplingParams(
-                    temperature=self.temperature,
-                    max_tokens=self.max_tokens
+            # vLLM lokální inference
+            try:
+                outputs = self.client.generate(
+                    [{"prompt": user_prompt}],
+                    sampling_params=SamplingParams(
+                        temperature=self.temperature,
+                        max_tokens=self.max_tokens
+                    )
                 )
-            )
-            return outputs[0].outputs[0].text
+                return outputs[0].outputs[0].text.strip()
+            except Exception as e:
+                return f"[ERROR] Chyba při vLLM inference: {e}"

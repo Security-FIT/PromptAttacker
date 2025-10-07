@@ -2,8 +2,8 @@
 import os, json, yaml, pandas as pd
 from pathlib import Path
 
-from attacks.helpers import load_config
-import torch
+from attacks.helpers import load_config, str2bool
+import torch, sys
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from fastchat.model import get_conversation_template
 import time, gc
@@ -137,3 +137,17 @@ def run_gcg_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
 
     print(f"[INFO] Výstup uložen → {out_file}")
 
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 6:
+        print("Usage: python3 run_cypher.py victim_llm_path results_dir dataset_path api_ollama_vllm what_ollama_model")
+        sys.exit(1)
+
+    victim_llm_path = sys.argv[1]
+    results_dir = sys.argv[2]
+    dataset_path = sys.argv[3]
+    api_ollama_vllm = str2bool(sys.argv[4].lower())
+    what_ollama_model = sys.argv[5]
+
+    run_gcg_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model)

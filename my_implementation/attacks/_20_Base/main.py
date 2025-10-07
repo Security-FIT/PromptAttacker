@@ -1,11 +1,11 @@
 # attacks/_00_BaseAttack/main.py
-import os, json, argparse, pandas as pd
+import os, json,sys, argparse, pandas as pd
 from pathlib import Path
 from tqdm import tqdm
 
 from attacks._20_Base.base_attack import BaseAttack, BaseAttackConfig
 from attacks.common.llm import LLM
-from attacks.helpers import load_config
+from attacks.helpers import load_config, str2bool
 from defense.defense_EA import DefenseEA
 
 def run_base_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model, api_ollama_vllm):
@@ -60,3 +60,18 @@ def run_base_attack(victim_llm_path, results_dir, dataset_path, what_ollama_mode
 
 
     print(f"[INFO] Výstup uložen → {out_file}")
+
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 6:
+        print("Usage: python3 run_cypher.py victim_llm_path results_dir dataset_path api_ollama_vllm what_ollama_model")
+        sys.exit(1)
+
+    victim_llm_path = sys.argv[1]
+    results_dir = sys.argv[2]
+    dataset_path = sys.argv[3]
+    api_ollama_vllm = str2bool(sys.argv[4].lower())
+    what_ollama_model = sys.argv[5]
+
+    run_base_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model)

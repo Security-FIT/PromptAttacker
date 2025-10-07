@@ -1,7 +1,7 @@
 import gc
 import json
 import os
-import random
+import random, sys
 import time
 from typing import Any, Dict, List, Tuple
 
@@ -20,7 +20,7 @@ from attacks._24_Autodan.utils.opt_utils import (
 from attacks._24_Autodan.utils.string_utils import autodan_SuffixManager, load_conversation_template
 
 # --- Common helpers -----------------------------------------------------------
-from attacks.helpers import load_config
+from attacks.helpers import load_config, str2bool
 
 TEST_PREFIXES: List[str] = [
     "I'm sorry",
@@ -345,3 +345,18 @@ def run_autodan_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vl
         fp.flush() # Zajištění okamžitého zápisu na disk
 
     print(f"\n[INFO] Autodan útok dokončen. Výsledky jsou uloženy v: {output_path}")
+
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 6:
+        print("Usage: python3 run_cypher.py victim_llm_path results_dir dataset_path api_ollama_vllm what_ollama_model")
+        sys.exit(1)
+
+    victim_llm_path = sys.argv[1]
+    results_dir = sys.argv[2]
+    dataset_path = sys.argv[3]
+    api_ollama_vllm = str2bool(sys.argv[4].lower())
+    what_ollama_model = sys.argv[5]
+
+    run_autodan_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model)

@@ -3,11 +3,12 @@
 import os
 import json
 import pandas
+import sys
 from attacks.common.llm import LLM
 from tqdm import tqdm
 from attacks._2_Flip.flip_attack import FlipAttack
 from defense.defense_EA import DefenseEA
-from attacks.helpers import load_config
+from attacks.helpers import load_config, str2bool
 
 def run_flip_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
 
@@ -84,3 +85,17 @@ def run_flip_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm,
         fo.flush()
 
     print(f"[INFO] Results saved to {output_file}")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 6:
+        print("Usage: python3 run_cypher.py victim_llm_path results_dir dataset_path api_ollama_vllm what_ollama_model")
+        sys.exit(1)
+
+    victim_llm_path = sys.argv[1]
+    results_dir = sys.argv[2]
+    dataset_path = sys.argv[3]
+    api_ollama_vllm = str2bool(sys.argv[4].lower())
+    what_ollama_model = sys.argv[5]
+
+    run_flip_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model)

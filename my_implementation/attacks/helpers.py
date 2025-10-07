@@ -5,13 +5,22 @@ from __future__ import annotations
 import os
 import json
 import yaml
+import argparse
 from typing import List, Dict
 import abc
 from typing import Dict, List, Union, Any
 from dataclasses import dataclass, field
 from vllm import LLM as VLLMClient, SamplingParams
 
-
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    v = str(v).lower()
+    if v in ("yes", "y", "true", "t", "1"):
+        return True
+    if v in ("no", "n", "false", "f", "0"):
+        return False
+    raise argparse.ArgumentTypeError("Boolean value expected.")
 
 
 def load_config(path):

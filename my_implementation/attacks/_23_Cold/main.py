@@ -1,5 +1,5 @@
 import os
-import json
+import json, sys
 import yaml
 import argparse
 from types import SimpleNamespace
@@ -9,7 +9,7 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from attacks._23_Cold.attack_suffix import attack_generation
-
+from attacks.helpers import str2bool
 
 def load_config(path):
     """Thin wrapper around yaml.safe_load for parity with other attacks."""
@@ -94,3 +94,17 @@ def run_cold_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm,
     output_file = os.path.join(results_dir, "_23_cold.json")
     dataframe_to_jsonl(df_results, output_file)
     print(f"[INFO] Results saved to {output_file}")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 6:
+        print("Usage: python3 run_cypher.py victim_llm_path results_dir dataset_path api_ollama_vllm what_ollama_model")
+        sys.exit(1)
+
+    victim_llm_path = sys.argv[1]
+    results_dir = sys.argv[2]
+    dataset_path = sys.argv[3]
+    api_ollama_vllm = str2bool(sys.argv[4].lower())
+    what_ollama_model = sys.argv[5]
+
+    run_cold_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model)

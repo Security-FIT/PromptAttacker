@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import json, os, time
+import json, os, time, sys
 from pathlib import Path
 from typing import Dict, List
 
@@ -8,7 +8,7 @@ import pandas as pd
 from tqdm import tqdm
 from datetime import timedelta
 
-from attacks.helpers import load_config
+from attacks.helpers import load_config, str2bool
 from defense.defense_EA import DefenseEA
 from attacks._12_Tap.attack_tap import (
     TAPAttacker,
@@ -132,3 +132,16 @@ def run_tap_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model
         time.sleep(sleep_sec)
 
     print(f"[INFO] Results saved to {out_file}")
+
+if __name__ == "__main__":
+    if len(sys.argv) != 6:
+        print("Usage: python3 run_cypher.py victim_llm_path results_dir dataset_path api_ollama_vllm what_ollama_model")
+        sys.exit(1)
+
+    victim_llm_path = sys.argv[1]
+    results_dir = sys.argv[2]
+    dataset_path = sys.argv[3]
+    api_ollama_vllm = str2bool(sys.argv[4].lower())
+    what_ollama_model = sys.argv[5]
+
+    run_tap_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model)

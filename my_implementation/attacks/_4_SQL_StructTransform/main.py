@@ -3,12 +3,12 @@
 import os, json, yaml, pandas as pd
 from tqdm import tqdm
 import gc
-import torch
+import torch,sys
 
 from attacks.common.llm import LLM
 from attacks._4_SQL_StructTransform.SQL_attack import SQLAttack
 from defense.defense_EA import DefenseEA 
-from attacks.helpers import load_config 
+from attacks.helpers import load_config, str2bool
 
 
 # ---------- PIPELINE -------------------------------------------
@@ -70,3 +70,17 @@ def run_sql_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
         json.dump(entries, fo, ensure_ascii=False, indent=2)
 
     print(f"[INFO] DirectSQL finished ➜ {out_path}")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 6:
+        print("Usage: python3 run_cypher.py victim_llm_path results_dir dataset_path api_ollama_vllm what_ollama_model")
+        sys.exit(1)
+
+    victim_llm_path = sys.argv[1]
+    results_dir = sys.argv[2]
+    dataset_path = sys.argv[3]
+    api_ollama_vllm = str2bool(sys.argv[4].lower())
+    what_ollama_model = sys.argv[5]
+
+    run_sql_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model)

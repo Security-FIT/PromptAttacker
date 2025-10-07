@@ -1,13 +1,10 @@
 run_defense: false
 victim_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf/"
 dataset_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/cysecbench_adv_small.csv"
-results_dir: "/storage/brno2/home/xkaska01/master/my_implementation/results/DATASET_FULL_deepseek-r1:32b/"
+results_dir: "/storage/brno2/home/xkaska01/master/my_implementation/results/DATASET_FULL_falcon3:10b/"
 use_ollama: true # true = ollama, false = vllm 
-ollama_model: "deepseek-r1:32b"  # falcon3:10b, deepseek-r1:32b", gemma3:27b, qwen3:32b, yi:34b, internlm/internlm2.5:latest, command-r:35b, deepseek-r1:32b
+ollama_model: "falcon3:10b"  # falcon3:10b, deepseek-r1:32b", gemma3:27b, qwen3:32b, yi:34b, internlm/internlm2.5:latest, command-r:35b, deepseek-r1:32b
 which_methods: works 
-
-job_script: /storage/brno2/home/xkaska01/master/job.sh
-config_file: /storage/brno2/home/xkaska01/master/my_implementation/config.yaml
 
 defense:
 

@@ -1,6 +1,6 @@
 # attacks/_4_ReNeLLM/main.py
 #!/usr/bin/env python3
-import json
+import json, sys
 import argparse
 import pandas as pd
 from pathlib import Path
@@ -9,7 +9,7 @@ import os
 
 from attacks._22_Renellm.renellm_attack import ReNeLLMAttack, ReNeLLMConfig
 from attacks.common.llm import LLM
-from attacks.helpers import load_config
+from attacks.helpers import load_config, str2bool
 # from defense.defense_EA import DefenseEA  # volitelně
 
 def run_renellm_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
@@ -145,3 +145,18 @@ def run_renellm_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vl
         json.dump(entries, fo, ensure_ascii=False, indent=2)
 
     print(f"[INFO] Výstup uložen → {out_file}")
+
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 6:
+        print("Usage: python3 run_cypher.py victim_llm_path results_dir dataset_path api_ollama_vllm what_ollama_model")
+        sys.exit(1)
+
+    victim_llm_path = sys.argv[1]
+    results_dir = sys.argv[2]
+    dataset_path = sys.argv[3]
+    api_ollama_vllm = str2bool(sys.argv[4].lower())
+    what_ollama_model = sys.argv[5]
+
+    run_renellm_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model)

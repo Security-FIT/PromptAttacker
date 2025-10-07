@@ -7,6 +7,7 @@ from tqdm import tqdm
 from pathlib import Path
 import yaml
 import sys # Importujeme sys pro ukončení programu
+from attacks.helpers import str2bool
 
 from defense.defense_EA import DefenseEA
 from attacks._11_Pair.pair_attack import PairAttack, PairAttackConfig
@@ -63,3 +64,16 @@ def run_pair_attack(victim_llm_path, results_dir, dataset_path, what_ollama_mode
 
     print(f"[INFO] Výsledky uloženy do {out_file}")
 
+
+if __name__ == "__main__":
+    if len(sys.argv) != 6:
+        print("Usage: python3 run_cypher.py victim_llm_path results_dir dataset_path api_ollama_vllm what_ollama_model")
+        sys.exit(1)
+
+    victim_llm_path = sys.argv[1]
+    results_dir = sys.argv[2]
+    dataset_path = sys.argv[3]
+    api_ollama_vllm = str2bool(sys.argv[4].lower())
+    what_ollama_model = sys.argv[5]
+
+    run_pair_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model, api_ollama_vllm)

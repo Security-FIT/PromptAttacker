@@ -5,14 +5,14 @@ main.py – jednoduchý spouštěč „CodeChameleon“ útoku s pevnou šifrou
 Rozhraní = úplně stejné jako run_flip_attack().
 """
 
-import os
+import os, sys
 import json
 import pandas as pd
 from tqdm import tqdm
 
 # interní moduly projektu
 from attacks.common.llm import LLM
-from attacks.helpers import load_config
+from attacks.helpers import load_config, str2bool
 from attacks._26_Chameleon.encrypt import get_encrypted_query
 from attacks._26_Chameleon.template import get_prompts_code, get_prompts_text
 
@@ -113,3 +113,17 @@ def run_chameleon_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
         fo.flush()
 
     print(f"[INFO] Hotovo – uložené výsledky: {output_file}")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 6:
+        print("Usage: python3 run_cypher.py victim_llm_path results_dir dataset_path api_ollama_vllm what_ollama_model")
+        sys.exit(1)
+
+    victim_llm_path = sys.argv[1]
+    results_dir = sys.argv[2]
+    dataset_path = sys.argv[3]
+    api_ollama_vllm = str2bool(sys.argv[4].lower())
+    what_ollama_model = sys.argv[5]
+
+    run_chameleon_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model)

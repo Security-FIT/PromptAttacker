@@ -18,7 +18,7 @@ python pif_attack.py --defense    # (pokud bys někdy chtěl přidat obranu)
 
 from __future__ import annotations
 
-import pandas
+import pandas, sys
 import argparse
 import json
 import logging
@@ -29,16 +29,9 @@ from typing import List
 import torch
 from tqdm import tqdm
 
-from attacks.helpers import load_config
+from attacks.helpers import load_config, str2bool
 import attacks._3_PiF.attack_clm as attack_clm  
 import attacks._3_PiF.eval as eval  
-
-###########################################################################
-# Helper
-###########################################################################
-
-def str2bool(v: str) -> bool:  # pro CLI switch
-    return str(v).lower() in {"1", "true", "yes", "y"}
 
 ###########################################################################
 # Main
@@ -174,3 +167,20 @@ def run_pif_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model
     with open(output_path, "a", encoding="utf-8") as fo:
         fo.write(json.dumps(summary, ensure_ascii=False) + "\n")
         fo.flush()
+
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 6:
+        print("Usage: python3 run_cypher.py victim_llm_path results_dir dataset_path api_ollama_vllm what_ollama_model")
+        sys.exit(1)
+
+    victim_llm_path = sys.argv[1]
+    results_dir = sys.argv[2]
+    dataset_path = sys.argv[3]
+    api_ollama_vllm = str2bool(sys.argv[4].lower())
+    what_ollama_model = sys.argv[5]
+
+    run_pif_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model)
+
+    

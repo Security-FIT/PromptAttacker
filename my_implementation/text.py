@@ -1,6 +1,6 @@
 # run.py
 
-import os, time, json, argparse, yaml
+import os, time, json, argparse, yaml, subprocess
 from datetime import timedelta
 
 from attacks._1_Cypher.main import run_cypher_attack
@@ -49,30 +49,30 @@ def load_config(path):
 
 works = [
     ("cypher", run_cypher_attack), #funguje
-    ("flip", run_flip_attack), #funguje
-    # ("pif", run_pif_attack), # FUNGUJE ALE OPATRENE S NIM - POUZIVA KNIHOVNU TRANSFORMERS, TEDY KONTROLUJ VELIKOST MODELU !!!
-    ("sql", run_sql_attack), 
-    ("suffix", run_suffix_attack),
-    ("sequential", run_sequential_attack),
-    ("cite", run_cite_attack),
-    ("bijection", run_bijection_attack),
-    ("dialog", run_dialog_attack),
-    ("random", run_random_attack),
-    ("pair", run_pair_attack),
-    ("tap", run_tap_attack), 
-    ("gptcypher", run_GPTcypher_attack),
-    ("MultiLang", run_Multilang_attack),
-    ("rewrite", run_rewrite_attack), 
-    ("ica", run_ica_attack),
-    ("overload", run_overload_attack), #funguje
-    # ("gcg", run_gcg_attack),
-    ("inception", run_inception_attack),
-    ("base", run_base_attack), #funguje
-    ("artprompt", run_artprompt_attack), #funguje
-    ("renellm", run_renellm_attack), #funguje
-    ("past_tense", run_past_tense_attack), #funguje
-    ("chameleon", run_chameleon_attack),
-    ("autodan", run_autodan_attack), #funguje
+    # ("flip", run_flip_attack), #funguje
+    # # ("pif", run_pif_attack), # FUNGUJE ALE OPATRENE S NIM - POUZIVA KNIHOVNU TRANSFORMERS, TEDY KONTROLUJ VELIKOST MODELU !!!
+    # ("sql", run_sql_attack), 
+    # ("suffix", run_suffix_attack),
+    # ("sequential", run_sequential_attack),
+    # ("cite", run_cite_attack),
+    # ("bijection", run_bijection_attack),
+    # ("dialog", run_dialog_attack),
+    # ("random", run_random_attack),
+    # ("pair", run_pair_attack),
+    # ("tap", run_tap_attack), 
+    # ("gptcypher", run_GPTcypher_attack),
+    # ("MultiLang", run_Multilang_attack),
+    # ("rewrite", run_rewrite_attack), 
+    # ("ica", run_ica_attack),
+    # ("overload", run_overload_attack), #funguje
+    # # ("gcg", run_gcg_attack),
+    # ("inception", run_inception_attack),
+    # ("base", run_base_attack), #funguje
+    # ("artprompt", run_artprompt_attack), #funguje
+    # ("renellm", run_renellm_attack), #funguje
+    # ("past_tense", run_past_tense_attack), #funguje
+    # ("chameleon", run_chameleon_attack),
+    # ("autodan", run_autodan_attack), #funguje
     # ("pif", run_pif_attack), #funguje
 ]
 
@@ -143,6 +143,72 @@ def normalize_which_methods(val):
     return unique
 
 
+def sub_jobs(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
+    OUTDIR = "./jobs"
+    os.makedirs(OUTDIR, exist_ok=True)
+
+    gpu = "45gb"
+    cpu = "200gb"
+    ngpu = 1
+    ncpu = 1
+    walltime = "00:00:50"
+    attack = "flip"
+    # victim_llm_path = "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf/"
+    # results_dir = "/storage/brno2/home/xkaska01/master/my_implementation/results/TEST/"
+    # dataset_path = "/storage/brno2/home/xkaska01/master/my_implementation/dataset/cysecbench_adv_small.csv"
+    # api_ollama_vllm = True
+    # what_ollama_model = "falcon3:10b"
+
+    script_path = os.path.join(OUTDIR, f"job_{what_ollama_model}_{attack}.sh")
+    script_content = f"""#!/bin/bash
+    #PBS -q default@pbs-m1.metacentrum.cz
+    #PBS -N myjob_{what_ollama_model}_{attack}
+    #PBS -l select=1:ncpus={ncpu}:ngpus={ngpu}:mem={cpu}:gpu_mem={gpu}
+    #PBS -l walltime={walltime}
+
+    HOMEDIR=/storage/brno2/home/xkaska01/master/
+
+    export CUDA_VISIBLE_DEVICES=0
+    module add mambaforge
+    mamba activate /storage/brno2/home/xkaska01/.conda/envs/diplomka
+
+    # spustit ollama (upravit cesty, pokud je potřeba)
+    # spouštím jako background, loguji výstup
+    /storage/brno2/home/xkaska01/test/bin/ollama serve > $HOMEDIR/ollama.log 2>&1 &
+    /storage/brno2/home/xkaska01/test/bin/ollama pull qwen2.5:7b
+    /storage/brno2/home/xkaska01/test/bin/ollama pull {what_ollama_model}
+
+    echo "$PBS_JOBID běží na uzlu $(hostname -f)" >> $HOMEDIR/jobs_info.txt
+    cd $HOMEDIR || exit 1
+
+    # nainstalovat nltk jen pokud chybí (volitelné)
+    python3 -m pip install --user nltk
+
+    # spustit attack - upravte příkaz podle toho, jakým způsobem spouštíte attacky
+    # pokud máte runner (run_pipeline.py) používejte -> python3 run_pipeline.py --config_file ... --only {attack}
+    # níže zachovávám původní podobu, ale pravděpodobně budete chtít spouštět run_pipeline.py
+    python3 {attack} {victim_llm_path} {results_dir} {dataset_path} {api_ollama_vllm} {what_ollama_model}
+
+    """
+
+    print(attack, victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model)
+
+    with open(script_path, "w", encoding="utf-8") as fh:
+        fh.write(script_content)
+
+    os.chmod(script_path, 0o755)
+    print(f"Created script: {script_path}")
+
+    try:
+        res = subprocess.run(["qsub", script_path], check=True, capture_output=True, text=True)
+        print(f"✅ Submitted job: {res.stdout.strip()}")
+    except FileNotFoundError:
+        print("❌ Chyba: příkaz 'qsub' nebyl nalezen v PATH. Přihlaste se na frontend/metacentrum uzel nebo upravte PATH.")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Error submitting job: {e.stderr.strip()}")
+
+
+
 if __name__ == "__main__":
 
     defense = DefenseEA()  
@@ -182,12 +248,7 @@ if __name__ == "__main__":
         for name, fn in category:
             log_and_print(f"\n[INFO] ➜ Spouštím {name}…", log_fh)
             t0 = time.perf_counter()
-            try:
-                fn(victim_llm_path, results_dir, dataset_path,
-                   api_ollama_vllm, what_ollama_model)
-            except Exception as e:
-                log_and_print(f"[ERROR] {name} selhal: {e}", log_fh)
-                continue
+            sub_jobs(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model)
             elapsed = time.perf_counter() - t0
             timings[name] = elapsed
             log_and_print(f"[INFO]   {name} hotovo za {timedelta(seconds=elapsed)}", log_fh)
