@@ -21,7 +21,7 @@ except Exception:
     TQDM = False
 
 # ========= KONFIGURACE =========
-IN_CSV  = "/storage/brno2/home/xkaska01/master/my_implementation/dataset/cysecbench_adv_small_ZH.csv"
+IN_CSV  = "/storage/brno2/home/xkaska01/master/my_implementation/dataset/base_dataset_ZH.csv"
 OUT_CSV = "/storage/brno2/home/xkaska01/master/my_implementation/dataset/test.csv"
 
 MODEL_NAME = "Helsinki-NLP/opus-mt-en-zh"  # EN -> ZH (Simplified)

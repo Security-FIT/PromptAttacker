@@ -244,7 +244,7 @@ def run_autodan_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vl
     criterion = nn.CrossEntropyLoss(reduction="mean")
     
     # Název výstupního souboru
-    output_file_name = f"_24_Autodan_{model_template_name}_{start_idx}_cfg.json"
+    output_file_name = f"_24_Autodan.json"
     output_path = os.path.join(results_dir, output_file_name)
 
     print(f"[INFO] Výsledky budou ukládány do: {output_path}")

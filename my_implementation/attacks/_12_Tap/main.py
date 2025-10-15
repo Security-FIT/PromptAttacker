@@ -31,9 +31,9 @@ def run_tap_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model
     attacker_name = victim_llm_path
     temperature   = 1
     max_token     = 1024
-    width         = 10
-    branching     = 10
-    depth         = 10
+    width         = 8
+    branching     = 3
+    depth         = 3
     target_str    = "Sure."
     begin         = 0
     end           = "end"

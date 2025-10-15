@@ -155,7 +155,7 @@ def sub_jobs(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_o
     attack = "flip"
     # victim_llm_path = "/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf/"
     # results_dir = "/storage/brno2/home/xkaska01/master/my_implementation/results/TEST/"
-    # dataset_path = "/storage/brno2/home/xkaska01/master/my_implementation/dataset/cysecbench_adv_small.csv"
+    # dataset_path = "/storage/brno2/home/xkaska01/master/my_implementation/dataset/base_dataset.csv"
     # api_ollama_vllm = True
     # what_ollama_model = "falcon3:10b"
 

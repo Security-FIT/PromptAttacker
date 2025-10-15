@@ -7,8 +7,8 @@ SUBMIT = True
 
 # Moduly (ty, co máš) – spouští se jako: python3 -m <module> <args>
 ATTACK_MODULES = [
-    # "attacks._1_Cypher.main",
-    # "attacks._2_Flip.main",
+    "attacks._1_Cypher.main",
+    "attacks._2_Flip.main",
     "attacks._3_PiF.PiF_CLM",
     "attacks._4_SQL_StructTransform.main",
     "attacks._5_suffix.main",
@@ -17,7 +17,7 @@ ATTACK_MODULES = [
     "attacks._8_Bijection.main",
     "attacks._9_Dialog_completition.main",
     "attacks._10_Random_Search.main",
-    "attacks._11_Pair.main",
+    "attacks._11_Pair.main", # tak za 10 h by to mohl dat
     "attacks._12_Tap.main",
     "attacks._13_GPT4cypher.main",
     "attacks._14_MultiLang.main",
@@ -47,7 +47,17 @@ def job_script_content(name, cmd, ollama_model):
     cpu = "200gb"
     ngpu = 1
     ncpu = 1
-    walltime = "04:00:00"
+    walltime = "12:00:00"
+
+    if name in "_12_Tap":
+        walltime = "12:00:00"
+    elif name in "_11_Pair":
+        walltime = "12:00:00"
+    elif name in "_3_PiF_PiF_CLM":
+        walltime = "12:00:00"
+    # print(name)
+    # print(walltime)
+    # exit(0)
     return textwrap.dedent(f"""\
         #!/bin/bash
         #PBS -q default@pbs-m1.metacentrum.cz

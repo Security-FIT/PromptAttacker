@@ -4,7 +4,7 @@ import random
 from typing import List, Dict, Any, Tuple
 
 # --- Konfigurace ---
-INPUT_CSV_FILE = '/storage/brno2/home/xkaska01/master/my_implementation/dataset/cysecbench_adv_small.csv' 
+INPUT_CSV_FILE = '/storage/brno2/home/xkaska01/master/my_implementation/dataset/base_dataset.csv' 
 OUTPUT_CSV_FILE = 'dataset_40_prompts_proportional_unique_targets.csv' 
 
 TARGET_PROMPTS_COUNT = 40 

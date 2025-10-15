@@ -24,8 +24,8 @@ except Exception:
     TQDM = False
 
 # ========= CESTY =========
-IN_CSV  = "/storage/brno2/home/xkaska01/master/my_implementation/dataset/cysecbench_adv_small_ZH_citations.csv"
-OUT_CSV = "/storage/brno2/home/xkaska01/master/my_implementation/dataset/cysecbench_adv_small_ZH_citations_llm.csv"
+IN_CSV  = "/storage/brno2/home/xkaska01/master/my_implementation/dataset/base_dataset_ZH_citations.csv"
+OUT_CSV = "/storage/brno2/home/xkaska01/master/my_implementation/dataset/base_dataset_ZH_citations_llm.csv"
 # =========================
 
 MODEL_NAME = "google/flan-t5-small"

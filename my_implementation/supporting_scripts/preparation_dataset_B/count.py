@@ -3,7 +3,7 @@ import os
 from typing import Dict, Tuple, Set
 
 # --- Konfigurace ---
-INPUT_CSV_FILE = '/storage/brno2/home/xkaska01/master/my_implementation/dataset/cysecbench_adv_small.csv' 
+INPUT_CSV_FILE = '/storage/brno2/home/xkaska01/master/my_implementation/dataset/base_dataset.csv' 
 
 # Definice řádkových intervalů pro každý původní dataset
 # Klíče jsou názvy tvých sub-datasetů, hodnoty jsou tuple (počáteční_řádek, koncový_řádek)

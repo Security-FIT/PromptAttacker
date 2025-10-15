@@ -173,7 +173,7 @@ class TAPAttacker():
             config.target_llm_config,
             config.attack_llm_gen_config.temperature or 0.8,
             config.attack_llm_gen_config.max_tokens or 512, 
-            "deepseek-r1:32b",
+            config.target_llm_config.model,
             True
         )
 
