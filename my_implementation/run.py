@@ -9,7 +9,7 @@ SUBMIT = True
 ATTACK_MODULES = [
     "attacks._1_Cypher.main",
     "attacks._2_Flip.main",
-    "attacks._3_PiF.PiF_CLM",
+    # "attacks._3_PiF.PiF_CLM",
     "attacks._4_SQL_StructTransform.main",
     "attacks._5_suffix.main",
     "attacks._6_Sequential.main",
@@ -50,11 +50,13 @@ def job_script_content(name, cmd, ollama_model):
     walltime = "12:00:00"
 
     if name in "_12_Tap":
-        walltime = "12:00:00"
+        walltime = "18:00:00"
     elif name in "_11_Pair":
         walltime = "12:00:00"
     elif name in "_3_PiF_PiF_CLM":
         walltime = "12:00:00"
+    elif name in "_25_past":
+        walltime = "18:00:00"
     # print(name)
     # print(walltime)
     # exit(0)

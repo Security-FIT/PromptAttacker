@@ -1,9 +1,0 @@
-Requirement already satisfied: nltk in /storage/brno12-cerit/home/xkaska01/.local/lib/python3.12/site-packages (3.9.1)
-Requirement already satisfied: click in /storage/brno2/home/xkaska01/.conda/envs/diplomka/lib/python3.12/site-packages (from nltk) (8.1.8)
-Requirement already satisfied: joblib in /storage/brno2/home/xkaska01/.conda/envs/diplomka/lib/python3.12/site-packages (from nltk) (1.4.2)
-Requirement already satisfied: regex>=2021.8.3 in /storage/brno2/home/xkaska01/.conda/envs/diplomka/lib/python3.12/site-packages (from nltk) (2024.11.6)
-Requirement already satisfied: tqdm in /storage/brno2/home/xkaska01/.conda/envs/diplomka/lib/python3.12/site-packages (from nltk) (4.67.1)
-INFO 10-15 11:50:46 [__init__.py:239] Automatically detected platform cuda.
-[INFO] DeepInception: model=/storage/brno2/home/xkaska01/master/my_implementation/models/Llama-2-7b-hf/, rows=[0,13282)
-[INFO] Results saved to /storage/brno2/home/xkaska01/master/my_implementation/results/DATASET_FULL_gemma3:12b/_19_deep_inception.json
-End _19_Deepinception: Wed Oct 15 13:15:52 CEST 2025
