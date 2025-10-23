@@ -19,6 +19,8 @@ mamba activate /storage/brno2/home/xkaska01/.conda/envs/diplomka
 # /storage/brno2/home/xkaska01/test/bin/ollama pull falcon3:10b
 # /storage/brno2/home/xkaska01/test/bin/ollama pull gemma3:27b
 # /storage/brno2/home/xkaska01/test/bin/ollama pull qwen3:32b
+# /storage/brno2/home/xkaska01/test/bin/ollama pull qwen3:12b
+
 # /storage/brno2/home/xkaska01/test/bin/ollama pull yi:34b
 # /storage/brno2/home/xkaska01/test/bin/ollama pull internlm/internlm2.5:latest
 # /storage/brno2/home/xkaska01/test/bin/ollama pull command-r:35b

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import os, yaml, textwrap, subprocess
+import os, yaml, textwrap, subprocess, argparse
+# from my_implementation.evaluate.evaluate_full_results_datasets import evaluate_model
 
 # === Nastavení ===
 CONFIG = "/storage/brno2/home/xkaska01/master/my_implementation/config.yaml"  # uprav dle sebe
@@ -47,16 +48,16 @@ def job_script_content(name, cmd, ollama_model):
     cpu = "200gb"
     ngpu = 1
     ncpu = 1
-    walltime = "12:00:00"
+    walltime = "6:00:00"
 
-    if name in "_12_Tap":
-        walltime = "18:00:00"
-    elif name in "_11_Pair":
-        walltime = "12:00:00"
-    elif name in "_3_PiF_PiF_CLM":
-        walltime = "12:00:00"
-    elif name in "_25_past":
-        walltime = "18:00:00"
+    # if name in "_12_Tap":
+    #     walltime = "18:00:00"
+    # elif name in "_11_Pair":
+    #     walltime = ":00:00"
+    # elif name in "_3_PiF_PiF_CLM":
+    #     walltime = "12:00:00"
+    # elif name in "_25_past":
+    #     walltime = "18:00:00"
     # print(name)
     # print(walltime)
     # exit(0)
@@ -88,7 +89,52 @@ def job_script_content(name, cmd, ollama_model):
         echo "End {name}: $(date)"
     """)
 
+
+def results_eval_all(name):
+
+    gpu = "15gb"
+    cpu = "100gb"
+    ngpu = 1
+    ncpu = 1
+    walltime = "5:00:00"
+
+    # print(name)
+    # print(walltime)
+    # exit(0)
+    return textwrap.dedent(f"""\
+        #!/bin/bash
+        #PBS -q default@pbs-m1.metacentrum.cz
+        #PBS -N {name}
+        #PBS -l select=1:ncpus={ncpu}:ngpus={ngpu}:mem={cpu}:gpu_mem={gpu}
+        #PBS -l walltime={walltime}
+
+        HOMEDIR=/storage/brno2/home/xkaska01/master/my_implementation
+
+        export PYTHONPATH="$(pwd):$PYTHONPATH"
+        cd $HOMEDIR
+        
+        export CUDA_VISIBLE_DEVICES=0
+        module add mambaforge
+        mamba activate /storage/brno2/home/xkaska01/.conda/envs/diplomka
+
+        # spustit ollama (upravit cesty, pokud je potřeba)
+        # spouštím jako background, loguji výstup
+        /storage/brno2/home/xkaska01/test/bin/ollama serve > $HOMEDIR/ollama.log 2>&1 &
+        /storage/brno2/home/xkaska01/test/bin/ollama pull gemma3:12b
+        python3 -m pip install --user nltk
+
+        python3 /storage/brno2/home/xkaska01/master/my_implementation/evaluate/evaluate_full_results_datasets.py {name}
+
+        echo "End {name}: $(date)"
+    """)
+
 def main():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--eval", action="store_true", help="Spustit evaluaci všech výsledků před útoky")
+    args = parser.parse_args()
+
+
     cfg = load_cfg(CONFIG)
     victim_llm = cfg["victim_llm"]
     results_dir = cfg["results_dir"]
@@ -103,6 +149,26 @@ def main():
     print(f"[INFO] Results dir: {results_dir}")
     print(f"[INFO] Jobs dir:    {jobs_dir}")
 
+    if args.eval:
+        print("[INFO] Spouštím evaluaci všech výsledků před útoky...")
+        model = "internlm2.5:latest"
+        script_path = os.path.join("/storage/brno2/home/xkaska01/master/my_implementation/evaluate/results_eval", f"job_{model}.sh")
+        with open(script_path, "w", encoding="utf-8") as fh:
+            fh.write(results_eval_all(model))
+        os.chmod(script_path, 0o755)
+        # created.append(script_path)
+        print(f"[INFO] Created {script_path}")
+
+        if SUBMIT:
+            try:
+                res = subprocess.run(["qsub", script_path], check=True, capture_output=True, text=True)
+                print(f"  -> qsub: {res.stdout.strip()}")
+            except subprocess.CalledProcessError as e:
+                print(f"  !! qsub error: {e.stderr.strip()}")
+
+        return
+
+    
     created = []
     for module in ATTACK_MODULES:
         name = module.split(".")[1]  # např. "_1_Cypher" → můžeš si to přejmenovat, klidně zjemni:
