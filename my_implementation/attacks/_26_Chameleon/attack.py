@@ -1,3 +1,42 @@
+## @file main.py
+#  @brief Upstream inference / runner script for executing CodeChameleon prompts against open-source LLMs and GPT-style APIs
+#
+#  This file provides the reference execution pipeline used by CodeChameleon to:
+#   - parse command-line arguments (model path, dataset path, encryption rule, prompt style),
+#   - construct attack prompts via `template.get_prompts()` and model-specific formatting via `utils.complete_format()`,
+#   - run inference either on:
+#       (a) open-source causal LMs through Hugging Face Transformers (`AutoModelForCausalLM`), or
+#       (b) GPT-style chat APIs through the OpenAI client,
+#   - periodically checkpoint and save generations to disk.
+#
+#  The script supports multiple encryption rules (none / reverse / odd_even / length / binary_tree)
+#  and two prompt families (text vs. code). Prompt saving can be enabled for reproducibility.
+#
+#  Key components:
+#   - `parse_args()`: CLI interface for selecting model, dataset, encryption/prompt settings, and generation parameters
+#   - `open_source_attack()`: runs batched generation using a local/open-source model via Transformers
+#   - `gpt_attack()`: runs chat completions via an OpenAI-compatible API wrapper with throttling
+#   - `save_generation()`: periodic persistence of outputs (delegated to `attacks._26_Chameleon.utils`)
+#
+#  @author Hui Zhang et al. (CodeChameleon authors)
+#  @date 20.3.2024
+#
+#  Ownership / Contribution statement:
+#   - This file originates from the upstream CodeChameleon repository.
+#   - It implements the original experimental runner for prompt construction, model querying,
+#     and result serialization used in the CodeChameleon evaluation pipeline.
+#   - Any downstream changes (e.g., API wiring, model wrappers, device placement, logging,
+#     file naming conventions) should be documented explicitly to preserve reproducibility.
+#
+#  Research basis:
+#   - Paper:
+#       "CodeChameleon: Personalized Encryption Framework for Jailbreaking Large Language Models"
+#       arXiv:2402.16717
+#       https://arxiv.org/abs/2402.16717
+#   - Code repository:
+#       https://github.com/huizhang-L/CodeChameleon/blob/master/attack.py
+
+
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from openai import OpenAI
 import torch

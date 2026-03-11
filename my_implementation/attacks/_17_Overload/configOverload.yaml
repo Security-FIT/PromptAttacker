@@ -1,10 +1,38 @@
+## @file configOverload.yaml
+#  @brief Configuration file for the Overload-based prompt injection attack
+#
+#  This configuration file defines parameters for the Overload attack, which
+#  overloads the victim LLM by combining decoding, substitution, masking, and
+#  long-form answering instructions into a single prompt.
+#
+#  @author Bc. Petr Kaška
+#  @date 1.2.2026
+
 Overload:
-  temperature: 0.0
+  # @brief Controls the randomness of the model output.
+  temperature: 0.8
+
+  # @brief Maximum number of tokens in the generated response.
   max_token: 512
-  dict_type: ["all"]   
-  random_dict: 30      
+
+  # @brief Character sets used for dictionary generation.
+  dict_type: ["all"]
+
+  # @brief Size of the randomly generated dictionary.
+  random_dict: 30
+
+  # @brief Minimum length of generated dictionary keys and values.
   lenmin: 1
+
+  # @brief Maximum length of generated dictionary keys and values.
   lenmax: 5
+
+  # @brief Truncation length of dictionary values.
   value_len: 1
-  strlen: 1          
-  mask_loc: "before"     
+
+  # @brief Length of encoded context strings.
+  strlen: 1
+
+  # @brief Location of the mask token in the question.
+  # @values "before", "after"
+  mask_loc: "before"

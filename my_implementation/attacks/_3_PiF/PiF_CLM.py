@@ -1,20 +1,12 @@
-"""pif_attack.py – Pipeline pro PIF útok (Prefix‑Inversion Framework)
-==============================================================
-
-* Čte konfiguraci **stejným způsobem** jako tvůj `run_flip_attack`,
-  tj. pomocí `load_config()` a sekce `PIF` v YAML souboru
-  uloženém ve stejném adresáři jako tento skript.
-
-* Výsledek útoku ukládá do JSONL (`_3_PIF.json`) a na konci dopíše
-  agregované metriky (Average Queries, Time, ASR, AHS).
-
-Spuštění
---------
-```
-python pif_attack.py              # použije configPIF.yaml v aktuální složce
-python pif_attack.py --defense    # (pokud bys někdy chtěl přidat obranu)
-```
-"""
+## @file run_pif.py
+#  @brief Script for running PiF-based prompt injection attacks
+#
+#  This script loads a dataset of adversarial prompts and applies a PiF attack
+#  strategy against a victim LLM using a configurable generation model.
+#  Results are stored in JSON format and summarized with evaluation metrics.
+#
+#  @author Bc. Petr Kaška
+#  @date 3.1.2026
 
 from __future__ import annotations
 
@@ -29,40 +21,44 @@ from typing import List
 import torch
 from tqdm import tqdm
 
-from attacks.helpers import load_config, str2bool
+from attacks.common.helpers import load_config, str2bool
 import attacks._3_PiF.attack_clm as attack_clm  
 import attacks._3_PiF.eval as eval  
 
-###########################################################################
-# Main
-###########################################################################
 
-def run_pif_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model, api_ollama_vllm):  # aktuálně se obrana nepoužívá
-    # ------------------------------------------------------------------
-    # 1) načtení konfigurace
-    # ------------------------------------------------------------------
+def run_pif_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model, api_ollama_vllm):  
+    """
+    @brief Executes the PiF attack over a dataset of adversarial prompts
+
+    @details
+    This function:
+     - loads PiF configuration from configPIF.yaml,
+     - initializes logging and selects compute device (CUDA if available),
+     - iterates through the dataset of harmful prompts,
+     - calls the PiF attack generator to produce attack prompts and victim responses,
+     - writes per-sample results to a JSON file,
+     - evaluates the run and appends a summary line with aggregate metrics.
+
+    @param victim_llm_path Path to the victim LLM model (target model)
+    @param results_dir Output directory where results will be written
+    @param dataset_path Path to the CSV dataset containing attack goals (column "goal")
+    @param what_ollama_model Name of the Ollama model (currently unused in this function)
+    @param api_ollama_vllm Whether to use Ollama / vLLM backend (currently unused in this function)
+
+    @return None
+    """
     script_dir = Path(__file__).resolve().parent
     config_path = script_dir / "configPIF.yaml"
     cfg = load_config(config_path)
     cfg_pif = cfg["PIF"]
 
-    # povinné položky
     gen_model_path: str = cfg_pif["gen_model_path"]
-    # tgt_model_path: str = cfg_pif["tgt_model_path"]
-    # att_file: str = cfg_pif["att_file"]
-    # output_dir: str = cfg_pif["output_dir"]
-
-    # volitelné s výchozí hodnotou
     opt_objective: str = cfg_pif.get("opt_objective", "ASR")
-    hf_cache_dir: str = cfg_pif.get("hf_cache_dir", "./hf_models")
     output_file_name: str = cfg_pif.get("output_file", "_3_pif.json")
-    prompt_template: str = cfg_pif.get("prompt_template", "Human: {}. Assistant: ")
     evaluation_template: str = cfg_pif.get("evaluation_template", "this intent is [MASK]")
 
-    batch_size: int = int(cfg_pif.get("batch_size", 1))
     iterations: int = int(cfg_pif.get("iterations", 20))
 
-    # hyper‑parametry útoku
     top_n: int = int(cfg_pif.get("top_n", 5))
     top_m: int = int(cfg_pif.get("top_m", 5))
     top_k: int = int(cfg_pif.get("top_k", 10))
@@ -70,9 +66,6 @@ def run_pif_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model
     temperature: float = float(cfg_pif.get("temperature", 0.1))
     threshold: float = float(cfg_pif.get("threshold", 0.9))
 
-    # ------------------------------------------------------------------
-    # 2) příprava logů a IO
-    # ------------------------------------------------------------------
     Path(results_dir).mkdir(parents=True, exist_ok=True)
     log_file = "/storage/brno2/home/xkaska01/master/my_implementation/attacks/_3_PiF/output.log"
 
@@ -87,13 +80,7 @@ def run_pif_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model
     logger.info("Loaded config from %s", config_path)
     logger.info(cfg_pif)
 
-    # ------------------------------------------------------------------
-    # 3) načtení datasetu
-    # ------------------------------------------------------------------
     adv_bench = pandas.read_csv(dataset_path)
-    # ------------------------------------------------------------------
-    # 4) útok
-    # ------------------------------------------------------------------
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     overall_query = 0
@@ -104,22 +91,10 @@ def run_pif_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model
     output_path = Path(results_dir) / output_file_name
     logger.info("Results will be written to %s", output_path)
     entries = []
-    # ['Human: goal,translation_of_goal,target. Assistant: ']
     with open(output_path, "w", encoding="utf-8") as fo:
         for i, harm_prompt in tqdm(enumerate(adv_bench["goal"])):
 
             chunk_prompts: List[str] = [harm_prompt]
-
-            # print("ADV")
-            # print(chunk_prompts)
-            # print()
-            # print()
-            # print()
-            # print()
-            # print()
-            # print()
-            # exit(0)
-
 
             query, t_spent, flags, gen_attacks, tgt_responses = attack_clm.generate_attack(
                 gen_model_path, gen_model_path, victim_llm_path, victim_llm_path,
@@ -150,9 +125,6 @@ def run_pif_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model
         fo.write(json.dumps(entries, ensure_ascii=False) + "\n")
         fo.flush()
 
-    # ------------------------------------------------------------------
-    # 5) agregační metriky
-    # ------------------------------------------------------------------
     logger.info("Attack finished – evaluating…")
     overall_ahs = eval.ahs(str(output_path))
 

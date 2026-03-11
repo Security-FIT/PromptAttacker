@@ -1,3 +1,24 @@
+## @file string_utils.py
+#
+#  @author Xiaogeng Liu, Nan Xu, Muhao Chen, Chaowei Xiao
+#  @date [Submitted on 3 Oct 2023 (v1), last revised 20 Mar 2024 (this version, v2)]
+#
+#  Ownership / Contribution statement:
+#   - This file originates from the upstream AutoDAN repository.
+#   - It is included verbatim (or with minimal adaptation, such as import paths)
+#     to preserve reproducibility of the original attack methodology.
+#   - Any downstream changes should be documented separately.
+#
+#  Research basis:
+#   - Paper:
+#       "AutoDAN: Generating Stealthy Jailbreak Prompts on Aligned Large Language Models"
+#       arXiv:2310.04451
+#       https://arxiv.org/abs/2310.04451
+#   - Code repository:
+#       https://github.com/SheltonLiu-N/AutoDAN/blob/main/utils/string_utils.py
+#   - MIT License (see LICENSE file in the AutoDAN repository)
+
+
 import torch
 from fastchat import model
 

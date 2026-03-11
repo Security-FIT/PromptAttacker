@@ -1,27 +1,41 @@
-# TENTO FILE JE MUUUUUUUUUJ
+## @file main.py
+#  @brief Runner script for PAIR (Prompt Attack via Iterative Refinement) attack
+#
+#  This script executes the PAIR attack, an iterative prompt refinement
+#  strategy where adversarial prompts are progressively optimized based
+#  on model feedback and an internal scoring function.
+#
+#  The script:
+#   - loads PAIR-specific configuration from a YAML file,
+#   - initializes PairAttack and PairAttackConfig,
+#   - iterates over a dataset of adversarial goals,
+#   - generates optimized adversarial prompts,
+#   - queries the victim LLM,
+#   - stores prompts, responses, and attack scores in JSON format.
+#
+#  @author Bc. Petr Kaška
+#  @date 30.1.2026
+#
 
+import datetime
 import os
 import json
 import pandas as pd
 from tqdm import tqdm
 from pathlib import Path
 import yaml
-import sys # Importujeme sys pro ukončení programu
-from attacks.helpers import str2bool
+import sys 
+from attacks.common.helpers import str2bool
 
-from defense.defense_EA import DefenseEA
 from attacks._11_Pair.pair_attack import PairAttack, PairAttackConfig
 
-
 def run_pair_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model, api_ollama_vllm):
-    # defense = DefenseEA() if run_defense else None
     script_dir  = os.path.dirname(os.path.abspath(__file__))
     cfg_path    = os.path.join(script_dir, "configPair.yaml")
 
     cfg_yaml = yaml.safe_load(open(cfg_path, "r", encoding="utf-8"))
     cfgP     = cfg_yaml["Pair"]
 
-    # ------------------------------------------------------------------------------------------------
     attack_cfg = PairAttackConfig(
         attacker_llm_path=victim_llm_path,
         target_llm_path=victim_llm_path,
@@ -35,21 +49,16 @@ def run_pair_attack(victim_llm_path, results_dir, dataset_path, what_ollama_mode
     )
     attacker = PairAttack(attack_cfg)
 
-    # ------------------------------------------------------------------------------------------------
     adv_bench = pd.read_csv(dataset_path)
-
 
     entries = []
     out_dir = Path(results_dir); out_dir.mkdir(parents=True, exist_ok=True)
-    out_file = out_dir / "_11_pair.json"
-    print("ZDEEE")
+    out_file = out_dir / f"_11_pair.json"
     with open(out_file, "w", encoding="utf-8") as fo:
         for idx, goal in tqdm(enumerate(adv_bench["goal"])):
             result = attacker.generate(goal)
 
             prompt_adv = result["adversarial_prompt"]
-            # if run_defense:
-                # prompt_adv = defense(prompt_adv)
 
             entry = {
                 "id": idx,

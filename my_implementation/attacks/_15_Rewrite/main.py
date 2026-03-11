@@ -1,9 +1,33 @@
-# attacks/_4_Rewrite/main.py
-"""
-Spuštění Rewrite útoku na lokální LLM.
+## @file main.py
+#  @brief Runner script for rewrite-based prompt transformation attack
+#
+#  This script evaluates a rewrite-based jailbreak attack where a harmful or
+#  restricted user goal is first rewritten using a transformation template
+#  and then submitted to a victim large language model.
+#
+#  The rewrite attack aims to preserve the semantic intent of the original
+#  prompt while altering its surface form, potentially bypassing safety
+#  filters and alignment mechanisms that rely on lexical or structural cues.
+#
+#  The script:
+#   - Loads rewrite parameters from `configRewrite.yaml`
+#   - Reads a CSV dataset containing adversarial goals (column: `goal`)
+#   - Applies a rewrite transformation via `RewriteAttack`
+#   - Queries the victim LLM with the rewritten prompt
+#   - Stores original prompts, rewritten prompts, and model responses
+#     in JSON format
+#
+#  @author Bc. Petr Kaška
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This runner script was fully implemented by Bc. Petr Kaška.
+#   - The experiment orchestration, rewrite attack invocation, dataset slicing,
+#     LLM querying logic, and result serialization are original work by the author.
+#   - The rewrite attack module (`RewriteAttack`) is integrated as a component
+#     within the author's experimental framework.
+#
 
-$ python -m attacks._4_Rewrite.main
-"""
 import os
 import json, sys
 import pandas
@@ -11,18 +35,13 @@ from tqdm import tqdm
 
 from attacks.common.llm import LLM
 from attacks._15_Rewrite.attack_rewrite import RewriteAttack
-from defense.defense_EA import DefenseEA
-from attacks.helpers import load_config, str2bool
+from attacks.common.helpers import load_config, str2bool
 
 def run_rewrite_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
-    """Spustí útok a výsledky uloží do JSONL."""
-    defense = DefenseEA()
 
     script_dir  = os.path.dirname(os.path.abspath(__file__))
     config_path = os.path.join(script_dir, "configRewrite.yaml")
     cfg         = load_config(config_path)["Rewrite"]
-
-    # — YAML nastavení —
 
     temperature     = cfg.get("temperature", 0.0)
     max_token       = cfg.get("max_token", 512)
@@ -32,7 +51,6 @@ def run_rewrite_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vl
 
     print(f"[INFO] Rewrite: model={victim_llm_path}, rows=[{begin},{end})")
 
-    # — Data + model —
     adv_bench = pandas.read_csv(dataset_path)
     llm = LLM(model_path=victim_llm_path,
               temperature=temperature,

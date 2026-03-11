@@ -1,13 +1,49 @@
+## @file main.py
+#  @brief Runner script for multilingual prompt-based jailbreak evaluation
+#
+#  This script evaluates a multilingual jailbreak / prompt-transfer attack
+#  where the original adversarial goal is translated into a different language
+#  and directly submitted to the victim LLM. The underlying assumption is that
+#  safety alignment may be weaker in non-English or cross-lingual settings.
+#
+#  The script:
+#   - Loads experiment parameters from `configMultiLang.yaml`
+#   - Reads a CSV dataset containing the original goal and its translation
+#     (`goal`, `translation_of_goal`)
+#   - Queries the victim LLM using the translated prompt
+#   - Stores original prompts, translated prompts, and model responses
+#     in JSON format
+#
+#  @author Bc. Petr Kaška
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This runner script was fully implemented by Bc. Petr Kaška.
+#   - The experiment orchestration, dataset slicing (begin/end),
+#     LLM querying logic, and result serialization are original work
+#     by the author.
+#   - The script integrates a custom experimental setup rather than
+#     reusing reference implementations from prior work.
+#
+#  Research basis:
+#   - The experimental idea is inspired by multilingual jailbreak and
+#     cross-lingual transfer attacks described in:
+#       "Lost in Translation: On the Robustness of Multilingual LLMs
+#        to Jailbreak Attacks"
+#       arXiv:2401.16765
+#       Authors: Kai-Wei Chang, Zhuosheng Zhang, Haoran Shi, Pengfei Liu
+#       Initially submitted on arXiv: 30 Jan 2024
+#       https://arxiv.org/abs/2401.16765
+
+
 import os, json, sys,pandas as pd
 from tqdm import tqdm
 from attacks.common.llm import LLM
-from attacks.helpers import load_config, str2bool
-from defense.defense_EA import DefenseEA    # zůstává, i když se zde nepoužije
+from attacks.common.helpers import load_config, str2bool
+
 
 def run_Multilang_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
-    """Multi‑language útok – LLM dostane FR prompt, do záznamu uloží i EN originál."""
 
-    # ---------- konfigurace -------------------------------------------------
     script_dir  = os.path.dirname(os.path.abspath(__file__))
     cfg_path    = os.path.join(script_dir, "configMultiLang.yaml")
     cfg         = load_config(cfg_path)["MultiLang"]
@@ -18,7 +54,6 @@ def run_Multilang_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
     begin       = cfg.get("begin", 0)
     end         = cfg.get("end", None)
 
-    # ---------- LLM klient --------------------------------------------------
     victim_llm = LLM(
         model_path=victim_llm_path,
         temperature=temperature,
@@ -28,7 +63,6 @@ def run_Multilang_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
     )
     print("[INFO] Initialized LLM client")
 
-    # ---------- načti dataset ----------------------------------------------
     df = pd.read_csv(dataset_path)
     if not {"goal", "translation_of_goal"} <= set(df.columns):
         raise ValueError("CSV musí obsahovat sloupce goal, translation_of_goal")
@@ -36,11 +70,9 @@ def run_Multilang_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
     if end is None or end > len(df):
         end = len(df)
 
-    # ---------- výstupní soubor --------------------------------------------
     os.makedirs(results_dir, exist_ok=True)
     output_file = os.path.join(results_dir, "_14_multilang.json")
     entries = []
-    # ---------- hlavní smyčka ----------------------------------------------
     with open(output_file, "w", encoding="utf-8") as fo:
         for idx, row in tqdm(df.iloc[begin:end].iterrows(), total=end - begin):
             original_goal   = row["goal"]                 
@@ -63,7 +95,7 @@ def run_Multilang_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
 
 if __name__ == "__main__":
     if len(sys.argv) != 6:
-        print("Usage: python3 run_cypher.py victim_llm_path results_dir dataset_path api_ollama_vllm what_ollama_model")
+        print("Usage: python3 run_multilang.py victim_llm_path results_dir dataset_path api_ollama_vllm what_ollama_model")
         sys.exit(1)
 
     victim_llm_path = sys.argv[1]

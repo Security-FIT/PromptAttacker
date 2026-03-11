@@ -1,4 +1,46 @@
-# attacks/_24_ArtPrompt/artprompt_attack.py
+## @file artprompt_attack.py
+#  @brief ArtPrompt (ASCII-art–based) prompt injection attack (adapted from UW-NSL)
+#
+#  This file implements an ArtPrompt-style attack that hides a malicious token
+#  inside ASCII art and injects it back into a masked instruction. The attack
+#  proceeds in two stages:
+#    1) Masking stage (mask_llm):
+#       A dedicated "sanitizer" LLM is prompted to identify and mask exactly
+#       one most malicious token from the user's request and output:
+#         - the masked token list (single token)
+#         - the original instruction with that token replaced by [MASK]
+#    2) ASCII-art substitution stage:
+#       The masked token is rendered into ASCII art (glyphs loaded from a JSON
+#       font file) and substituted into the masked instruction in place of
+#       [MASK], producing the final ArtPrompt that is sent to the victim LLM.
+#
+#  @author Bc. Petr Kaška (adaptation/integration)
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This file is a derivative work adapted from the official ArtPrompt
+#     open-source implementation by UW-NSL (see source link below).
+#   - The core concept (ASCII-art token substitution + masking assistant) is
+#     taken from the upstream project and paper.
+#   - This local version was integrated and refactored by Bc. Petr Kaška to fit
+#     the surrounding experimental framework, including:
+#       * integration with the project-specific `LLM` interface
+#       * YAML-driven configuration via ArtPromptConfig
+#       * JSON font loading and ASCII glyph composition utilities
+#       * output parsing for the two-line masking format
+#       * optional CoT flag appended to the final art prompt
+#
+#  Source (upstream):
+#   - Repository: https://github.com/uw-nsl/ArtPrompt
+#
+#  Research basis:
+#   - ArtPrompt methodology as described in:
+#       "ArtPrompt: ASCII Art-based Jailbreak Attacks against Aligned LLMs"
+#       arXiv:2402.11753 (2024)
+#       https://arxiv.org/abs/2402.11753
+#       Authors: Fengqing Jiang, Zhangchen Xu, Luyao Niu, Zhen Xiang, Bhaskar Ramasubramanian, Bo Li, Radha Poovendran
+#       sumbitted on 19.02.2024 (v1), last revised 7.06.2024 (this version, v4)
+
 from __future__ import annotations
 import json, random
 from pathlib import Path
@@ -116,25 +158,7 @@ class ArtPromptAttack:
         ]
         resp = self.cfg.mask_llm.response(messages).strip()
 
-        print()
-        print()
-        print()
-        print(resp)
-        print()
-        print()
-
         words, instr = self._parse_mask(resp)
-        print("ZDEEE")
-        print("ZDEEE")
-        print(words)
-        print()
-        print()
-        print()
-
-        print(instr)
-
-        print("ZDEEE")
-        print("ZDEEE")
         art_prompt   = self._build_artprompt(words, instr)
         if self.cfg.use_cot:
             art_prompt += "\n\nPlease reason step-by-step."

@@ -1,3 +1,32 @@
+## @file opt_utils.py
+#  @brief Prompt-optimization attack manager (imported/adapted from llm-attacks)
+#
+#  IMPORTANT (Attribution):
+#   - This file is largely copied from the official llm-attacks repository.
+#   - Original authorship and design belong to the llm-attacks contributors.
+#   - This local copy may include minor compatibility adjustments and integration
+#     changes for the surrounding experimental framework.
+#
+#  @author Bc. Petr Kaška (integration/adaptation)
+#  @date 1.2.2026
+#
+#  Source (upstream):
+#   - Repository: llm-attacks / llm-attacks
+#   - File: llm_attacks/minimal_gcg/opt_utils.py
+#   - https://github.com/llm-attacks/llm-attacks/blob/main/llm_attacks/minimal_gcg/opt_utils.py
+#   - Date accessed: 15.1.2024
+#   - License: MIT License (see LICENSE file in the repository)
+#
+#  Research basis:
+#   - This code implements the attack framework introduced in:
+#       "Universal and Transferable Adversarial Attacks on Aligned Language Models"
+#       arXiv:2307.15043v2
+#       Authors: Andy Zou, Zifan Wang, Nicholas Carlini, Milad Nasr,
+#                J. Zico Kolter, Matt Fredrikson
+#       First posted: 27 Jul 2023
+#       https://arxiv.org/abs/2307.15043
+#
+
 import gc
 
 import numpy as np

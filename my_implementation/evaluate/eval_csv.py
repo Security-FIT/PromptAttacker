@@ -1,7 +1,7 @@
 import csv
 
 # ZDE případně přepiš název souboru:
-CSV_FILE = '/storage/brno2/home/xkaska01/master/my_implementation/evaluate/internlm2.5:latest.csv'
+CSV_FILE = '/storage/brno2/home/xkaska01/master/my_implementation/results/stats_without_defense/internlm2.5:latest.csv'
 
 def main():
     with open(CSV_FILE, newline='', encoding='utf-8') as f:

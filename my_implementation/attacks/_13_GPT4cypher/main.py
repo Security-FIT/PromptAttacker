@@ -1,11 +1,23 @@
-# encoding: utf-8
-"""
-main_gpt4cipher.py — Runner for GPT‑4 Cipher attack
-==================================================
-Spouštěcí skript po vzoru *main_scav.py*.  Vybere dataset z `data_path`, na
-každý prompt aplikuje *GPT4CipherAttacker* a výsledek předá do victim LLM.
-Volitelně lze zapnout EA defence pomocí `--defense`.
-"""
+## @file main.py
+#  @brief Runner script for GPT4Cypher-style (Caesar cipher) prompt attack evaluation
+#
+#  This script runs the GPT4Cypher attack using parameters loaded from
+#  `configCypher.yaml`. It loads a CSV dataset (expects a column named `goal`),
+#  applies the attacker to transform each goal into a cipher-based adversarial
+#  prompt, queries the victim LLM, deciphers the returned response, and stores
+#  all results in JSON format.
+#
+#  @author Bc. Petr Kaška
+#  @date 30.1.2026
+#
+#  Ownership / Contribution statement:
+#   - This runner script was fully implemented by Bc. Petr Kaška.
+#   - The orchestration logic, config loading, dataset handling, experiment loop,
+#     and result serialization are original work by the author.
+#   - The GPT4Cypher attacker implementation is imported from
+#     `attacks/_13_GPT4cypher/attack_cypher.py` and integrated here into the
+#     experimental framework.
+#   - The victim model interface is provided via `attacks/common/llm.py` (LLM).
 
 from __future__ import annotations
 
@@ -17,27 +29,19 @@ from dataclasses import fields
 import pandas as pd
 from tqdm import tqdm
 
-# Lokální importy
 from attacks._13_GPT4cypher.attack_cypher import (
     GPT4CipherAttacker,
     GPT4CipherAttackerConfig,
 )
-from attacks.helpers import load_config, str2bool
-from attacks.common.llm import LLM  # sdílíme jednoduchý wrapper
-from defense.defense_EA import DefenseEA
+from attacks.common.helpers import load_config, str2bool
+from attacks.common.llm import LLM  
 
-
-# ---------------------------------------------------------------------------
-#                               Runner
-# ---------------------------------------------------------------------------
 
 def run_GPTcypher_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
 
-    # ----------------– načtení YAML -------------------------------------
     yaml_path = os.path.join(os.path.dirname(__file__), "configCypher.yaml")
     cfg       = load_config(yaml_path)["GPT4Cypher"]
 
-    # ----------------– victim LLM ---------------------------------------
     victim_llm = LLM(
         model_path  = victim_llm_path,
         temperature = cfg.get("temperature", 0.0),
@@ -46,24 +50,17 @@ def run_GPTcypher_attack(victim_llm_path, results_dir, dataset_path, api_ollama_
         use_ollama=api_ollama_vllm, 
     )
 
-    # ----------------– dataset -----------------------------------------
-    # data_path = cfg["data_path"]
     df = pd.read_csv(dataset_path)
 
-    # ----------------– výstup -------------------------------------------
-    
     os.makedirs(results_dir, exist_ok=True)
     out_file = os.path.join(results_dir, "_13_gpt4cipher.json")
 
-    # ----------------– konfigurace útočníka -----------------------------
     attacker_fields = {f.name for f in fields(GPT4CipherAttackerConfig)}
     attacker_kwargs = {k: v for k, v in cfg.items() if k in attacker_fields}
     attacker_cfg    = GPT4CipherAttackerConfig(**attacker_kwargs)
     attacker        = GPT4CipherAttacker(attacker_cfg)
 
-    # defense = DefenseEA() if run_defense else None
     entries = []
-    # ----------------– hlavní smyčka ------------------------------------
     with open(out_file, "w", encoding="utf-8") as fo:
         for idx, prompt in tqdm(
                 enumerate(df["goal"])):

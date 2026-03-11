@@ -1,8 +1,34 @@
-# attacks/_16_GCG/main.py
+## @file main.py
+#  @brief Runner script for the GCG (Greedy Coordinate Gradient) adversarial suffix attack
+#
+#  This script runs a GCG-based adversarial suffix (control-string) attack against
+#  a local HuggingFace causal language model. It supports optional suffix
+#  optimization (training) on a dedicated dataset and then evaluates the learned
+#  suffix on a target dataset, saving results as JSON Lines.
+#
+#  @author Bc. Petr Kaška
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This runner script was fully implemented by Bc. Petr Kaška.
+#   - The orchestration logic, configuration handling, synchronous worker,
+#     suffix training pipeline, evaluation loop, and result serialization are
+#     original work by the author.
+#   - The runner integrates GCG helper classes (AttackPrompt/PromptManager/
+#     MultiPromptAttack) from the local framework modules under `attacks/_18_Gcg`.
+#
+#  Research basis:
+#   - The adversarial suffix optimization methodology (GCG / control-string search)
+#     is based on:
+#       "Universal and Transferable Adversarial Attacks on Aligned Language Models"
+#       arXiv:2307.15043v2 (Zou et al., 2023)
+#       https://arxiv.org/abs/2307.15043v2
+#
+
 import os, json, yaml, pandas as pd
 from pathlib import Path
 
-from attacks.helpers import load_config, str2bool
+from attacks.common.helpers import load_config, str2bool
 import torch, sys
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from fastchat.model import get_conversation_template
@@ -22,11 +48,11 @@ class _SyncWorker:
         self.model          = model
         self.tokenizer      = tokenizer
         self.conv_template  = conv_template
-        self.results        = queue.Queue()         # MultiPromptAttack na Queue spoléhá
+        self.results        = queue.Queue()        
 
     def __call__(self, prompt_obj, mode, model, *args, **kwargs):
         if mode == "grad":
-            grad = prompt_obj.grad(model).detach().cpu()        # ➜ CPU ✔
+            grad = prompt_obj.grad(model).detach().cpu()
             self.results.put(grad)
         elif mode == "logits":
             logits, ids = prompt_obj.logits(model, *args, **kwargs)
@@ -38,9 +64,7 @@ class _SyncWorker:
         else:
             raise ValueError(f"Unknown mode '{mode}'")
 
-# --------------------------------------------------------------------------- #
 def _train_suffix(cfg, tokenizer, model, conv_templ):
-    """Vrátí nejlepší suffix (string) podle nastavení v YAML."""
     print("[INFO] → Spouštím trénink suffixu")
     df = pd.read_csv(cfg["train_dataset"])
     goals   = df["goal"  ].astype(str).tolist()
@@ -68,7 +92,6 @@ def _train_suffix(cfg, tokenizer, model, conv_templ):
     return best_suffix[0] if isinstance(best_suffix, tuple) else best_suffix
 
 def run_gcg_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
-    # ---------- 1) načti YAML -------------------------------------------------
     script_dir = os.path.dirname(os.path.abspath(__file__))
     cfg = load_config(script_dir + "/configGCG.yaml")["GCG"]
 
@@ -79,7 +102,6 @@ def run_gcg_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
     suffix       = cfg.get("control_init")
     begin        = cfg.get("begin", 0)
     end          = cfg.get("end", None)
-    # dataset_path = cfg.get("dataset", "data/prompts.csv")
 
 
     os.makedirs(results_dir, exist_ok=True)
@@ -87,7 +109,6 @@ def run_gcg_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
 
     print(f"[INFO] GCG‑Attack • model={victim_llm_path} • template={template}")
 
-    # ---------- 2) načti model & tokenizer ------------------------------------
     tokenizer = AutoTokenizer.from_pretrained(victim_llm_path, trust_remote_code=True)
     model     = AutoModelForCausalLM.from_pretrained(
                     victim_llm_path,
@@ -103,11 +124,9 @@ def run_gcg_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
         print(f"[INFO] Trénink trval {time.time()-t0:.1f}s")
         gc.collect(); torch.cuda.empty_cache()
 
-    # ---------- 3) načti dataset ----------------------------------------------
     df = pd.read_csv(dataset_path)
     if end is None: end = len(df)
 
-    # ---------- 4) inference smyčka -------------------------------------------
     print(f"[INFO] Output file: {out_file}\n")
     with open(out_file, "w", encoding="utf‑8") as fo:
         for idx, row in df.iloc[begin:end].iterrows():
@@ -122,11 +141,9 @@ def run_gcg_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
 
             prompt_text = prompt_obj.eval_str        
 
-            # samotná odpověď modelu
             with torch.no_grad():
                 reply = prompt_obj.generate_str(model)
 
-            # ---------- 5) log na řádek JSON‑Lines -----------------------------
             fo.write(json.dumps({
                 "id": int(idx),
                 "original_prompt": row.get("goal", ""),

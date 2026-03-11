@@ -1,3 +1,39 @@
+## @file utils.py
+#  @brief Utility functions for query handling, prompt formatting, and result persistence in CodeChameleon
+#
+#  This file provides helper utilities used across the CodeChameleon pipeline.
+#  Its responsibilities include:
+#   - loading problem queries from a CSV dataset,
+#   - applying the selected encryption rule to generate encrypted queries,
+#   - formatting prompts according to different model-specific chat interfaces,
+#   - and saving generated prompts or model outputs to disk.
+#
+#  The utilities are model-agnostic at the API level but include formatting logic
+#  for several common LLM interfaces (e.g., LLaMA-style instruction tags, Vicuna
+#  chat format, and GPT-style chat messages).
+#
+#  The encryption itself is delegated to `get_encrypted_query()` from the
+#  CodeChameleon encryption module; this file only orchestrates its application
+#  over datasets and manages input/output organization.
+#
+#  @author Hui Zhang et al. (CodeChameleon authors)
+#  @date 20.3.2024
+#
+#  Ownership / Contribution statement:
+#   - This file originates from the upstream CodeChameleon repository.
+#   - It is included verbatim (or with minimal path adjustments) to support
+#     reproducibility of the original experimental setup.
+#   - Any local modifications (e.g., import paths under `attacks._26_Chameleon`)
+#     should be documented separately in downstream forks.
+#
+#  Research basis:
+#   - Paper:
+#       "CodeChameleon: Personalized Encryption Framework for Jailbreaking Large Language Models"
+#       arXiv:2402.16717
+#       https://arxiv.org/abs/2402.16717
+#   - Code repository:
+#       https://github.com/huizhang-L/CodeChameleon/blob/master/utils.py
+
 import json
 import pandas as pd
 import os 

@@ -1,4 +1,19 @@
-# TENTO FILE JE MUUUUUUUUUUJ
+## @file run_sql.py
+#  @brief Script for running SQL-based structural prompt transformation attacks
+#
+#  This script loads a dataset of adversarial prompts and applies a
+#  SQL-inspired structural transformation attack against a victim LLM.
+#  The attack uses a separate attacker LLM to generate transformed prompts,
+#  which are then evaluated by the target (victim) model. Results are stored
+#  in JSON format for further analysis.
+#
+#  @author Bc. Petr Kaška
+#  @date 3.1.2026
+#
+#  Ownership / Contribution statement:
+#   - This file is an original implementation by Bc. Petr Kaška.
+#   - The experiment orchestration, model initialization, dataset handling,
+#     and result logging were implemented by the author.
 
 import os, json, yaml, pandas as pd
 from tqdm import tqdm
@@ -7,11 +22,9 @@ import torch,sys
 
 from attacks.common.llm import LLM
 from attacks._4_SQL_StructTransform.SQL_attack import SQLAttack
-from defense.defense_EA import DefenseEA 
-from attacks.helpers import load_config, str2bool
+from attacks.common.helpers import load_config, str2bool
 
 
-# ---------- PIPELINE -------------------------------------------
 def run_sql_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -19,10 +32,6 @@ def run_sql_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
     cfg = load_config(config_path)
     cfg = cfg["SQL"]
 
-    # print(cfg)
-    # exit(0)
-
-    # LLM instance – M_attack
     attacker = LLM(
         model_path  = cfg['attacker_llm'],
         temperature = cfg['temperature_attack'],
@@ -30,7 +39,6 @@ def run_sql_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
         ollama_model="qwen2.5:7b",
         use_ollama=True, 
     )
-    # LLM instance – M_target
     target = LLM(
         model_path  = victim_llm_path,
         temperature = cfg['temperature_target'],
@@ -39,11 +47,10 @@ def run_sql_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
         use_ollama=api_ollama_vllm, 
     )
     sql_attack = SQLAttack(
-        attacker_llm = attacker, # zde ma patrit attacker_llm, ale zatim jsem nechal stejne na utok tak i na vyhodnoceni protoze se to nevejde na disk
+        attacker_llm = attacker, 
         few_shot     = cfg['few_shot'],
         num_attempts = cfg['num_attempts']
     )
-    defense = DefenseEA()
 
     df = pd.read_csv(dataset_path)
     os.makedirs(results_dir, exist_ok=True)
@@ -66,7 +73,6 @@ def run_sql_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, 
             }
             entries.append(entry)
 
-            # až po cyklu:
         json.dump(entries, fo, ensure_ascii=False, indent=2)
 
     print(f"[INFO] DirectSQL finished ➜ {out_path}")

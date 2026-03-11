@@ -1,7 +1,22 @@
-Chameleon:
-  BinaryTree:
-  max_new_tokens: 1024
-  temperature: 1.0
-  top_p: 0.9
-  do_sample: true
+## @file configChameleon.yaml
+#  @brief Configuration file for the CodeChameleon jailbreak attack
+#
+#  @author Petr Kaška
+#  @date 1.2.2026
+#
 
+Chameleon:
+  # @section BinaryTree
+  BinaryTree:
+
+    # @param max_new_tokens
+    max_new_tokens: 1024
+
+    # @param temperature
+    temperature: 1.0
+
+    # @param top_p
+    top_p: 0.9
+
+    # @param do_sample
+    do_sample: true

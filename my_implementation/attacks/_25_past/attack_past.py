@@ -1,3 +1,39 @@
+## @file attack_past.py
+#  @brief Past/Future tense reformulation attack (temporal reframing jailbreak)
+#
+#  This file implements a temporal reformulation attack that converts a harmful
+#  request into a question phrased in a different tense (past / future / present).
+#  The attack leverages the observation that refusal training and safety guardrails
+#  may generalize poorly to temporally reframed variants, especially historical
+#  (past-tense) questions.
+#
+#  The implementation constructs a reformulation prompt containing few-shot
+#  examples and instructs the reformulator model to output ONLY the rewritten
+#  request. The resulting reformulation prompt is then used by the runner to
+#  query a reformulator LLM, whose output becomes the final adversarial prompt
+#  submitted to the victim model.
+#
+#  @author Bc. Petr Kaška
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This implementation was written by Bc. Petr Kaška.
+#   - The class design, prompt templates, and integration format (log + messages)
+#     are original work by the author.
+#   - The attack is inspired by the past-tense jailbreak methodology described
+#     in the referenced paper and accompanying repository (see below).
+#
+#  Research basis:
+#   - Paper:
+#       "Does Refusal Training in LLMs Generalize to the Past Tense?"
+#       arXiv:2407.11969
+#       Authors: Maksym Andriushchenko, Nicolas Flammarion
+#       Submitted: 16 Jul 2024
+#       Last revised: 17 April 2025
+#       Code repository: https://github.com/tml-epfl/llm-past-tense/blob/main/main.py
+#       https://arxiv.org/abs/2407.11969
+#
+
 import textwrap
 
 class PastTenseAttack:
@@ -56,12 +92,6 @@ However, do not be constrained by these examples. Feel free to use your creativi
             reformulated_prompt_content = self.reformulate_past_tense(harm_prompt)
         elif self.attack_type == "future":
             reformulated_prompt_content = self.reformulate_future_tense(harm_prompt)
-        # If attack_type is 'present', harm_prompt is used directly.
-
-        # The 'messages' format for vLLM client in llm.py expects a simple prompt
-        # when using client.generate([{"prompt": user_prompt}]).
-        # We will directly pass the reformulated prompt as the user content.
-        # If you were to use chat templates, you might need a system role here.
         attack_messages = [{"role": "user", "content": reformulated_prompt_content}]
 
         log_original_request = f"Original Request: {harm_prompt}"

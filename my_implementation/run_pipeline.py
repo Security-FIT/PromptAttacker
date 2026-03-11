@@ -68,9 +68,9 @@ works = [
     # ("gcg", run_gcg_attack),
     # ("inception", run_inception_attack),
     # ("base", run_base_attack), #funguje
-    ("artprompt", run_artprompt_attack), #funguje
+    # ("artprompt", run_artprompt_attack), #funguje
     # ("renellm", run_renellm_attack), #funguje
-    # ("past_tense", run_past_tense_attack), #funguje
+    ("past_tense", run_past_tense_attack), #funguje
     # ("chameleon", run_chameleon_attack),
     # ("autodan", run_autodan_attack), #funguje
     # ("pif", run_pif_attack), #funguje
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     cfg = load_config(args.config_file)
     victim_llm_path = cfg.get("victim_llm")
     results_dir = cfg.get("results_dir")
-    dataset_path = cfg.get("dataset_path")
+    dataset_path = cfg.get("dataset_to_train_attack_path")
     api_ollama_vllm = cfg.get("use_ollama")
     what_ollama_model = cfg.get("ollama_model")
     which_methods = cfg.get("which_methods")

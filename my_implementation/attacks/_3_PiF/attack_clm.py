@@ -1,3 +1,22 @@
+## @file attack_clm.py
+#  @brief PiF attack generation for causal language models (CLM)
+#
+#  This file implements the core PiF attack procedure for generating adversarial
+#  prompts by iteratively replacing low-importance tokens while preserving
+#  semantic similarity above a threshold. The attack then queries a target model
+#  and determines success based on refusal-prefix heuristics and optional judges/filters.
+#
+#  @author Trustworthy Machine Learning Lab (TML Lab), The University of Sydney
+#  @date 17.5.2025
+#
+#  Ownership / Contribution statement:
+#   - This file is third-party code and was not authored by Bc. Petr Kaška.
+#   - It is included in this project as an external dependency for the PiF attack.
+#
+#  License: MIT
+#  Availability: https://github.com/tmllab/2025_ICLR_PiF/blob/main/attack_clm.py
+
+
 import random
 import torch
 import torch.nn.functional as F

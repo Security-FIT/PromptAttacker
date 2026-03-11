@@ -1,4 +1,12 @@
-# TENTO FILE JE MUUUUUUUUUUJ
+## @file main.py
+#  @brief Script for running Cypher-based prompt injection attacks
+#
+#  This script loads a dataset of adversarial prompts and applies
+#  a Cypher attack strategy against a victim LLM. Results are stored
+#  in JSON format for further evaluation.
+#
+#  @author Bc.Petr Kaška
+#  @date 3.1.2026
 
 import sys
 import os
@@ -7,39 +15,40 @@ import pandas
 from attacks.common.llm import LLM
 from tqdm import tqdm
 from attacks._1_Cypher.cypher_attack import CypherAttack
-from defense.defense_EA import DefenseEA
-from attacks.helpers import load_config, str2bool
+from attacks.common.helpers import load_config, str2bool
 
 
 def run_cypher_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
-    defense = DefenseEA()
+    """
+    @brief Executes a Cypher attack against a victim LLM
 
+    Loads configuration parameters, initializes the victim LLM,
+    iterates over a dataset of adversarial prompts, and applies
+    the Cypher attack strategy.
+
+    @param victim_llm_path Path to the victim LLM model
+    @param results_dir Directory where results will be saved
+    @param dataset_path Path to the CSV dataset containing attack goals
+    @param api_ollama_vllm Enables Ollama / vLLM backend
+    @param what_ollama_model Name of the Ollama model to use
+
+    @return None
+    """
     script_dir = os.path.dirname(os.path.abspath(__file__))
     config_path = os.path.join(script_dir, "configCypher.yaml")
     cfg = load_config(config_path)
     cfgCypher = cfg["Cypher"]
-
-    # victim_llm = cfgCypher['victim_llm']
-    # data_path  = cfgCypher['data_path']
-    # out_dir    = cfgCypher['output_dict']
     temperature= cfgCypher.get('temperature', 0.0)
     max_token  = cfgCypher.get('max_token', 512)
     cypher_mode  = cfgCypher.get('cypher_mode', 'WSWR')
-    cot        = cfgCypher.get('cot', False)
-    lang_gpt   = cfgCypher.get('lang_gpt', False)
     few_shot   = cfgCypher.get('few_shot', False)
     begin      = cfgCypher.get('begin', 0)
     end        = cfgCypher.get('end', 13282)
-    # print(f"[INFO] Starting CypherAttack: victim_llm={victim_llm}, flip_mode={cypher_mode}, range=[{begin},{end})")
-    # data path
-
 
     if dataset_path:
-        data_file = dataset_path
-        print(f"[INFO] Using data file: {data_file}")
+        print(f"[INFO] Using data file: {dataset_path}")
 
     print(f"[INFO] Loading data from {dataset_path}")
-    # init victim llm
     victim_llm = LLM(model_path=victim_llm_path,
                temperature=temperature,
                max_tokens=max_token,
@@ -47,10 +56,7 @@ def run_cypher_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vll
                use_ollama=api_ollama_vllm, 
                )
     print("[INFO] Initialized LLM client")
-    # load data
     adv_bench = pandas.read_csv(dataset_path)
-
- 
 
     os.makedirs(results_dir, exist_ok=True)
     output_file = os.path.join(results_dir, '_1_cypher.json')
@@ -58,15 +64,11 @@ def run_cypher_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vll
     with open(output_file, 'w', encoding='utf-8') as fo:
 
         for id, harm_prompt in tqdm(enumerate(adv_bench["goal"][begin:end])):
-            print(f"[INFO] Processing id {id}: {harm_prompt[:50]}...")
-            # FlipAttack
+            print(f"[INFO] Processing id {id}")
             attack_model = CypherAttack(cypher_mode=cypher_mode, 
-                                    cot=cot, 
-                                    lang_gpt=lang_gpt, 
                                     few_shot=few_shot,
                                     victim_llm=victim_llm)
             
-            # generate attack
             log, cypher_attack = attack_model.generate(harm_prompt)
             
             llm_response = victim_llm.response(cypher_attack)
@@ -83,12 +85,15 @@ def run_cypher_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vll
         fo.write(json.dumps(entries, ensure_ascii=False) + '\n')
         fo.flush()
 
-
-
     print(f"[INFO] Results saved to {output_file}")
 
 
 if __name__ == "__main__":
+    """
+    @brief Entry point of the script
+
+    Parses command-line arguments and runs the Cypher attack.
+    """
     if len(sys.argv) != 6:
         print("Usage: python3 run_cypher.py victim_llm_path results_dir dataset_path api_ollama_vllm what_ollama_model")
         sys.exit(1)

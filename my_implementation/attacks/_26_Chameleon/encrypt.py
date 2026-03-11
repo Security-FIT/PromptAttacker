@@ -1,3 +1,42 @@
+## @file encrypt.py
+#  @brief Query encryption functions for the CodeChameleon attack
+#
+#  This file implements multiple lightweight encryption/transformation schemes
+#  used by the CodeChameleon framework to obfuscate the original user query
+#  before embedding it into an attack prompt.
+#
+#  Each encryption rule transforms the input sentence into a structured or
+#  reordered representation while preserving enough information for the model
+#  to reconstruct the original task when provided with the corresponding
+#  decryption specification inside the prompt.
+#
+#  Implemented encryption rules:
+#   - **none**: no transformation; the original sentence is returned as-is
+#   - **reverse**: reverses word order in the sentence
+#   - **odd_even**: concatenates words at odd indices followed by even indices
+#   - **binary_tree**: encodes words into a balanced binary tree represented as JSON
+#   - **length**: sorts words by length and encodes them as a word–index mapping
+#
+#  The main entry point is `get_encrypted_query()`, which dispatches encryption
+#  based on the selected rule identifier.
+#
+#  @author Hui Zhang et al. (CodeChameleon authors)
+#  @date 20.3.2024
+#
+#  Ownership / Contribution statement:
+#   - This file originates from the upstream CodeChameleon repository.
+#   - It is included verbatim (or with minimal adaptation, such as import paths)
+#     to preserve reproducibility of the original attack methodology.
+#   - Any downstream changes should be documented separately.
+#
+#  Research basis:
+#   - Paper:
+#       "CodeChameleon: Personalized Encryption Framework for Jailbreaking Large Language Models"
+#       arXiv:2402.16717
+#       https://arxiv.org/abs/2402.16717
+#   - Code repository:
+#       https://github.com/huizhang-L/CodeChameleon/blob/master/encrypt.py
+
 import json
 import pandas as pd
 import os 

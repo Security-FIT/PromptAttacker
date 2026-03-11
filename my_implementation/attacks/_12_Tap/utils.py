@@ -1,11 +1,22 @@
 # encoding: utf-8
-# Author    : Floyed<Floyed_Shen@outlook.com>
-# Datetime  : 2024/9/1 17:34
-# User      : yu
-# Product   : PyCharm
-# Project   : panda-guard
-# File      : utils.py
-# explain   : Utility functions for the panda-guard.
+## @file utils.py
+#  @brief Utility functions and component registry for panda-guard
+#
+#  This file provides helper utilities used across the panda-guard framework,
+#  including message-role checks, dynamic class loading, configuration parsing,
+#  GPU memory monitoring, EOS post-processing, and a generic component registry
+#  based on Python entry points.
+#
+#  @author Floyed Shen <Floyed_Shen@outlook.com>
+#  @date 1.9.2024
+#
+#  Ownership / Contribution statement:
+#   - This file is third-party code.
+#   - It was not authored by Bc. Petr Kaška.
+#   - It is included as an external dependency of the panda-guard project.
+#
+#  License: MIT
+#
 
 import abc
 import subprocess

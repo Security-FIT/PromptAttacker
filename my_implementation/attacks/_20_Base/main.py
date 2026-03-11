@@ -1,28 +1,45 @@
-# attacks/_00_BaseAttack/main.py
+## @file main.py
+#  @brief Runner script for the BaseAttack prefix/suffix baseline
+#
+#  This script evaluates a minimal prefix/suffix-based prompt manipulation
+#  attack (BaseAttack). The attack performs no semantic transformation and
+#  simply prepends and/or appends fixed strings to the last user message.
+#
+#  The script:
+#   - Loads configuration parameters from `configBase.yaml`
+#   - Reads a CSV dataset containing a `goal` column
+#   - Applies the BaseAttack to each prompt
+#   - Queries the victim LLM
+#   - Stores original prompts, modified prompts, and model responses in JSON
+#
+#  @author Bc. Petr Kaška
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This runner script was fully implemented by Bc. Petr Kaška.
+#   - The experiment orchestration, dataset handling, LLM interaction,
+#     baseline attack execution, and result serialization are original work
+#     by the author.
+#
+
 import os, json,sys, argparse, pandas as pd
 from pathlib import Path
 from tqdm import tqdm
 
 from attacks._20_Base.base_attack import BaseAttack, BaseAttackConfig
 from attacks.common.llm import LLM
-from attacks.helpers import load_config, str2bool
-from defense.defense_EA import DefenseEA
+from attacks.common.helpers import load_config, str2bool
 
 def run_base_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model, api_ollama_vllm):
     here = Path(__file__).parent
     cfg_root = load_config(here / "configBase.yaml")["BaseAttack"]
 
-    # model_path = cfg_root["victim_llm"]
-    # data_csv   = cfg_root["data_path"]
-    # out_dir    = cfg_root["output_dict"]
     temperature= cfg_root.get("temperature", 0.0)
     max_token  = cfg_root.get("max_token", 512)
-
 
     victim = LLM(victim_llm_path, temperature, max_token, api_ollama_vllm, what_ollama_model)
     attack_cfg = BaseAttackConfig()
     attacker = BaseAttack(attack_cfg)
-    # defense  = DefenseEA() if use_defense else None
 
     df = pd.read_csv(dataset_path)
     df.columns = [c.lower().strip() for c in df.columns]
@@ -37,9 +54,6 @@ def run_base_attack(victim_llm_path, results_dir, dataset_path, what_ollama_mode
             messages = [{"role":"user", "content": original}]
 
             messages = attacker.attack(messages)
-
-            # if defense:
-                # messages[-1]["content"] = defense(messages[-1]["content"])
 
             try:
                 reply = victim.response(messages)

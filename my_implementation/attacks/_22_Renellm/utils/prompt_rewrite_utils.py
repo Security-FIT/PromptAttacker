@@ -1,7 +1,29 @@
-# MUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUj
+## @file prompt_rewrite_utils.py
+#  @brief Lightweight prompt rewriting utilities for semantic-preserving obfuscation
+#
+#  This file implements a collection of simple prompt rewriting strategies
+#  designed to preserve the original semantic meaning while altering surface
+#  form. These transformations are intended to test robustness of safety and
+#  alignment mechanisms against paraphrasing, misspelling, reordering, and
+#  stylistic variation.
+#
+#  @author Bc. Petr Kaška
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This file was fully designed and implemented by Bc. Petr Kaška.
+#   - All rewriting strategies, prompt formulations, and selection logic are
+#     original work by the author.
+#   - No external attack framework or paper is directly implemented here;
+#     the module serves as a custom utility layer for prompt obfuscation.
+#
+
 import random
-from .data_utils import remove_number_prefix
+import re
 from vllm import SamplingParams
+
+def remove_number_prefix(sentence):
+    return re.sub(r'^\d+\.\s*', '', sentence)
 
 def shortenSentence(model, config, sentence: str) -> str:
     """
@@ -13,28 +35,12 @@ def shortenSentence(model, config, sentence: str) -> str:
     )
     user_input = rewrite_prompt + sentence
 
-    # params = SamplingParams(
-    #     temperature=config["temperature"],
-    #     max_tokens=config["max_n_tokens"]
-    # )
-
-    # U VLLMClient je volání generate(requests, sampling_params=params)
-    # outputs = model.generate(
-    #     [{"prompt": user_input}],
-    #     sampling_params=params
-    # )
-    # text = outputs[0].outputs[0].text.strip()
-
     outputs = model.response([{"role": "user", "content": user_input}])
-    # Vezmeme text prvního výsledku
 
-    # Rozbijeme do řádků, náhodně vybereme jeden
     candidates = [ln for ln in outputs.splitlines() if ln.strip()]
     pick = random.choice(candidates) if candidates else sentence
     return remove_number_prefix(pick)
 
-
-# ——————————————————————————————————————————————————————————————————————
 def misrewriteSentence(model, config, sentence: str) -> str:
     """
     Make a misspelling of at least one sensitive/illegal word.
@@ -47,23 +53,8 @@ def misrewriteSentence(model, config, sentence: str) -> str:
     )
     user_input = rewrite_prompt + sentence
 
-    # params = SamplingParams(
-    #     temperature=config["temperature"],
-    #     max_tokens=config["max_n_tokens"]
-    # )
-
-    # outputs = model.generate(
-        # [{"prompt": user_input}],
-        # sampling_params=params
-    # )
-    # return outputs[0].outputs[0].text.strip()
-
     return model.response([{"role": "user", "content": user_input}])
 
-
-
-
-# ——————————————————————————————————————————————————————————————————————
 def changeOrder(model, config, sentence: str) -> str:
     """
     Rewrite by changing the order of words without changing meaning.
@@ -75,20 +66,8 @@ def changeOrder(model, config, sentence: str) -> str:
     )
     user_input = rewrite_prompt + sentence
 
-    # params = SamplingParams(
-    #     temperature=config["temperature"],
-    #     max_tokens=config["max_n_tokens"]
-    # )
-
-    # outputs = model.generate(
-    #     [{"prompt": user_input}],
-    #     sampling_params=params
-    # )
-    # return outputs[0].outputs[0].text.strip()
     return  model.response([{"role": "user", "content": user_input}])
 
-
-# ——————————————————————————————————————————————————————————————————————
 def addChar(model, config, sentence: str) -> str:
     """
     Add meaningless foreign words without changing meaning.
@@ -100,20 +79,8 @@ def addChar(model, config, sentence: str) -> str:
     )
     user_input = rewrite_prompt + sentence
 
-    # params = SamplingParams(
-    #     temperature=config["temperature"],
-    #     max_tokens=config["max_n_tokens"]
-    # )
-
-    # outputs = model.generate(
-    #     [{"prompt": user_input}],
-    #     sampling_params=params
-    # )
-    # return outputs[0].outputs[0].text.strip()
     return model.response([{"role": "user", "content": user_input}])
 
-
-# ——————————————————————————————————————————————————————————————————————
 def languageMix(model, config, sentence: str) -> str:
     """
     Change one or two words to Chinese, return mixed Chinese-English.
@@ -125,20 +92,8 @@ def languageMix(model, config, sentence: str) -> str:
     )
     user_input = rewrite_prompt + sentence
 
-    # params = SamplingParams(
-    #     temperature=config["temperature"],
-    #     max_tokens=config["max_n_tokens"]
-    # )
-
-    # outputs = model.generate(
-    #     [{"prompt": user_input}],
-    #     sampling_params=params
-    # )
-    # return outputs[0].outputs[0].text.strip()
     return model.response([{"role": "user", "content": user_input}])
 
-
-# ——————————————————————————————————————————————————————————————————————
 def styleChange(model, config, sentence: str) -> str:
     """
     Rewrite using slang or dialect, preserve semantics.
@@ -149,14 +104,4 @@ def styleChange(model, config, sentence: str) -> str:
     )
     user_input = rewrite_prompt + sentence
 
-    # params = SamplingParams(
-    #     temperature=config["temperature"],
-    #     max_tokens=config["max_n_tokens"]
-    # )
-
-    # outputs = model.generate(
-    #     [{"prompt": user_input}],
-    #     sampling_params=params
-    # )
-    # return outputs[0].outputs[0].text.strip()
     return model.response([{"role": "user", "content": user_input}])

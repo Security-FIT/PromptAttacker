@@ -1,3 +1,38 @@
+## @file template.py
+#  @brief Upstream prompt templates for CodeChameleon (text/code styles with optional encryption)
+#
+#  This file defines the prompt templates used by CodeChameleon to construct
+#  complete attack prompts in two styles:
+#   - **text**: asks the model to decrypt the encrypted task (if applicable), then plan and solve it
+#   - **code**: frames the task as completing missing methods in a `ProblemSolver` class scaffold
+#
+#  The module supports both plaintext prompts (`encrypt_rule == 'none'`) and encrypted
+#  prompts (`encrypt_rule != 'none'`). For encrypted prompts, a corresponding decryption
+#  specification is selected (`REVERSE`, `BINARY_TREE`, `ODD_EVEN`, `LENGTH`) and embedded
+#  directly into the generated prompt so the model is instructed to recover the original
+#  problem prior to producing the final solution.
+#
+#  The `get_prompts()` function acts as the public entry point: it loads original/encrypted
+#  queries via `get_queries()` and dispatches prompt construction to `get_prompts_text()`
+#  or `get_prompts_code()` based on `args.prompt_style`.
+#
+#  @author Hui Zhang et al. (CodeChameleon authors)
+#  @date 20.3.2024
+#
+#  Ownership / Contribution statement:
+#   - This file originates from the upstream CodeChameleon repository.
+#   - Any local project may vendor/copy this file for reproducibility; if modifications
+#     exist in your fork, document them below (e.g., import paths, packaging, logging).
+#
+#  Research basis:
+#   - Paper:
+#       "CodeChameleon: Personalized Encryption Framework for Jailbreaking Large Language Models"
+#       arXiv:2402.16717
+#       https://arxiv.org/abs/2402.16717
+#   - Code repository:
+#       https://github.com/huizhang-L/CodeChameleon/blob/master/template.py
+
+
 from attacks._26_Chameleon.utils import get_queries
 from attacks._26_Chameleon.decrypt import REVERSE, BINARY_TREE, ODD_EVEN, LENGTH
 

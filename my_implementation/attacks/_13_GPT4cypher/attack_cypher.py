@@ -1,40 +1,40 @@
-# encoding: utf-8
-"""
-GPT‑4 Cipher Attacker
-=====================
-Lookup‑free jailbreak inspirovaný článkem *JailbreakGPT: Obfuscating Prompts
-with GPT‑4 as a Cipher* (Shen Sicheng et al., ICLR 2024).  Místo generování
-nového promptu pouze **zašifruje** poslední uživatelský vstup Caesarovou
-šifrou (výchozí posun = 3) a přidá volitelnou *prefix* šablonu.  Dekódování
-potom zůstává na downstream LLM.
+## @file attack_cypher.py
+#  @brief CipherChat-style Caesar-cipher prompt encoding attacker (GPT4Cypher)
+#
+#  This file implements a cipher-based jailbreak / prompt-encoding attack inspired by
+#  the CipherChat framework. The attacker instructs the target LLM to communicate in
+#  "Cipher Code" and then submits the user’s query encoded with a Caesar cipher.
+#
+#  @author Bc. Petr Kaška
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This file is an original implementation by Bc. Petr Kaška.
+#   - The class design, Caesar (en/de)cipher routines, and message construction
+#     logic were implemented by the author.
+#   - Base interfaces/utilities are imported from the local framework:
+#     `attacks.helpers` (BaseAttacker, BaseAttackerConfig, is_user_turn).
+#
+#  Research basis:
+#   - The attack is implemented based on the methodology described in:
+#       "GPT-4 Is Too Smart To Be Safe: Stealthy Chat with LLMs via Cipher"
+#       Authors: Youliang Yuan, Wenxiang Jiao, Wenxuan Wang, Jen-tse Huang,
+#                Pinjia He, Shuming Shi, Zhaopeng Tu
+#       Initially submitted on arXiv: 12 Aug 2023
+#       Latest arXiv version date (v2): 26 Mar 2024
+#       https://arxiv.org/abs/2308.06463
 
-*Konfigurace* (sekce ``GPT4Cipher`` v YAML):
-
-```yaml
-GPT4Cipher:
-  victim_llm: "./models/Llama-3.1-8b-In"
-  output_dict: "results"
-  rewrite_template: "Decrypt this: "        # volitelné, může být prázdné
-  cipher_shift: 3                            # volitelný int ≥ 1
-  temperature: 0.0
-  max_token: 512
-```
-"""
 from __future__ import annotations
 
 import string
 from dataclasses import dataclass, field
 from typing import Dict, List
 
-from attacks.helpers import is_user_turn, BaseAttacker, BaseAttackerConfig
+from attacks.common.helpers import is_user_turn, BaseAttacker, BaseAttackerConfig
 
 
-# --------------------------------------------------------------------------- #
-#                           1. Config dataclass                               #
-# --------------------------------------------------------------------------- #
 @dataclass
 class GPT4CipherAttackerConfig(BaseAttackerConfig):
-    """Konfigurace pro :class:`GPT4CipherAttacker`.  Vše lze přepsat v YAML."""
 
     attacker_cls: str = field(default="GPT4CipherAttacker", init=False)
     attacker_name: str | None = field(default="GPT4Cipher")
@@ -51,12 +51,7 @@ class GPT4CipherAttackerConfig(BaseAttackerConfig):
         """
     ))
 
-# --------------------------------------------------------------------------- #
-#                                 2. Attacker                                 #
-# --------------------------------------------------------------------------- #
 class GPT4CipherAttacker(BaseAttacker):
-    """Zašifruje uživatelský prompt Caesarovou šifrou a přidá prefix."""
-
     _ALPHABET_LOWER = string.ascii_lowercase
     _ALPHABET_UPPER = string.ascii_uppercase
 
@@ -64,7 +59,6 @@ class GPT4CipherAttacker(BaseAttacker):
         super().__init__(config)
         self.cfg = config
 
-    # ---------------------- Caesar cipher implementation ------------------- #
     def _caesar_cipher(self, text: str) -> str:
         shift = 1
         trans_lower = str.maketrans(
@@ -75,7 +69,6 @@ class GPT4CipherAttacker(BaseAttacker):
             self._ALPHABET_UPPER,
             self._ALPHABET_UPPER[shift:] + self._ALPHABET_UPPER[:shift],
         )
-        # přelož malé i velké znaky; ostatní nech beze změny
         return text.translate(trans_lower).translate(trans_upper)
     
 
@@ -91,7 +84,6 @@ class GPT4CipherAttacker(BaseAttacker):
         )
         return text.translate(trans_lower).translate(trans_upper)
 
-    # ------------------------------ public API ---------------------------- #
     def attack(self, messages: List[Dict[str, str]], **__) -> List[Dict[str, str]]:
         """Nahradí/vylepší poslední user prompt zakódovanou verzí."""
         assert is_user_turn(messages)

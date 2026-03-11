@@ -1,26 +1,37 @@
-# TENTO FILE JE MUUUUUUUUUJ
+## @file main.py
+#  @brief Runner script for Random Search–based prompt injection attack
+#
+#  This script executes a Random Search attack, a heuristic-based prompt
+#  manipulation technique that iteratively modifies the input prompt in order
+#  to induce a target LLM to produce a desired response prefix (e.g., "Sure,").
+#
+#  The attack:
+#   - samples random perturbations of the original prompt,
+#   - evaluates model responses against a target string,
+#   - performs multiple iterations and restarts to increase success probability.
+#
+#  The script:
+#   - loads attack parameters from a YAML configuration file,
+#   - iterates over a dataset of adversarial goals,
+#   - applies the RandomSearchAttack for each prompt,
+#   - queries the victim LLM,
+#   - stores results in JSON format for later analysis.
+#
+#  @author Bc. Petr Kaška
+#  @date 30.1.2026
+#
 
 import os
 import json, sys
 import pandas
 from tqdm import tqdm
 
-from attacks.helpers import load_config, str2bool
+from attacks.common.helpers import load_config, str2bool
 from attacks.common.llm import LLM
 from attacks._10_Random_Search.randomSearch_attack import RandomSearchAttack
-from defense.defense_EA import DefenseEA
 
 
 def run_random_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vllm, what_ollama_model):
-    """
-    Spustí Random-Search útok nad datasetem definovaným v configRandomSearch.yaml
-    a výsledky uloží do JSON řádku po řádku (stejně jako run_flip_attack).
-    """
-    defense = DefenseEA()
-
-    # --------------------------------------------------------------------- #
-    # Načtení konfigurace                                                   #
-    # --------------------------------------------------------------------- #
     script_dir = os.path.dirname(os.path.abspath(__file__))
     config_path = os.path.join(script_dir, "configRandom.yaml")
 
@@ -28,16 +39,12 @@ def run_random_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vll
     cfgRS = cfg["RandomSearch"]
     print(cfgRS)
 
-    # victim_llm_path = cfgRS["victim_llm"]
-    # data_path       = cfgRS["data_path"]
-    # out_dir         = cfgRS["output_dict"]
     temperature     = cfgRS.get("temperature", 1.0)
     max_token       = cfgRS.get("max_token", 4096)
     target_str      = cfgRS.get("target_str", "Sure,")
     max_iterations  = cfgRS.get("max_iterations", 3)
     max_restarts    = cfgRS.get("max_restarts", 3)
     max_n_to_change = cfgRS.get("max_n_to_change", 8)
-    log_threshold   = cfgRS.get("logprob_threshold", -1.0)
     begin           = cfgRS.get("begin", 0)
     end             = cfgRS.get("end", 519)
 
@@ -65,7 +72,7 @@ def run_random_attack(victim_llm_path, results_dir, dataset_path, api_ollama_vll
                 max_iterations=max_iterations,
                 max_restarts=max_restarts,
                 max_n_to_change=max_n_to_change,
-                logprob_threshold=log_threshold,
+                logprob_threshold=-1.0,
                 verbose=True,
             )
 

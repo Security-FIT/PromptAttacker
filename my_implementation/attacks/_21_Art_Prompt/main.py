@@ -1,13 +1,28 @@
-# attacks/_24_ArtPrompt/main.py
+## @file main.py
+#  @brief Runner script for the ArtPrompt (ASCII-art–based) prompt injection attack
+#
+#  This script evaluates the ArtPrompt attack, which disguises a harmful user
+#  request inside an ASCII-art–styled prompt. The attack leverages a secondary
+#  masking language model to transform the original input into an obfuscated
+#  visual representation, which is then submitted to the victim LLM.
+#
+#  @author Bc. Petr Kaška
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This runner script was fully implemented by Bc. Petr Kaška.
+#   - The experiment orchestration, configuration handling, dual-LLM setup,
+#     dataset iteration, and result serialization are original work by the author.
+#   - The ArtPrompt attack logic is integrated as an external attack module
+#     within the author’s experimental framework.
+
 import os, sys, json, argparse, pandas as pd
 from pathlib import Path
 from tqdm import tqdm
 
-from attacks.helpers import load_config, str2bool
+from attacks.common.helpers import load_config, str2bool
 from attacks._21_Art_Prompt.art_attack import ArtPromptAttack, ArtPromptConfig
 from attacks.common.llm import LLM
-from defense.defense_EA import DefenseEA
-
 
 def run_artprompt_attack(victim_llm_path, results_dir, dataset_path, what_ollama_model, api_ollama_vllm):
     here = Path(__file__).parent
@@ -30,7 +45,6 @@ def run_artprompt_attack(victim_llm_path, results_dir, dataset_path, what_ollama
         ascii_font_file = cfg["ascii_font_file"],
         use_cot         = cfg.get("cot", False)
     ))
-    # defense = DefenseEA() if use_defense else None
 
     df = pd.read_csv(dataset_path)
     df.columns = [c.lower().strip() for c in df.columns]
@@ -44,12 +58,6 @@ def run_artprompt_attack(victim_llm_path, results_dir, dataset_path, what_ollama
                                     total=len(df), desc="ArtPrompt")):
             harmful = str(row.goal)
             log, messages = attack.generate(harmful)
-
-            # if defense:
-                # messages[-1]["content"] = defense(messages[-1]["content"])
-
-            # if not messages[-1]["content"]:
-                # continue
 
             try:
                 reply = victim.response(messages)
@@ -67,13 +75,12 @@ def run_artprompt_attack(victim_llm_path, results_dir, dataset_path, what_ollama
         fo.write(json.dumps(entries, ensure_ascii=False))
         fo.flush()
 
-
     print(f"[INFO] Výstup uložen → {out_file}")
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 6:
-        print("Usage: python3 run_cypher.py victim_llm_path results_dir dataset_path api_ollama_vllm what_ollama_model")
+        print("Usage: python3 run_artprompt.py victim_llm_path results_dir dataset_path api_ollama_vllm what_ollama_model")
         sys.exit(1)
 
     victim_llm_path = sys.argv[1]

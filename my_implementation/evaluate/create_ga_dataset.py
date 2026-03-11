@@ -7,9 +7,8 @@ from typing import List, Optional
 
 # ---------- Konfigurace (upravit podle potřeby) ----------
 
-JSON_DIR = "/storage/brno2/home/xkaska01/master/my_implementation/results/DATASET_FULL_command-r:35b"  # složka kde jsou JSONy
-OUTPUT_JSONL = "selected_examples.jsonl"
-OUTPUT_JSON = "selected_examples.json"
+JSON_DIR = "/storage/brno2/home/xkaska01/master/my_implementation/results/with_defense/DATASET_C_internlm2:7b"  # složka kde jsou JSONy
+OUTPUT_JSON = "intern.json"
 # ---------------------------------------------------------
 
 def normalize_attack_name(s: str) -> str:
@@ -146,14 +145,11 @@ def main(csv_path: str, json_dir: str):
             out_obj.update(item)
             selected.append(out_obj)
 
-    # save outputs
-    with open(OUTPUT_JSONL, "w", encoding="utf-8") as outf:
-        for obj in selected:
-            outf.write(json.dumps(obj, ensure_ascii=False) + "\n")
+
     with open(OUTPUT_JSON, "w", encoding="utf-8") as outf:
         json.dump(selected, outf, ensure_ascii=False, indent=2)
 
-    print(f"[OK] Vybráno {len(selected)} příkladů. Uloženo do {OUTPUT_JSONL} a {OUTPUT_JSON}")
+    print(f"[OK] Vybráno {len(selected)} příkladů. Uloženo do a {OUTPUT_JSON}")
 
 if __name__ == "__main__":
     main("/storage/brno2/home/xkaska01/master/my_implementation/evaluate/command-r:35b.csv", JSON_DIR)

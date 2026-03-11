@@ -1,4 +1,46 @@
-# https://github.com/llm-attacks/llm-attacks/blob/main/llm_attacks/base/attack_manager.py#L51
+## @file attack_manager.py
+#  @brief Prompt-optimization attack manager (imported/adapted from llm-attacks)
+#
+#  This file provides the core infrastructure for optimization-based jailbreak
+#  attacks (a.k.a. adversarial suffix / control-string attacks). It implements
+#  prompt construction and token-slice bookkeeping, batched evaluation utilities,
+#  and worker-based parallelism for running attacks against one or more causal
+#  language models.
+#
+#  Main components included in this module:
+#   - NpEncoder: JSON encoder for NumPy types
+#   - Embedding helpers: get_embedding_layer/matrix/get_embeddings
+#   - Token filtering: get_nonascii_toks
+#   - AttackPrompt: prompt wrapper with conversation-template-specific token slices
+#   - PromptManager / MultiPromptAttack: multi-goal and multi-model orchestration
+#   - ModelWorker: multiprocessing worker for parallel model evaluation
+#
+#  IMPORTANT (Attribution):
+#   - This file is largely copied from the official llm-attacks repository.
+#   - Original authorship and design belong to the llm-attacks contributors.
+#   - This local copy may include minor compatibility adjustments and integration
+#     changes for the surrounding experimental framework.
+#
+#  @author Bc. Petr Kaška (integration/adaptation)
+#  @date 1.2.2026
+#
+#  Source (upstream):
+#   - Repository: llm-attacks / llm-attacks
+#   - File: llm_attacks/base/attack_manager.py
+#   - https://github.com/llm-attacks/llm-attacks/blob/main/llm_attacks/base/attack_manager.py
+#   - Date: 2.8.2024
+#   - License: MIT License
+#
+#  Research basis:
+#   - This code implements the attack framework introduced in:
+#       "Universal and Transferable Adversarial Attacks on Aligned Language Models"
+#       arXiv:2307.15043v2
+#       Authors: Andy Zou, Zifan Wang, Nicholas Carlini, Milad Nasr,
+#                J. Zico Kolter, Matt Fredrikson
+#       First posted: 27 Jul 2023
+#       https://arxiv.org/abs/2307.15043 :contentReference[oaicite:2]{index=2}
+#
+
 import gc
 import json
 import math

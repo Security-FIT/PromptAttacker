@@ -1,6 +1,29 @@
+## @file configIca.yaml
+#  @brief Configuration file for ICA (Implicit Chain-of-Thought) attack
+#
+#  This file defines parameters for the ICA attack, which generates prompts
+#  designed to elicit implicit or explicit reasoning steps from a victim
+#  language model in order to bypass safety alignment.
+#
+#  @author Bc. Petr Kaška
+#  @date 1.2.2026
+#
+
 ICA:
-  temperature: 0.0
+  # @brief Controls the randomness of the model output.
+  temperature: 0.8
+
+  # @brief Maximum number of tokens in the generated response.
   max_token: 512
-  cot: false          
+
+  # @brief Enables Chain-of-Thought prompting
+  # @details When set to true, the attacker explicitly requests step-by-step
+  #          reasoning before the final answer. When false, reasoning is
+  #          encouraged implicitly.
+  cot: false
+
+  # @brief Start index of the processed dataset
   begin: 0
+
+  # @brief End index of the processed dataset
   end: 13282

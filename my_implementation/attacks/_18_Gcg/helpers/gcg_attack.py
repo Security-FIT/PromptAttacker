@@ -1,3 +1,49 @@
+## @file gcg_attack.py
+#  @brief Greedy Coordinate Gradient (GCG) attack implementation (derived from llm-attacks)
+#
+#  This file contains an implementation of the Greedy Coordinate Gradient (GCG)
+#  jailbreak / adversarial-suffix attack. GCG optimizes a discrete "control string"
+#  (token sequence) by using gradient information to propose candidate token
+#  replacements and selecting the best candidate greedily at each step.
+#
+#  The implementation includes:
+#   - token_gradients(): one-hot embedding trick to compute gradients w.r.t.
+#     control-token coordinates
+#   - GCGAttackPrompt: AttackPrompt specialization that exposes grad()
+#   - GCGPromptManager: gradient-guided sampling of new control candidates
+#   - GCGMultiPromptAttack: step() routine aggregating gradients across workers
+#     and searching over candidate controls using target/control losses
+#
+#  IMPORTANT (Attribution):
+#   - This file is based on the official llm-attacks implementation of GCG.
+#   - Original authorship and the core algorithmic design belong to the
+#     llm-attacks contributors and the associated paper authors (see below).
+#
+#  Local modifications in this version:
+#   - Added validity checks for control token IDs (e.g., filtering negative IDs
+#     and out-of-vocabulary indices) to prevent scatter_/one-hot failures.
+#   - Computes gradients only for valid tokens and stitches them back into a
+#     full gradient tensor aligned with the original control slice.
+#   - Minor integration changes to use the local attack_manager helpers.
+#
+#  @author Bc. Petr Kaška (adaptation/integration)
+#  @date 1.2.2026
+#
+#  Source (upstream):
+#   - Repository: llm-attacks / llm-attacks
+#   - GCG implementation (conceptually corresponding to this module)
+#   - https://github.com/llm-attacks/llm-attacks/blob/main/llm_attacks/gcg/gcg_attack.py
+#    - Date accessed: 15.1.2024
+#
+#  Research basis:
+#   - GCG / adversarial suffix framework as described in:
+#       "Universal and Transferable Adversarial Attacks on Aligned Language Models"
+#       arXiv:2307.15043v2
+#       Authors: Andy Zou, Zifan Wang, Nicholas Carlini, Milad Nasr,
+#                J. Zico Kolter, Matt Fredrikson
+#       https://arxiv.org/abs/2307.15043v2
+#
+
 import gc
 
 import numpy as np

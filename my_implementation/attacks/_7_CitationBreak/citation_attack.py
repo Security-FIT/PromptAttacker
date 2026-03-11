@@ -1,6 +1,29 @@
+## @file citation_attack.py
+#  @brief Citation-based prompt template for DarkCite-style attacks
+#
+#  This file contains a citation-driven prompt template and a wrapper class
+#  used for constructing citation-based prompt injection attacks.
+#
+#  @author
+#   - get_attack_prompt(): YancyKahn et al. (DarkCite)
+#   - CitationAttack class: Bc. Petr Kaška
+#
+#  Ownership / Contribution statement:
+#   - The function get_attack_prompt() is copied from the DarkCite project
+#     and is used under the MIT license.
+#   - The CitationAttack class, including its API design, formatting logic,
+#     and integration into the attack pipeline, is an original implementation
+#     by Bc. Petr Kaška.
+#
+#  License:
+#   - get_attack_prompt(): MIT 
+#   - CitationAttack: original code by the author
+#
+#  Availability:
+#   - DarkCite repository: https://github.com/YancyKahn/DarkCite/blob/main/system_template.py
+
+
 import textwrap
-# tento TEMPLATE JSEM CISTE OKOPIROVAL Z PAPERU, TAKZE BUDU MUSET PEKNE CITOVAT
-# ---------- společná šablona ---------------------------------------------
 def get_attack_prompt(topic: str,
                       question: str,
                       citation: str,
@@ -27,12 +50,9 @@ def get_attack_prompt(topic: str,
         materials, and you have already studied the following references):
         {citation}
     """).strip()
-# -------------------------------------------------------------------------
 
 
 class CitationAttack:
-    """Sestaví prompt ‹goal + citace› přesně v duchu paperu."""
-    # def __init__(self, style: str = "numbered"):
 
     def _fmt(self, block: str) -> str:
         lines = [ln.strip() for ln in block.strip().splitlines() if ln.strip()]
