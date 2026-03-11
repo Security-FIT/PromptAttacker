@@ -15,3 +15,6 @@ my_implementation/dataset/
 my_implementation/Dataset_b/
 my_implementation/supporting_scripts/
 ollama_test/
+*.png
+*.jpg
+lib/*

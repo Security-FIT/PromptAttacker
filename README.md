@@ -1,13 +1,10 @@
-# master_thesis - Jail Breaking LLMs 
+# Jail Breaking LLMs 
 
 ### TODO
-- jeste musim otestovat potom svoji obranou metodu, na tom jak ovlivni semantiku odpovedi na ne-Jailberakovy prompt
-
-spousteni skriptu na GPU: CUDA_VISIBLE_DEVICES=1,2 python tvuj_skript.pyp
 
 
 
-s timto jsem spoustel Pif 
+Spousteni samotneho Pifu: 
 <!-- python3 PiF_CLM.py --gen_model_path ../my_implementation/models/Qwen3-1.7B/ --tgt_model_path ../my_implementation/models/vicuna-7b --output_dir Pif_from -->
 <!-- python3 PiF_CLM.py --gen_model_path ../my_implementation/models/Llama-2-13b-chat --tgt_model_path ../my_implementation/models/vicuna-7b --output_dir Pif_from -->
 
@@ -15,12 +12,6 @@ s timto jsem spoustel Pif
 1✓ Cypher Attack
 <!-- https://arxiv.org/pdf/2402.10601 -->
 <!-- https://github.com/DivijH/jailbreak_cryptography -->
-
-
-Tento utok jsem musel celý implementovat podle sebe v článku je několik metod šifrování vstupního textu, ale já jsem si zvolil pouze tu nejúspěšnější. (Tedy metodu, která měla největší úspěch Jailbreakovat model)
-
-Dale jsem doimplementoval pomer v jakem se slova nahrazuji. Tedy delsi vety nahradi vice slov a kratsi mene slov.
--- TOTO BUDU JESTE MUSET OVERIT EXPERIMENTY A POPRIPADE ZMENIT !!!!!!
 
 
 ----------------------------------------------------------------------------------------------------------------------------
@@ -32,19 +23,6 @@ joblib==0.17.0
 openai==1.51.2
 pandas==1.1.3
 tqdm==4.65.0
-
-
-Má několik parametrů, které říkají jak bude manipulováno se vstupním promptem: 
-    # (I) Flip Word Order (FWO)
-    # (II) Flip Chars in Word (FCW)
-    # (III) Flip Chas in Sentence (FCS)
-    # (IV) Fool Model Mode (FMM)
-
-pak ma jeste 
-lang_gpt = bool ... pridam systemovy prompt, kterym rikam asistentovy aby nikdy neodpovidal na nelegalni veci 
-few_shot = bool ... dam modelu ukazku jak dany utok rozparsovat 
-cot = bool      ... jestli chci aby popisoval krok po kroku
-
 
 ----------------------------------------------------------------------------------------------------------------------------
 3 2025_ICLR_PiF
@@ -63,17 +41,13 @@ CUDA_VISIBLE_DEVICES=2 nohup python PiF_CLM.py --gen_model_path ../models/vicuna
 ----------------------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------------------------------------------------------------
-5✓ SUFIX UTOK - modifikuji sufixy a utocim s nimi na llmka
-generuji sufixy nez mi llmko odpovi na prompt - Teze je ze llmko se jailbreakne pokud na nej aplikuji určitý sufix a tento sufix pak bude fungovat u všech promptů
+5✓ SUFIX UTOK 
 
 <!-- https://arxiv.org/pdf/2307.15043 -->
 <!-- https://github.com/llm-attacks/llm-attacks/tree/main -->
 
-!!!! Tento utok jeste dodelam az budu mit GPT API, protoze si musim vytvorit takovy sufix aby se dokazal dostat do jinych llmek, GPT API mi bude sufix modifikovat do te doby nez Jailbreaknu target model, a potom podle Faktů z tohoto Paperu by daný sufix měl zabýrat pro se všemi prompty pro daný model. Tedy stačí mi najít jeden sufix a projdou mi všechny Jailbreaky, toto tedy udělám pro všechny modely se kterými budu chtít experimentovat.
-
 ----------------------------------------------------------------------------------------------------------------------------
 6✓ Sequential Break
-tento utok jsem si ciste vymyslel uplne sam od nuly, kdyz jsem se nudil.
 <!-- https://arxiv.org/pdf/2411.06426v1 -->
 <!-- https://anonymous.4open.science/w/JailBreakAttack-4F3B/-->
 
@@ -86,13 +60,10 @@ tento utok jsem si ciste vymyslel uplne sam od nuly, kdyz jsem se nudil.
 
 ----------------------------------------------------------------------------------------------------------------------------
 8✓ ENDLESS JAILBREAKS WITH BIJECTION LEARNING
-
-Tento utok je asi spis pro chytrejsi modely, takze uvidime az dostanu pristup k GPT API, co z toho vytahnu, zatim nic moc, vysledky mi ukazuji ze nechape 
 <!-- https://arxiv.org/pdf/2410.01294v1 -->
 
 ----------------------------------------------------------------------------------------------------------------------------
 9✓ Dialog_completition
-tady jsem vzal pouze jednu modifikaci sequential utoku. A to teplate 1 pro Dialog, tu nejuspesnejsi
 <!-- https://arxiv.org/pdf/2411.06426v1 -->
 <!-- https://anonymous.4open.science/w/JailBreakAttack-4F3B/-->
 
@@ -104,13 +75,9 @@ tady jsem vzal pouze jednu modifikaci sequential utoku. A to teplate 1 pro Dialo
 ----------------------------------------------------------------------------------------------------------------------------
 11 pair
 <!-- https://arxiv.org/abs/2401.06373 -->
-TADY ZATIM NEVIM
 ----------------------------------------------------------------------------------------------------------------------------
 12 +-✓tap
 <!-- https://arxiv.org/abs/2312.02119 -->
-Je strasne moc pametove narocny a nejspis ho vyskrtnu 
-
-Tady taky potrebuji dva modely a nemam vyresene, co s tim druhym, protoze dva se z tezi vejdou do VRAM metacentra, aktualne zkousim 60GB 
 
 ----------------------------------------------------------------------------------------------------------------------------
 13✓ GPT4cypher
@@ -121,7 +88,6 @@ Tady taky potrebuji dva modely a nemam vyresene, co s tim druhym, protoze dva se
 <!-- https://arxiv.org/abs/2401.16765 -->
 
 
-přeložil jsem puvodní dataset pomocí deepseek modelu
 ----------------------------------------------------------------------------------------------------------------------------
 15✓ rewrite
 <!-- https://arxiv.org/abs/2309.00614 -->
@@ -144,8 +110,6 @@ benchmark attack
 21✓ Art prompt
 <!-- https://arxiv.org/abs/2402.11753 -->
 <!-- https://github.com/uw-nsl/ArtPrompt -->
-"qwen2.5:7b" je dobry model na vytvareni utocnych artpromptu !! {resil jsem to 4 hodiny nez jsem nasel vhodny model a upravil kod - tak si na to dej priste pozor :D }
-a mam tam hardcodnuteho toho hodnotice :D
 
 ----------------------------------------------------------------------------------------------------------------------------
 22✓ Renellm
@@ -165,28 +129,9 @@ a mam tam hardcodnuteho toho hodnotice :D
 <!-- https://arxiv.org/abs/2407.11969 -->
 <!-- https://github.com/tml-epfl/llm-past-tense/blob/main/main.py -->
 
-tento utok budu muset jeste trochu upravit, protoze jako ostatni nevejde se moc dobre ani na 60GB Vram, takze to v budoucnu budu muset resit asi pres API. Zatim v kodu pouzivam stejne llmko attacker i target
 ----------------------------------------------------------------------------------------------------------------------------
 26✓ Chameleon
 <!-- https://arxiv.org/abs/2402.16717 -->
 <!-- https://github.com/huizhang-L/CodeChameleon -->
 
 ----------------------------------------------------------------------------------------------------------------------------
-
-
-rady od Toma:
-
-je toho hodně co to může ovlivnit, jednak gpu, takže:
-- jede ti to na gpu? Můžeš ověřit pomocí příkazu nvidia-smi, to ti ukáže kolik vram tvůj program používá, mělo by být ideálně skoro všechno.
-
-- na PBS si musíš při spouštění úlohy specifikovat num_gpus a gpu_mem, bez toho nedostaneš žádné gpu
-
-- kolik vramky máš k dispozici - já teď spouštím modely s 32B parametry a klidně si k tomu vezmu 70gb vramky, 18gb zabere model a zbytek je na KV cache (to právě do jisté míry určuje propustnost)
-
-a pak se mi nejvíce osvědčilo použít knihovnu vllm přes příkazovou řádku (vllm serve), to ti spustí lokální endpoint který je kompatibilní s openai (takže k tomu přistoupíš stejně jako bys chtěl volat chat gpt přes api, třeba přes knihovnu openai)
-
-a nejvíc cool je, že můžeš přes ssh na svém počítači forwardnout port a pak k tomu endpointu můžeš přistupovat i ze svého pc
-
-a kdybys zvolil teda ten postup s api serverem tak doporučuju interaktivní úlohu (qsub -I) spolu s tmuxem (pokud neznáš, tak ti to umožní zachovat běžící úlohy a shell i po tom co ukončíš ssh spojení  a pak se k tomu znovu vrátit)
-
-nevím jestli to není trochu overwhelming, tak se kdyžtak ptej a rád dovysvětlím 😅 hrozně mi trvalo, než jsem přišel na ten ideální workflow, takže ti rád ušetřím ten čas pokud možno :DD

@@ -53,7 +53,7 @@ diff = A - B
 diff_masked = diff.where(diff > 0)
 
 # ===== FINÁLNÍ ČÍSLA =====
-mean_diff = 1.8 +  np.nanmean(diff.values)                     # hlavní číslo (A-B)
+mean_diff = np.nanmean(diff.values)                     # hlavní číslo (A-B)
 mean_abs_diff = np.nanmean(np.abs(diff.values))         # velikost změny
 mean_positive = np.nanmean(diff_masked.values)          # jen kde A>B
 win_rate = np.nanmean((diff.values > 0).astype(float))  # % kde A lepší

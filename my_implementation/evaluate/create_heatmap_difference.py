@@ -136,8 +136,7 @@ def plot_side_heatmap(
 heatmap_mean_A, heatmap_std_A = build_heatmaps(FOLDER_PATH)
 heatmap_mean_B, heatmap_std_B = build_heatmaps(SECOND_FOLDER_PATH)
 
-# pokud ten +1 opravdu chceš zachovat jen pro mean:
-heatmap_mean_A = heatmap_mean_A + 2
+heatmap_mean_A = heatmap_mean_A 
 
 # 2) zarovnání
 heatmap_mean_A, heatmap_mean_B = align_heatmaps(heatmap_mean_A, heatmap_mean_B)
