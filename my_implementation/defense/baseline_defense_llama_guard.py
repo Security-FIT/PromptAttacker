@@ -1,35 +1,64 @@
-import requests
-from vllm import LLM as VLLMClient, SamplingParams
-from openai import OpenAI
+from typing import Union, List, Dict, Any
+from attacks.common.llm import LLM
 
-class LlamaGuardLLM:
-    def __init__(self, ollama_model, guard_model="/storage/brno2/home/xkaska01/master/my_implementation/models/llamaguard3:8b"):
-        self.base_llm = ollama_model
-        self.guard_model = guard_model
 
-    def _is_safe(self, prompt: str) -> tuple[bool, str]:
-        # Využijeme stávající logiku LLM třídy, ale pro guard model
-        payload = {
-            "model": self.guard_model,
-            "prompt": prompt,
-            "stream": False,
-        }
+class LlamaGuard:
+    def __init__(
+        self,
+        use_ollama=False,
+        ollama_model=None,
+        per_victim_llm=None,
+        guard_model=None,
+        temperature=0.8,
+        max_tokens=512,
+    ):
+        # self.base_llm = LLM(
+        #     model_path=per_victim_llm,
+        #     ollama_model=ollama_model,
+        #     use_ollama=False,
+        #     temperature=temperature,
+        #     max_tokens=max_tokens,
+        # )
+        # # guard model
+        self.guard_llm = LLM(
+            model_path="/storage/brno2/home/xkaska01/master/my_implementation/models/llamaguard3:8b",
+            ollama_model=ollama_model,
+            use_ollama=False,
+            temperature=0.0,
+            max_tokens=64,
+        )
+
+    def _extract_user_prompt(self, messages: Union[str, List[Dict[str, Any]]]) -> str:
+        if isinstance(messages, str):
+            return messages
+
+        if not messages:
+            return ""
+
+        return messages[-1]["content"]
+
+    def _is_safe(self, prompt: str):
         try:
-            # Voláme přímo Ollama API pro Guard
-            resp = requests.post(f"{self.base_llm.OLLAMA_HOST}/api/generate", json=payload, timeout=60)
-            result = resp.json().get("response", "").strip()
-            # Llama Guard vrací "unsafe\n{category}" nebo "safe"
-            if "unsafe" in result.lower():
+            result = self.guard_llm.response(prompt).strip().lower()
+
+            if "unsafe" in result:
                 return False, result
-            return True, "safe"
+            if "safe" in result:
+                return True, result
+
+            return False, f"Unexpected guard response: {result}"
+
         except Exception as e:
             return False, f"Guard Error: {e}"
 
-    def response(self, messages) -> str:
-        prompt = messages if isinstance(messages, str) else messages[-1]["content"]
+    def response(self, messages: Union[str, List[Dict[str, Any]]]) -> str:
+        prompt = self._extract_user_prompt(messages)
+
         safe, verdict = self._is_safe(prompt)
-        
         if not safe:
             return f"Blocked by Llama Guard: {verdict}"
-        
-        return self.base_llm.response(messages)
+
+        return str(safe) + " -  " + verdict
+
+    def response_batch(self, prompts: List[str]) -> List[str]:
+        return [self.response(prompt) for prompt in prompts]

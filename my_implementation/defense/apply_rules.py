@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 # vocab pro "symbols_only" – můžeš si změnit
-SYMBOL_VOCAB = list("!@#$%^&*()_+-=[]{}|;:',.<>/?`~")
+SYMBOL_VOCAB = list("!\"#$%&'()*+,-./:;<=>?@[\]^_`{|}~")
 
 
 def load_rule_tree_from_defense(path: str) -> dict:

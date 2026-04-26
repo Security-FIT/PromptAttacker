@@ -2,7 +2,7 @@ import argparse
 import json
 import os
 from attacks.common.llm import LLM
-from defense.baseline_defense_llama_guard import LlamaGuardLLM
+from defense.baseline_defense_llama_guard import LlamaGuard
 from defense.baseline_defense_rallm import RALLM
 from defense.baseline_defense_safeguard import GoalPrioritizationLLM 
 
@@ -20,7 +20,7 @@ def run():
     if args.defense == "rallm":
         victim = RALLM(use_ollama=args.use_ollama, ollama_model=args.model, per_victim_llm=args.per_victim)
     elif args.defense == "llamaguard":
-        victim = LlamaGuardLLM(use_ollama=args.use_ollama, ollama_model=args.model, per_victim_llm=args.per_victim)
+        victim = LlamaGuard(use_ollama=args.use_ollama, ollama_model=args.model, per_victim_llm=args.per_victim)
     elif args.defense == "safeguard":
         victim = GoalPrioritizationLLM(use_ollama=args.use_ollama, ollama_model=args.model, per_victim_llm=args.per_victim)
     else:

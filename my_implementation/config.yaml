@@ -1,11 +1,10 @@
 victim_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models/{model}"
 dataset_to_train_attack_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/dataset_base.csv"
-dataset_to_attack_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/my_attacking_dataset_with_defense_5"
-results_dir: "/storage/brno2/home/xkaska01/master/my_implementation/results/with_safe_system_prompt/{model}"
+dataset_to_attack_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/my_attacking_dataset"
+results_dir: "/storage/brno2/home/xkaska01/master/my_implementation/results/harmful/attacks_prompts/baseline_methods/LLAMAGUARD/{model}"
 use_ollama: false # true = ollama, false = vllm
 ollama_model: "{model}"  # falcon3:10b, deepseek-r1:32b", gemma3:27b, qwen3:32b, yi:34b, internlm/internlm2.5:latest, command-r:35b, deepseek-r1:32b
 which_methods: works
-stats_dir: "experimental_without_defense" #toto se pouziva potom s prepinacem run.py --eval /// nebo without to je dir do ktereho se budou generovat vysledky
 
 # llama2:13b
 defense:

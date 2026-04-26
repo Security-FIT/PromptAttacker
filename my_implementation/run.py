@@ -200,6 +200,8 @@ def job_script_content(name, cmd, ollama_model):
     """)
 
 
+# 
+#  gpu_cap=compute_80 TOTO SEM SEM PRIDAL !!!!! TAK TO PAK KDYZTAK ODDELEJ
 def job_batch_script_content(name, cmd, ollama_model):
 
     gpu = "50gb"
@@ -241,6 +243,56 @@ def job_batch_script_content(name, cmd, ollama_model):
     """)
 
 
+
+# toto zkusim na EVAL
+# set -euo pipefail
+
+# HOMEDIR=/storage/brno2/home/xkaska01/master/my_implementation
+# mkdir -p $HOMEDIR/logs
+
+# OLLAMA_LOG=$HOMEDIR/logs/ollama_{name}_${PBS_JOBID}.log
+
+# export PYTHONPATH="$HOMEDIR:$PYTHONPATH"
+# cd $HOMEDIR
+
+# export CUDA_VISIBLE_DEVICES=0
+# export OLLAMA_HOST=127.0.0.1:11434
+# export OLLAMA_MODELS=/storage/brno2/home/xkaska01/.ollama/models
+
+# module add mambaforge
+# mamba activate /storage/brno2/home/xkaska01/.conda/envs/diplomka
+
+# /storage/brno2/home/xkaska01/test/bin/ollama serve > "$OLLAMA_LOG" 2>&1 &
+# OLLAMA_PID=$!
+
+# for i in $(seq 1 60); do
+#     if ! kill -0 $OLLAMA_PID 2>/dev/null; then
+#         echo "ERROR: Ollama process skončil."
+#         cat "$OLLAMA_LOG"
+#         exit 1
+#     fi
+
+#     if curl -s http://127.0.0.1:11434/api/tags > /dev/null; then
+#         echo "Ollama ready"
+#         break
+#     fi
+#     sleep 2
+# done
+
+# curl -f http://127.0.0.1:11434/api/tags > /dev/null || {
+#     echo "ERROR: Ollama nenaběhla"
+#     cat "$OLLAMA_LOG"
+#     exit 1
+# }
+
+# python3 /storage/brno2/home/xkaska01/master/my_implementation/evaluate/evaluate_full_results_datasets.py {name}
+
+# echo "===== OLLAMA LOG ====="
+# cat "$OLLAMA_LOG" || true
+
+# kill $OLLAMA_PID || true
+
+
 def results_eval_all(name):
 
     gpu = "30gb"
@@ -271,10 +323,31 @@ def results_eval_all(name):
         # spustit ollama (upravit cesty, pokud je potřeba)
         # spouštím jako background, loguji výstup
         /storage/brno2/home/xkaska01/test/bin/ollama serve > $HOMEDIR/ollama.log 2>&1 &
+
+        echo "Ollama PID: $OLLAMA_PID"
+        echo "Čekám, než Ollama naběhne..."
+
+        # čekání na dostupnost API
+        for i in $(seq 1 60); do
+            if curl -s http://127.0.0.1:11434/api/tags > /dev/null; then
+                echo "Ollama je připravená."
+                break
+            fi
+            sleep 2
+        done
+
+        # finální kontrola
+        curl -f http://127.0.0.1:11434/api/tags > /dev/null || {{
+            echo "ERROR: Ollama nenaběhla."
+            cat $HOMEDIR/ollama.log
+            exit 1
+        }}
+
+
         /storage/brno2/home/xkaska01/test/bin/ollama pull gemma3:12b
         python3 -m pip install --user nltk
 
-        python3 /storage/brno2/home/xkaska01/master/my_implementation/evaluate/evaluate_full_results_datasets.py {name}
+        python3 /storage/brno2/home/xkaska01/master/my_implementation/evaluate/evaluate_full_results_datasets.py {name} DEFENSE_SAFEGUARD
 
         echo "End {name}: $(date)"
     """)
@@ -384,7 +457,6 @@ def main():
     dataset_to_attack_dir = cfg["dataset_to_attack_path"]
     use_ollama = str(cfg.get("use_ollama", True)).lower() 
     ollama_model = cfg["ollama_model"]
-    output_stats = cfg["stats_dir"]
 
     jobs_dir = os.path.join(results_dir, "jobs")
     ensure_dir(jobs_dir)
@@ -398,8 +470,8 @@ def main():
         print(f"[DEFENSE] === Režim OBRANA: {defense_type} ===")
 
         # Definujeme modely, pro které chceš obrany pustit (můžeš použít své listy OLLAMA_MODELS)
-        MODELS_TO_RUN = [ "falcon3:3b", "falcon3:7b", "falcon3:10b",
-        "gemma3:1b", "gemma3:4b", "gemma3:12b", "gemma3:27b",
+        MODELS_TO_RUN = [  "falcon3:3b", "falcon3:7b", "falcon3:10b",
+        "gemma3:1b", "gemma3:14b", "gemma3:12b", "gemma3:27b",
         "internlm2:1m", "internlm2:20b", "internlm2.5:latest",
         "llama2:7b", "llama2:13b",
         "llama3.1:8b", "llama3.2:1b", "llama3.2:3b",
@@ -465,13 +537,14 @@ def main():
         ]
 
         OLLAMA_ONE = ["gemma3:14b"]
-        for oll_model in OLLAMA_ONE:
+        for oll_model in OLLAMA_MODELS:
 
             print(f"[INFO] Creating eval job for model: {oll_model}")
             # continue
             # script_path = os.path.join(f"/storage/brno2/home/xkaska01/master/my_implementation/results/stats_{output_stats}_defense", f"job_{oll_model}.sh")
-            script_path = os.path.join(f"/storage/brno2/home/xkaska01/master/my_implementation/results/{output_stats}", f"job_{oll_model}.sh")
-
+            script_path = os.path.join(f"/storage/brno2/home/xkaska01/master/my_implementation/results/benign/stats/SAFEGUARD", f"job_{oll_model}.sh")
+            # TOTO MUSIM DAT STEJNE JAKO ve funkci out_csv_path v evaluate_full_results_datasets.py, aby se to udrželo konzistentní
+            # A POTOM JESTE U TVORBY JOBU, TEDA NAHORE V TOM TEXTU MUSIM NASTAVIT FOLDER RALLM, SAFEGUARD,..... NEBO NIC 
             with open(script_path, "w", encoding="utf-8") as fh:
                 fh.write(results_eval_all(oll_model))
             os.chmod(script_path, 0o755)
