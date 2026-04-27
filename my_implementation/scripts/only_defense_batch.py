@@ -5,6 +5,11 @@ from attacks.common.llm import LLM
 from defense.baseline_defense_llama_guard import LlamaGuard
 from defense.baseline_defense_rallm import RALLM
 from defense.baseline_defense_safeguard import GoalPrioritizationLLM 
+# Lightweight EA defense (local implementation)
+try:
+    from defense.defense_EA import DefenseEA
+except Exception:
+    DefenseEA = None
 
 def run():
     parser = argparse.ArgumentParser()
@@ -23,6 +28,17 @@ def run():
         victim = LlamaGuard(use_ollama=args.use_ollama, ollama_model=args.model, per_victim_llm=args.per_victim)
     elif args.defense == "safeguard":
         victim = GoalPrioritizationLLM(use_ollama=args.use_ollama, ollama_model=args.model, per_victim_llm=args.per_victim)
+    elif args.defense == "ea":
+        # DefenseEA is a lightweight prompt-rewrite; adapt to response_batch API
+        if DefenseEA is None:
+            raise RuntimeError("DefenseEA not available in defense/defense_EA.py")
+        _ea = DefenseEA()
+        class _EAWrapper:
+            def __init__(self, ea):
+                self.ea = ea
+            def response_batch(self, prompts):
+                return [self.ea.apply(p) for p in prompts]
+        victim = _EAWrapper(_ea)
     else:
         raise ValueError("Unknown defense")
 

@@ -96,7 +96,7 @@ def main():
     parser.add_argument("--evaluate", action="store_true", help="Create eval job scripts for models in config")
     parser.add_argument("--attack-single", action="store_true", help="Create only-attack job scripts for the single model specified in `ollama_model` in config")
     parser.add_argument("--attack-batch", action="store_true", help="Create only-attack batch job scripts and iterate over `ollama_models` in config")
-    parser.add_argument("--defense", choices=["rallm", "llamaguard", "safeguard"], help="Create defense job scripts for specified defense type") 
+    parser.add_argument("--defense", choices=["rallm", "llamaguard", "safeguard", "ea"], help="Create defense job scripts for specified defense type") 
     parser.add_argument("--run-pipeline", action="store_true", help="Run run_pipeline.py using the config dataset and write outputs to --pipeline-out")
     parser.add_argument("--pipeline-out", type=str, default=None, help="Directory to write pipeline outputs (overrides config.results_dir)")
     parser.add_argument("--interactive", action="store_true", help="Run selected action interactively instead of creating job scripts")
