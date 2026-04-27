@@ -1,0 +1,80 @@
+# Configuration for run_orchestrator.py
+# Edit paths and models to match your environment
+victim_llm: "/storage/brno2/home/xkaska01/master/my_implementation/models"
+local_model_path: "/storage/brno2/home/xkaska01/master/my_implementation/models"
+results_dir: "/storage/brno2/home/xkaska01/master/my_implementation/results/oponent_show"
+dataset_to_train_attack_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/Oponent_show/show_functionality.json"
+dataset_to_attack_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/oponent_show"
+use_ollama: true
+dry_run: false
+# only for attack_single
+target_model: "gemma3:12b"
+target_models:
+  - falcon3:3b
+  - falcon3:7b
+  - falcon3:10b
+  - gemma3:1b
+  - gemma3:14b
+  - gemma3:12b
+  - gemma3:27b
+  - internlm2:1m
+  - internlm2:20b
+  - internlm2.5:latest
+  - llama2:7b
+  - llama2:13b
+  - llama3.1:8b
+  - llama3.2:1b
+  - llama3.2:3b
+  - qwen2.5:3b
+  - qwen2.5:7b
+  - qwen2.5:14b
+  - qwen2.5:32b
+  - qwen3:0.6b
+  - qwen3:14b
+  - qwen3:30b
+  - qwen3:32b
+  - yi:6b
+  - yi:9b
+  - yi:34b
+  - command-r:35b
+  - command-r:latest
+  - deepseek-r1:32b
+  - phi3:8b
+  - phi3:14b
+  - phi4:14b
+  - mixtral:7b
+ollama_model: "gemma3:12b"
+ollama_models:
+  - falcon3:3b
+  - falcon3:7b
+  - falcon3:10b
+  - gemma3:1b
+  - gemma3:14b
+  - gemma3:12b
+  - gemma3:27b
+  - internlm2:1m
+  - internlm2:20b
+  - internlm2.5:latest
+  - llama2:7b
+  - llama2:13b
+  - llama3.1:8b
+  - llama3.2:1b
+  - llama3.2:3b
+  - qwen2.5:3b
+  - qwen2.5:7b
+  - qwen2.5:14b
+  - qwen2.5:32b
+  - qwen3:0.6b
+  - qwen3:14b
+  - qwen3:30b
+  - qwen3:32b
+  - yi:6b
+  - yi:9b
+  - yi:34b
+  - command-r:35b
+  - command-r:latest
+  - deepseek-r1:32b
+  - phi3:8b
+  - phi3:14b
+  - phi4:14b
+  - mixtral:7b

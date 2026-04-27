@@ -1,0 +1,13 @@
+local_model_path: "/storage/brno2/home/xkaska01/master/my_implementation/models"
+results_dir: "/storage/brno2/home/xkaska01/master/my_implementation/results/oponent_show_test"
+dataset_to_train_attack_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/Oponent_show/show_functionality.json"
+dataset_to_attack_path: "/storage/brno2/home/xkaska01/master/my_implementation/dataset/oponent_show"
+use_ollama: true
+dry_run: true
+# small model list for faster test
+target_models:
+  - gemma3:12b
+  - falcon3:7b
+target_model: "gemma3:12b"
+ollama_model: "gemma3:12b"
+which_methods: null

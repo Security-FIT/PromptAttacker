@@ -124,8 +124,12 @@ def load_prompts_from_selected_examples(path: str, max_examples: int | None = No
 
 
 DATAASET = "selected_examples.json"
-SELECTED_EXAMPLES_JSON = f"/storage/brno2/home/xkaska01/master/my_implementation/evaluate/{DATAASET}"
-MAX_EXAMPLES_TO_LOAD = None  # nebo 25
+_dataset_override = os.getenv("DEFENSE_TRAIN_DATASET")
+if _dataset_override:
+    SELECTED_EXAMPLES_JSON = _dataset_override
+else:
+    SELECTED_EXAMPLES_JSON = f"/storage/brno2/home/xkaska01/master/my_implementation/evaluate/{DATAASET}"
+MAX_EXAMPLES_TO_LOAD = int(os.getenv("DEFENSE_MAX_EXAMPLES", "0")) or None  # nebo 25
 
 PROMPTS = load_prompts_from_selected_examples(SELECTED_EXAMPLES_JSON, max_examples=MAX_EXAMPLES_TO_LOAD)
 VOCAB_TXT   = "/storage/brno2/home/xkaska01/master/my_implementation/defense/models_vocabularies/internlm2_5-7b-chat-1m_vocab.txt"
@@ -136,11 +140,11 @@ OLLAMA_HOST = "http://localhost:11434"
 GENERATE_PATH = "/api/generate"
 
 # GA parametry
-POP_SIZE    = 10
-N_GEN       = 10
+POP_SIZE    = int(os.getenv("DEFENSE_POP_SIZE", "10"))
+N_GEN       = int(os.getenv("DEFENSE_N_GEN", "10"))
 CX_PROB     = 0.5
 MUT_PROB    = 0.45
-N_TRIES     = 5
+N_TRIES     = int(os.getenv("DEFENSE_N_TRIES", "5"))
 
 # Strom / jedinec – hranice
 MAX_ANCHORS = 8
@@ -807,7 +811,10 @@ if __name__ == "__main__":
         "best_fitness": best.fitness.values[0]
     }
 
-    out_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "defense_rule1.json")
+    out_path = os.getenv(
+        "DEFENSE_OUT_RULE",
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "defense_rule1.json")
+    )
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
     print(f"\n✅ Strom pravidel uložen do: {out_path}")
