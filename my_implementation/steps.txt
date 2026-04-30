@@ -1,238 +1,609 @@
-1) Cíl projektu
-- Orchestrátor jobů pro testování útoků a obran na LLM.
-- Generuje job-skripty (PBS/qsub) nebo spouští akce interaktivně.
+RUN_ORCHESTRATOR.PY - PRAKTICKY NAVOD PRO ODEVZDANI A TESTOVANI
 
-2) Hlavní soubory
-- `run_orchestrator.py`: hlavní CLI orchestrátor (dry-run i interactive).
-- `config_orchestrator.yaml` / `config_orchestrator_test.yaml`: konfigurace (modely, dataset, results_dir, dry_run).
-- `my_implementation/scripts/`: pomocné skripty (only_attack.py, only_attack_batch.py, only_defense_batch.py, job_templates.py, ...).
-- `defense/`: implementace obran (baseline_defense_rallm.py, baseline_defense_llama_guard.py, baseline_defense_safeguard.py, defense_EA.py, def.py (GA)).
-- `attacks/`: jednotlivé útoky jako moduly.
-- `results/`: výstupy experimentů; `results/<results_dir>/jobs/` obsahuje vytvořené job-skripty.
+Tento projekt se ma ovladat hlavne pres:
 
-3) Konfigurace (rychle)
-- důležité klíče v `config_orchestrator*.yaml`:
-  - `local_model_path` (legacy `victim_llm`): cesta / identifikátor lokálního modelu
-  - `target_model` / `target_models` (legacy `ollama_model(s)`): cílové modely
-  - `results_dir`: kam se ukládají výsledky
-  - `dataset_to_attack_path`: složka s JSON soubory pro batch útoky
-  - `use_ollama`: true/false (pokud Ollama server neběží, nastav `false`)
-  - `dry_run`: pokud `true`, joby se jen vytvoří, neodešlou se přes `qsub`.
+    python3 run_orchestrator.py --config config_orchestrator.yaml <akce>
 
-4) Jak spustit orchestrátor
-- Dry-run (vytvoří joby, neodesílá):
-```
-python3 run_orchestrator.py --config config_orchestrator_test.yaml --attack-batch
-```
-- Spustit interaktivně (bez PBS, přímo):
-```
-python3 run_orchestrator.py --config config_orchestrator_test.yaml --attack-single --interactive
-```
-- Volby CLI (hlavní): `--evaluate`, `--attack-single`, `--attack-batch`, `--defense <rallm|llamaguard|safeguard|ea>`, `--run-pipeline`, `--pipeline-out`, `--interactive`.
+Hlavni soubor:
 
-5) Defense (jak používat)
-- `--defense rallm|llamaguard|safeguard|ea` spustí příslušnou obranu.
-- `ea` = lehká lokální obrana `defense/defense_EA.py` (prompt-rewrite) — používá se přes `my_implementation/scripts/only_defense_batch.py`.
-- Pro přidání vlastní obrany: vytvoř modul v `defense/` s metodou `response_batch(prompts)` nebo wrapper, a uprav `only_defense_batch.py` pokud je potřeba.
+    my_implementation/run_orchestrator.py
 
-6) Výstupy
-- Všechny generované joby a výsledky jsou v `results/<results_dir>/`.
-- Job-skripty jsou v `results/<results_dir>/jobs/` a mají spouštěcí příkazy volající skripty z `my_implementation/scripts/`.
+Hlavni testovaci dataset pro oponenta:
 
-7) Jak přidat nový model / experiment
-- Upravit `target_models` v configu nebo přidat `local_model_path` s placeholderem `{model}`.
-- Spustit orchestrátor s požadovaným módem (dry-run pro kontrolu, pak `dry_run: false` nebo odeslat joby ručně).
+    my_implementation/dataset/oponent_show/
 
-8) Troubleshooting
-- Pokud vidíš `Connection refused` při volání Ollama: zkontroluj, že Ollama server běží na `http://localhost:11434`, nebo nastav `use_ollama: false` pro místní testy.
-- Pokud chceš rychlé testy bez clusteru: použij `--interactive` a `dry_run: true` nebo přímé volání skriptů v `scripts/`.
+Tento dataset obsahuje hotove JSON prompty pro jednotlive utocne metody. Kazdy
+soubor je list objektu ve stylu:
 
-9) Git / deploy
-- Po změnách:
-```
-git add -A
-git commit -m "chore: describe workflow in steps.txt"
-git push
-```
+    {
+      "id": ...,
+      "original_prompt": "...",
+      "prompt": "...",
+      "response": "..."
+    }
 
-10) Doporučené další kroky
-- Zrefaktorovat `def.py` (GA) do třídy a expose `response_batch` pokud ho chceš integrovat jako plnohodnotnou obranu.
-- Přidat jednoduché unit testy pro `only_attack_batch.py` a `only_defense_batch.py`.
+Pro `--attack-batch`, `--attack-single`, `--defense` a defaultne i
+`--defense-apply-rules` se bere vstup z klice `dataset_to_attack_path`,
+aktualne:
 
------
-Soubor `steps.txt` aktualizován — pokud chceš, doplním podrobné příklady konfigurací nebo připravím PR s návrhem refaktoru GA do wrapperu.
-1) python3 run_orchestrator.py --config config_orchestrator.yaml --evaluate
-   - Vytvoří eval job skripty pro modely v konfiguraci nebo (s --interactive) spustí evaluaci interaktivně.
+    /storage/brno2/home/xkaska01/master/my_implementation/dataset/oponent_show
 
-2) python3 run_orchestrator.py --config config_orchestrator.yaml --evaluate --interactive
-   - Spustí evaluaci okamžitě v terminálu pro modely z configu (bez generování job skriptů).
+Vystupy a joby jdou do `results_dir`, aktualne:
 
-3) python3 run_orchestrator.py --config config_orchestrator.yaml --attack-single
-   - Vytvoří job skripty "only-attack" pro každý attack modul nad jedním cílovým modelem (target_model).
+    /storage/brno2/home/xkaska01/master/my_implementation/results/oponent_show
 
-4) python3 run_orchestrator.py --config config_orchestrator.yaml --attack-single --interactive
-   - Spustí jednotlivé útoky lokálně/interaktivně (volá `only_attack.py` pro každý vstupní soubor).
 
-5) python3 run_orchestrator.py --config config_orchestrator.yaml --attack-batch
-   - Pro každý soubor v `dataset_to_attack_path` vytvoří job skript volající `only_attack_batch.py` pro každý model v `target_models`.
+1. Priprava prostredi
 
-6) python3 run_orchestrator.py --config config_orchestrator.yaml --attack-batch --interactive
-   - Spustí `only_attack_batch.py` přímo pro každý vstup (bez generování job skriptů).
+Typicky pred spustenim na Metacentru:
 
-7) python3 run_orchestrator.py --config config_orchestrator.yaml --defense rallm
-   - Vytvoří job skripty, které spustí `only_defense_batch.py` s vybranou obranou (`rallm`, `llamaguard`, `safeguard`).
+    module add mambaforge
+    mamba activate /storage/brno2/home/xkaska01/.conda/envs/diplomka
+    cd /storage/brno2/home/xkaska01/master/my_implementation
+    export CUDA_VISIBLE_DEVICES=0
 
-8) python3 run_orchestrator.py --config config_orchestrator.yaml --defense rallm --interactive
-   - Spustí `only_defense_batch.py` interaktivně pro každé vstupní JSON.
+Pro interaktivni ladeni na GPU:
 
-9) python3 run_orchestrator.py --config config_orchestrator.yaml --run-pipeline
-   - Vytvoří jeden job skript `job_run_pipeline.sh` který spustí `run_pipeline.py` s dočasným configem (neodesílá pokud `dry_run: true`).
+    qsub -I -l walltime=8:0:0 -q default@pbs-m1.metacentrum.cz -l select=1:ncpus=1:ngpus=1:mem=200gb:gpu_mem=60gb:scratch_local=400gb
 
-10) python3 run_orchestrator.py --config config_orchestrator.yaml --run-pipeline --interactive
-    - Spustí `run_pipeline.py` přímo v terminálu (pipeline: attack -> infer -> evaluate).
+Pokud pouzivas `use_ollama: true`, musi byt dostupna Ollama a modely. Job
+templates umi u nekterych jobu spustit Ollamu automaticky, ale pri rucnim
+interactive behu si dostupnost Ollamy over.
 
-11) python3 run_orchestrator.py --config config_orchestrator.yaml --run-pipeline --pipeline-out results/custom_dir
-    - Přepíše `results_dir` pro výstupy pipeline; použij s nebo bez `--interactive` podle potřeby.
 
-12) python3 run_orchestrator.py --config config_orchestrator.yaml
-    - Defaultní větev: vygeneruje job skripty pro všechny moduly z `ATTACK_MODULES` (nebo spustí interaktivně s `--interactive`).
+2. Konfigurace
 
-13) python3 run_orchestrator.py --config <file> --interactive
-    - Globální přepínač pro spuštění vybrané akce interaktivně místo generování jobů.
+Hlavni konfigurace:
 
-14) (config) v YAML: dry_run: true
-    - Pokud je v konfigu `dry_run: true`, joby se vygenerují, ale `qsub` se nevolá; bezpečný testovací režim.
+    config_orchestrator.yaml
 
-15) (config) use_ollama: true|false
-    - `true`: skripty budou volat lokální Ollama REST API (localhost:11434). Pokud server neběží, interaktivní běhy selžou s connection refused.
-    - `false`: používá se `local_model_path` (nebo legacy `victim_llm`) pro lokální modely/CLI.
+Dulezite klice:
 
-16) Přímé utility (nezávislé na orchestrátoru):
-    - python3 only_attack.py <local_model_path> <input.json> <out_dir> <use_ollama> <target_model>
-      - Spustí single attack pro jeden vstup.
-    - python3 only_attack_batch.py <local_model_path> <input.json> <out_dir> <use_ollama> <target_model>
-      - Spustí batch variantu (více promptů v jednom souboru).
-    - python3 only_defense_batch.py --per-victim <local_model> --defense <type> --model <target> --input <json> --out_dir <dir> --use-ollama <true|false>
-      - Spustí obrannou metodu nad vstupem.
-    - python3 run_pipeline.py --config_file <path>
-      - Spustí celou pipeline podle configu (attack->infer->evaluate).
+    local_model_path / victim_llm
+        Cesta k lokalnim modelum nebo model path pro vLLM.
 
-17) Legacy: `run.py` (starší skript)
-    - python3 run.py --only-attack-batch
-      - Chová se podobně jako `--attack-batch`, generuje job skripty podle `my_implementation/config.yaml`.
-    - Použití `run.py` doporučujeme jen pro kompatibilitu s existujícími experimenty.
+    models_dir
+        Slozka, ze ktere se automaticky nactou modely pro batch rezimy.
+        Typicky stejna cesta jako `local_model_path`, tedy `models/`.
 
-18) Kde jsou job skripty:
-    - results/<results_dir>/jobs/  (např. results/oponent_show/jobs/) — zde najdeš `job_*.sh` skripty, které lze případně upravit a odeslat ručně přes `qsub`.
+    results_dir
+        Kam se ukladaji vysledky a generovane job skripty.
 
-19) Tipy pro rychlé testy:
-    - Pro bezpečné testování používej `config_orchestrator_test.yaml` s `dry_run: true` a malým seznamem `target_models`.
-    - Pokud nepotřebuješ Ollama, nastav `use_ollama: false` pro předejití connection chybám.
+    dataset_to_attack_path
+        Slozka s JSON soubory pro `--attack-batch`, `--attack-single`,
+        `--defense`. Pro testovani odevzdani pouzivej `dataset/oponent_show`.
 
----
+    dataset_to_train_attack_path
+        Legacy dataset pro stare generovani attack JSONu z puvodniho CSV
+        workflow. Aktualni attack/defense workflow pouziva hotove JSONy z
+        `dataset_to_attack_path`.
 
-Soubor vytvořen automaticky — pokud chceš, mohu ho rozšířit o konkrétní příklady s plnými cestami nebo přidat vzor obsahu `job_*.sh` skriptu.
+    use_ollama
+        true  = vola se Ollama model podle nazvu, napr. `gemma3:12b`.
+        false = pouziva se lokalni model pres vLLM/HuggingFace cestu.
+        Pro `false` musi beh bezet na GPU uzlu s dostupnym CUDA driverem
+        (`libcuda.so.1`). Na login uzlu interactive vLLM spadne.
 
-20) Příklady spuštění (komplexní) — kopíruj a otestuj
-- Použij správný `--config` soubor nebo uprav `dry_run` v YAML podle potřeby.
+    dry_run
+        true  = job skripty se pouze vytvori, ale neposlou se pres `qsub`.
+        false = job skripty se vytvori a rovnou se poslou pres `qsub`.
 
-- Vytvoření eval jobů (dry-run):
-```
-python3 run_orchestrator.py --config config_orchestrator_test.yaml --evaluate
-```
+    interactive_heartbeat_seconds
+        Po kolika sekundach ma interactive rezim vypsat, ze proces porad bezi.
+        Napr. `30`; hodnota `0` heartbeat vypne.
 
-- Okamžitá interaktivní evaluace (bez PBS):
-```
-python3 run_orchestrator.py --config config_orchestrator_test.yaml --evaluate --interactive
-```
+    vllm_use_v1
+        false = orchestrator nastavi `VLLM_USE_V1=0`. To je uzitecny fallback
+        na HPC uzlech, kde vLLM V1 engine pada na CUDA kernelech.
+        Pokud vis, ze aktualni GPU a instalace vLLM V1 podporuji, muzes dat
+        `true`.
 
-- Vytvoření only-attack jobů pro jeden target model:
-```
-python3 run_orchestrator.py --config config_orchestrator_test.yaml --attack-single
-```
+    normalize_cuda_visible_devices
+        true = pokud scheduler nastavi `CUDA_VISIBLE_DEVICES` jako GPU UUID
+        (`GPU-...`), interactive vLLM beh ho prepise na ciselnou hodnotu `0`.
+        To obchazi vLLM chybu, kde se UUID pokousi parsovat jako integer.
 
-- Spuštění only-attack lokálně (interactive):
-```
-python3 run_orchestrator.py --config config_orchestrator_test.yaml --attack-single --interactive
-```
+    target_model
+        Jeden model pro `--attack-single` a defaultni beh.
+        Pri `use_ollama: false` se tento nazev automaticky mapuje na lokalni
+        slozku `models_dir/<target_model>`, napr.
+        `models/gemma3:12b`.
 
-- Vytvoření only-attack batch jobů pro všechny soubory ve složce `dataset_to_attack_path` a pro všechny `target_models`:
-```
-python3 run_orchestrator.py --config config_orchestrator_test.yaml --attack-batch
-```
+    single_attack
+        Jeden konkretni attack JSON pro `--attack-single`, napr. `_1_cypher`.
+        Hodnota `null` znamena vsechny JSON utoky v `dataset_to_attack_path`.
 
-- Interaktivní batch (volá `only_attack_batch.py` přímo):
-```
-python3 run_orchestrator.py --config config_orchestrator_test.yaml --attack-batch --interactive
-```
+Batch rezimy uz nepouzivaji `target_models` ani `ollama_models`. Modely se berou
+automaticky z adresaru `models_dir`, kde musi existovat jako slozky, napr.:
 
-- Vytvoření jobů pro obranu `rallm` (dry-run):
-```
-python3 run_orchestrator.py --config config_orchestrator_test.yaml --defense rallm
-```
+    models/gemma3:12b
+    models/falcon3:7b
+    models/qwen2.5:14b
 
-- Stejné pro `llamaguard`, `safeguard` nebo `ea` (lokální DefenseEA):
-```
-python3 run_orchestrator.py --config config_orchestrator_test.yaml --defense ea
-```
+    defense_train_*
+        Parametry pro trenovani stromove obrany v `defense/def.py`.
+        Nejdalsi jsou:
 
-- Spuštění obrany interaktivně (rychlé testy):
-```
-python3 run_orchestrator.py --config config_orchestrator_test.yaml --defense ea --interactive
-```
+            defense_train_dataset
+            defense_train_output_rule
+            defense_train_log_dir
+            defense_train_use_vllm
+            defense_train_vllm_model
+            defense_train_gen_model
+            defense_train_judge_model
+            defense_train_pop_size
+            defense_train_n_gen
+            defense_train_n_tries
+            defense_train_max_examples
 
-- Spustit celou pipeline (vytvoří job spouštějící `run_pipeline.py`):
-```
-python3 run_orchestrator.py --config config_orchestrator_test.yaml --run-pipeline
-```
+    defense_apply_*
+        Parametry pro aplikovani natrenovane rule-tree obrany pres
+        `defense/apply_rules.py`:
 
-- Spustit pipeline interaktivně (bez jobů):
-```
-python3 run_orchestrator.py --config config_orchestrator_test.yaml --run-pipeline --interactive
-```
+            defense_apply_input_dir
+            defense_apply_output_dir
+            defense_apply_rule_path
+            defense_apply_seed
 
-- Přepsat výstupní adresář pipeline:
-```
-python3 run_orchestrator.py --config config_orchestrator_test.yaml --run-pipeline --pipeline-out results/my_pipeline_out
-```
+    defense_vocab_*
+        Parametry pro vytvoreni slovniku tokenizeru pres
+        `defense/create_vocabulary.py`.
 
-- Default (bez přepínače) — vygeneruje joby pro všechny moduly v `ATTACK_MODULES`:
-```
-python3 run_orchestrator.py --config config_orchestrator_test.yaml
-```
+Pro bezpecny test pred odevzdanim doporucuji docasne:
 
-- Spuštění konkrétního modulu útoku přímo (debug):
-```
-python3 -m attacks._1_Cypher.main \
-  /path/to/local_model /path/to/results_dir /path/to/dataset true gemma3:12b
-```
+    dry_run: true
+    target_model: "gemma3:12b"
+    single_attack: "_1_cypher"
 
-- Přímé spuštění utility skriptů:
-```
-python3 my_implementation/scripts/only_attack.py <local_model_path> <input.json> <out_dir> <use_ollama> <target_model>
-python3 my_implementation/scripts/only_attack_batch.py <local_model_path> <input.json> <out_dir> <use_ollama> <target_model>
-python3 my_implementation/scripts/only_defense_batch.py --per-victim <local_model> --defense <rallm|llamaguard|safeguard|ea> --model <target_model> --input <json> --out_dir <dir> --use-ollama <true|false>
-```
 
-- Ruční odeslání vytvořeného job skriptu přes PBS (`qsub`):
-```
-qsub results/oponent_show_test/jobs/job_onlyattack_example.sh
-```
+3. Obecne chovani run_orchestrator.py
 
-- Spuštění job skriptu lokálně (bez PBS):
-```
-bash results/oponent_show_test/jobs/job_onlyattack_example.sh
-```
+Zakladni tvar:
 
-- Rychlý test bez Ollama (pokud chceš jen ověřit tok):
-  • v `config_orchestrator_test.yaml` nastav `use_ollama: false` a `dry_run: true` a používej `--interactive`.
+    python3 run_orchestrator.py --config config_orchestrator.yaml <akce>
 
--- Krok pro testovací scénář (shrnutí):
-```
-# 1) uprav config_orchestrator_test.yaml -> dry_run: true, use_ollama: false
-# 2) python3 run_orchestrator.py --config config_orchestrator_test.yaml --attack-batch
-# 3) spusť jeden vybraný job lokálně: bash results/oponent_show_test/jobs/job_onlyattack_<name>.sh
-```
+Bez `--interactive`:
 
------
-Soubor rozšířen o kompletní příklady spuštění. Pokud chceš, mohu vytvořit i `examples/` adresář s připravenými malými configy (`example_minimal.yaml`, `example_ollama_false.yaml`) pro rychlé testy.
+    - vytvori PBS job skripty do `results_dir/jobs/` nebo jine cilove slozky;
+    - pokud `dry_run: false`, rovnou vola `qsub`;
+    - pokud `dry_run: true`, joby jen pripravi.
+
+S `--interactive`:
+
+    - nespousti PBS job;
+    - vola cilovy Python skript hned v aktualnim terminalu;
+    - pred kazdym krokem vypise model/vstup, prikaz a start;
+    - behem dlouhych kroku vypisuje heartbeat podle
+      `interactive_heartbeat_seconds`;
+    - po dokonceni vypise celkovy cas nebo exit code chyby;
+    - hodi se na ladeni maleho datasetu nebo jednoho modelu.
+    - pri `use_ollama: false` musi byt terminal uz uvnitr GPU alokace
+      z `qsub -I`; orchestrator to pred startem zkontroluje.
+
+
+4. Prehled vsech akci
+
+4.1 Help
+
+    python3 run_orchestrator.py --help
+
+Ukaze dostupne argumenty. Aktualni kod pouziva flagy, ne subcommandy. Tedy
+spravne je napr. `--attack-batch`, ne `attack --mode batch`.
+
+
+4.2 Attack batch nad oponent_show datasetem
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --attack-batch
+
+Co to dela:
+
+    - vezme vsechny `.json` soubory z `dataset_to_attack_path`;
+    - pro kazdy modelovy adresar v `models_dir` vytvori job;
+    - kazdy job vola:
+
+        python3 scripts/only_attack_batch.py <local_model_path> <input_json> <out_dir> <use_ollama> <target_model>
+
+    - vstupem je napr. `dataset/oponent_show/_1_cypher.json`;
+    - vystupem je JSON se stejnym nazvem v `results_dir/<model>/`;
+    - pokud `results_dir` obsahuje `{model}`, pouzije se tato sablona misto
+      automaticke podslozky.
+
+Pouziti pro test bez odeslani jobu:
+
+    # v configu nastav dry_run: true
+    python3 run_orchestrator.py --config config_orchestrator.yaml --attack-batch
+
+Pouziti pro prime spusteni v terminalu:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --attack-batch --interactive
+
+Pozor:
+
+    - pri `--interactive` se spusti vsechny modely ze slozky `models_dir` za
+      sebou, coz muze trvat dlouho;
+    - modelovy set upravis fyzicky ve slozce `models_dir`.
+
+
+4.3 Attack single nad oponent_show datasetem
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --attack-single
+
+Co to dela:
+
+    - vezme jeden `.json` soubor podle `single_attack`;
+    - pokud `single_attack: null`, vezme vsechny `.json` soubory;
+    - pouzije pouze jeden model z `target_model`;
+    - vytvori joby volajici:
+
+        python3 scripts/only_attack.py <local_model_path> <input_json> <out_dir> <use_ollama> <target_model>
+
+    - vystupy ulozi do `results_dir`.
+
+Prime spusteni:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --attack-single --interactive
+
+Vyber konkretniho utoku bez upravy configu:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --attack-single --single-attack _1_cypher
+
+Vypsani dostupnych utoku:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --list-attacks
+
+Rozdil proti `--attack-batch`:
+
+    - `--attack-single` pouziva jen `target_model`;
+    - `--attack-batch` iteruje pres modelove slozky v `models_dir`;
+    - `only_attack_batch.py` umi davkovat volani, `only_attack.py` jede jednoduseji.
+
+
+4.4 Defense nad oponent_show datasetem
+
+Podporovane obrany:
+
+    rallm
+    llamaguard
+    safeguard
+    ea
+
+Priklad:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense ea
+
+Co to dela:
+
+    - vezme vsechny `.json` soubory z `dataset_to_attack_path`;
+    - pro kazdy modelovy adresar v `models_dir` vytvori job;
+    - kazdy job vola:
+
+        python3 scripts/only_defense_batch.py --per-victim <local_model> --defense <typ> --model <target_model> --input <json> --out_dir <dir> --use-ollama <true|false>
+
+    - vystupem je JSON se stejnym nazvem v `results_dir/<model>/`;
+    - do kazde polozky prida `"defense": "<typ>"`.
+
+Priklady:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense rallm
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense llamaguard
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense safeguard
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense ea
+
+Prime spusteni:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense ea --interactive
+
+Pozor:
+
+    - `ea` je lehka lokalni prompt-rewrite obrana z `defense/defense_EA.py`;
+    - `rallm`, `llamaguard`, `safeguard` bali LLM a volaji `response_batch`;
+    - pri `use_ollama: true` musi byt model dostupny v Ollame.
+
+
+4.4.1 Trenovani vlastni rule-tree obrany
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense-train
+
+Co to dela:
+
+    - vytvori job pro `defense/def.py`;
+    - dataset bere z `defense_train_dataset`;
+    - vystupni pravidlo ulozi do `defense_train_output_rule`;
+    - logy uklada do `defense_train_log_dir`;
+    - parametry evoluce bere z `defense_train_pop_size`,
+      `defense_train_n_gen`, `defense_train_n_tries`,
+      `defense_train_max_examples`;
+    - modely bere z `defense_train_vllm_model`,
+      `defense_train_gen_model`, `defense_train_judge_model`.
+
+Prime spusteni:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense-train --interactive
+
+Rychly sanity test:
+
+    defense_train_pop_size: 2
+    defense_train_n_gen: 1
+    defense_train_n_tries: 1
+    defense_train_max_examples: 2
+
+Pozor:
+
+    - trenovani muze byt velmi drahe, proto pred ostrym behem zmensi parametry;
+    - pokud `defense_train_use_vllm: true`, musi sedet lokalni cesta
+      `defense_train_vllm_model`;
+    - judge model se vola pres Ollamu podle `defense_train_judge_model`.
+
+
+4.4.2 Aplikovani natrenovane obrany na dataset
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense-apply-rules
+
+Co to dela:
+
+    - vola `defense/apply_rules.py`;
+    - vezme vsechny `.json` soubory z `defense_apply_input_dir`;
+    - nacte pravidlo z `defense_apply_rule_path`;
+    - upravene JSONy ulozi do `defense_apply_output_dir`;
+    - zachova strukturu polozek, jen prepise hodnotu `prompt`.
+
+Prime spusteni:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense-apply-rules --interactive
+
+
+4.4.3 Trenovani a aplikovani v jednom jobu
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense-train-apply
+
+Co to dela:
+
+    - nejdriv spusti `--defense-train`;
+    - potom pouzije vznikle `defense_train_output_rule` jako
+      `defense_apply_rule_path`;
+    - hodi se, kdyz chces mit jeden PBS job pro cely workflow obrany.
+
+
+4.4.4 Vytvoreni vocabulary souboru pro obranu
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense-create-vocab
+
+Co to dela:
+
+    - vola `defense/create_vocabulary.py`;
+    - tokenizer/model cte z `defense_vocab_model_dir`;
+    - vystup ulozi do `defense_vocab_output_file`.
+
+Prime spusteni:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense-create-vocab --interactive
+
+
+4.5 Evaluate
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --evaluate
+
+Co to dela:
+
+    - pro kazdy modelovy adresar v `models_dir` vytvori eval job;
+    - job vola:
+
+        python3 evaluate/evaluate_full_results_datasets.py <model> DEFENSE_SAFEGUARD
+
+    - vystup jobu se uklada do:
+
+        results_dir/benign/stats/SAFEGUARD/job_<model>.sh
+
+Prime spusteni:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --evaluate --interactive
+
+Pozor:
+
+    - evaluacni skript ma uvnitr hardcodovane cesty `BASE_INPUT_DIR` a
+      `BASE_OUTPUT_DIR`;
+    - judge model je hardcodovany jako `gemma3:12b`;
+    - obrana je v orchestratoru hardcodovana jako `DEFENSE_SAFEGUARD`;
+    - pred odevzdanim je dobre overit, ze tyto cesty odpovidaji aktualnim
+      vysledkum, jinak evaluate nenajde vstupy.
+
+
+4.6 Defaultni beh bez akce
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml
+
+Co to dela:
+
+    - pouzije stejnou JSON cestu jako `--attack-single`;
+    - vybere JSON soubor podle `single_attack`;
+    - pokud `single_attack: null`, vybere vsechny `.json` soubory;
+    - vola:
+
+        python3 scripts/only_attack.py <local_model_path> <input_json> <results_dir> <use_ollama> <target_model>
+
+    - vstupem je napr. `dataset/oponent_show/_1_cypher.json`;
+    - pouzije jeden `target_model`, ne cely `models_dir`.
+
+Pozor:
+
+    - puvodni module-run rezim pres `ATTACK_MODULES` cetl CSV pres
+      `dataset_to_train_attack_path`;
+    - pokud nekdy budes chtit znovu generovat attack JSONy z CSV, je potreba
+      spoustet konkretni generator mimo tento defaultni JSON beh.
+
+Prime spusteni:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --interactive
+
+
+4.7 Run pipeline
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --run-pipeline
+
+Co ma delat podle kodu:
+
+    - vytvori docasny `config_pipeline_temp.yaml`;
+    - jako dataset pouzije `dataset_to_attack_path`, pokud existuje, jinak
+      `dataset_to_train_attack_path`;
+    - vytvori job, ktery vola:
+
+        python3 scripts/run_pipeline.py --config_file config_pipeline_temp.yaml
+
+S vlastnim vystupem:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --run-pipeline --pipeline-out results/my_pipeline_out
+
+Prime spusteni:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --run-pipeline --interactive
+
+Pozor:
+
+    - v aktualnim repozitari `scripts/run_pipeline.py` neexistuje;
+    - tento rezim je tedy ted rozbity, dokud se `run_pipeline.py` nedoplni nebo
+      se `--run-pipeline` neupravi.
+
+
+5. Doporuceny testovaci postup pro oponent_show
+
+5.1 Otestovat generovani jobu bez qsub
+
+V `config_orchestrator.yaml` docasne nastav:
+
+    dry_run: true
+    target_model: "gemma3:12b"
+    single_attack: "_1_cypher"
+
+Pak:
+
+    cd /storage/brno2/home/xkaska01/master/my_implementation
+    python3 run_orchestrator.py --config config_orchestrator.yaml --attack-batch
+
+Ocekavani:
+
+    - vytvori se joby v `results/oponent_show/<model>/jobs/`;
+    - nic se neodesle pres `qsub`;
+    - pro kazdy JSON v `dataset/oponent_show` vznikne jeden job pro kazdy
+      modelovy adresar ve `models_dir`.
+
+
+5.2 Otestovat jeden job rucne
+
+Vyber jeden vytvoreny job:
+
+    bash results/oponent_show/gemma3:12b/jobs/job_onlyattackbatch__1_cypher.sh
+
+Ocekavani:
+
+    - job zavola `scripts/only_attack_batch.py`;
+    - vytvori vystup napr. `results/oponent_show/gemma3:12b/_1_cypher.json`.
+
+
+5.3 Otestovat interactive rezim
+
+Pouze pro maly pocet modelu:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --attack-batch --interactive
+
+Ocekavani:
+
+    - skripty se nespousti pres PBS;
+    - bezi primo v terminalu;
+    - orchestrator prubezne vypisuje aktualni model, vstupni JSON,
+      spousteny prikaz a heartbeat;
+    - pri `use_ollama: false` orchestrator vypise i dulezite vLLM env hodnoty
+      jako `VLLM_USE_V1=0` nebo `CUDA_VISIBLE_DEVICES=0`, pokud je nastavuje;
+    - pri velkem poctu modelu to bude dlouhe.
+
+
+5.4 Otestovat defense
+
+Nejrychlejsi zacatek pro lightweight EA wrapper:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense ea
+
+Nebo interaktivne:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense ea --interactive
+
+Test vlastni rule-tree obrany bez velkeho behu:
+
+    # v configu nastav male hodnoty:
+    # defense_train_pop_size: 2
+    # defense_train_n_gen: 1
+    # defense_train_n_tries: 1
+    # defense_train_max_examples: 2
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense-train
+
+Po natrenovani pravidla:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense-apply-rules
+
+
+5.5 Ostry beh pres qsub
+
+Az joby vypadaji dobre:
+
+    dry_run: false
+
+Pak spust:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --attack-batch
+
+Ocekavani:
+
+    - joby se vytvori;
+    - orchestrator je rovnou posle pres `qsub`.
+
+
+6. Kde hledat vystupy
+
+Job skripty:
+
+    results/oponent_show/jobs/
+
+Vystupy attack-batch / attack-single / defense:
+
+    results/oponent_show/*.json
+
+Eval joby:
+
+    results/oponent_show/benign/stats/SAFEGUARD/job_<model>.sh
+
+Ollama log:
+
+    ollama.log
+
+
+7. Rychle rozliseni datasetu
+
+Pouzivane pro hlavni test odevzdani:
+
+    dataset/oponent_show/
+
+Aktualne nepouzite v hlavnim orchestrator workflow:
+
+    dataset/autoDan_prompt_group.yaml
+    dataset/train_gcg.csv
+    dataset/Dataset_b/
+
+Poznamky:
+
+    - AutoDAN nepouziva `dataset/autoDan_prompt_group.yaml`; nacita
+      `attacks/_24_Autodan/autodan_initial_prompt.txt` a vedle nej
+      `attacks/_24_Autodan/prompt_group.pth`.
+    - GCG by pro trenink cekal config klic `train_dataset`, ale v aktualnim
+      `configGCG.yaml` neni a `optimize_suffix: false`.
+    - `_18_Gcg` navic neni v `ATTACK_MODULES`, takze se pres hlavni defaultni
+      orchestrator nespousti.
+
+
+8. Zname veci pred odevzdanim
+
+    - `--run-pipeline` odkazuje na chybejici `scripts/run_pipeline.py`.
+    - README muze zminovat starsi nebo jiny CLI styl; aktualni kod pouziva
+      flagy `--attack-batch`, `--attack-single`, `--defense`, `--evaluate`.
+    - `my_implementation/attacks/_5_suffix` je v gitu vedeny jako gitlink bez
+      `.gitmodules`; pred cistym odevzdanim je potreba ho opravit.
+    - `dataset_to_train_attack_path` je legacy klic; hlavni attack workflow
+      bere vstupy z `dataset_to_attack_path`.
