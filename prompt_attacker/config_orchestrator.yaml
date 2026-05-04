@@ -1,0 +1,44 @@
+# Configuration for run_orchestrator.py
+# Edit paths and models to match your environment
+victim_llm: "/storage/brno2/home/xkaska01/master/prompt_attacker/models"
+local_model_path: "/storage/brno2/home/xkaska01/master/prompt_attacker/models"
+models_dir: "/storage/brno2/home/xkaska01/master/prompt_attacker/models"
+results_dir: "/storage/brno2/home/xkaska01/master/prompt_attacker/results/oponent_show"
+dataset_to_train_attack_path: "/storage/brno2/home/xkaska01/master/prompt_attacker/dataset/oponent_show/"
+dataset_to_attack_path: "/storage/brno2/home/xkaska01/master/prompt_attacker/dataset/oponent_show"
+use_ollama: false
+dry_run: false
+interactive_heartbeat_seconds: 30
+vllm_use_v1: false
+normalize_cuda_visible_devices: true
+
+target_model: "falcon3:3b"
+single_attack: "_1_cypher"
+
+defense_vocab_script: "defense/create_vocabulary.py"
+defense_vocab_model_name: "internlm2.5:latest"
+defense_vocab_model_dir: "/storage/brno2/home/xkaska01/master/prompt_attacker/models/internlm2.5:latest"
+defense_vocab_output_file: "/storage/brno2/home/xkaska01/master/prompt_attacker/defense/models_vocabularies/internlm2.5_latest_vocab.txt"
+
+defense_train_script: "defense/def.py"
+defense_train_dataset: "/storage/brno2/home/xkaska01/master/prompt_attacker/evaluate/selected_examples.json"
+defense_train_output_rule: "/storage/brno2/home/xkaska01/master/prompt_attacker/defense/defense_rule_orchestrator.json"
+defense_train_log_dir: "/storage/brno2/home/xkaska01/master/prompt_attacker/defense/gp_logs"
+defense_train_vocab_file: "/storage/brno2/home/xkaska01/master/prompt_attacker/defense/models_vocabularies/internlm2.5_latest_vocab.txt"
+defense_train_use_vllm: true
+defense_train_vllm_model: "/storage/brno2/home/xkaska01/master/prompt_attacker/models/llama2:7b"
+defense_train_vllm_tp: 1
+defense_train_vllm_max_model_len: 4096
+defense_train_vllm_gpu_mem_util: 0.90
+defense_train_gen_model: "llama2:7b"
+defense_train_judge_model: "gemma3:12b"
+defense_train_pop_size: 10
+defense_train_n_gen: 10
+defense_train_n_tries: 5
+defense_train_max_examples: 0
+
+defense_apply_script: "defense/apply_rules.py"
+defense_apply_input_dir: "/storage/brno2/home/xkaska01/master/prompt_attacker/dataset/oponent_show"
+defense_apply_output_dir: "/storage/brno2/home/xkaska01/master/prompt_attacker/dataset/oponent_show_with_defense_orchestrator"
+defense_apply_rule_path: "/storage/brno2/home/xkaska01/master/prompt_attacker/defense/defense_rule_orchestrator.json"
+defense_apply_seed: 42

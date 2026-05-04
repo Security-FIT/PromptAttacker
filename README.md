@@ -4,28 +4,28 @@ This repository contains an experimental framework for generating jailbreak
 attack prompts, running them against local large language models, applying
 defenses, and evaluating the resulting responses.
 
-The maintained implementation lives in `my_implementation/`. For detailed usage
-instructions, see [my_implementation/README.md](my_implementation/README.md).
+The maintained implementation lives in `prompt_attacker/`. For detailed usage
+instructions, see [prompt_attacker/README.md](prompt_attacker/README.md).
 
 ## Repository Layout
 
-- `my_implementation/attacks/`  
+- `prompt_attacker/attacks/`  
   Individual jailbreak attack implementations.
 
-- `my_implementation/defense/`  
+- `prompt_attacker/defense/`  
   Baseline defenses, prompt-rewrite defenses, and rule-tree utilities.
 
-- `my_implementation/evaluate/`  
+- `prompt_attacker/evaluate/`  
   Evaluation scripts and selected examples for defense training.
 
-- `my_implementation/scripts/`  
+- `prompt_attacker/scripts/`  
   Small runners used by the orchestrator inside PBS jobs.
 
-- `my_implementation/run_orchestrator.py`  
+- `prompt_attacker/run_orchestrator.py`  
   Main orchestration CLI. It creates PBS job scripts and submits them with
   `qsub` unless `dry_run` is enabled.
 
-- `my_implementation/config_orchestrator.yaml`  
+- `prompt_attacker/config_orchestrator.yaml`  
   Main configuration file for paths, model selection, backend selection,
   attacks, defenses, and evaluation.
 
@@ -36,7 +36,7 @@ From the cluster environment:
 ```bash
 module add mambaforge
 mamba activate /storage/brno2/home/xkaska01/.conda/envs/diplomka
-cd /storage/brno2/home/xkaska01/master/my_implementation
+cd /storage/brno2/home/xkaska01/master/prompt_attacker
 ```
 
 List prepared attack JSON files:
@@ -69,7 +69,7 @@ python3 run_orchestrator.py --config config_orchestrator.yaml --defense safeguar
 ## Recommended Safe Test
 
 Before submitting many PBS jobs, set this in
-`my_implementation/config_orchestrator.yaml`:
+`prompt_attacker/config_orchestrator.yaml`:
 
 ```yaml
 dry_run: true
@@ -97,7 +97,7 @@ The project supports two inference backends:
   Use a local model directory through vLLM.
 
 For the current environment, vLLM jobs request `gpu_cap=cuda80` in
-`my_implementation/scripts/job_templates.py`. This avoids Blackwell `sm_120`
+`prompt_attacker/scripts/job_templates.py`. This avoids Blackwell `sm_120`
 GPUs that are not supported by the installed PyTorch build.
 
 ## Documentation
@@ -105,7 +105,7 @@ GPUs that are not supported by the installed PyTorch build.
 The detailed project documentation is maintained in:
 
 ```text
-my_implementation/README.md
+prompt_attacker/README.md
 ```
 
 The main Python entry points include Doxygen-style docstrings with `@brief`,
