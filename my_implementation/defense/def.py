@@ -11,20 +11,29 @@ from copy import deepcopy
 from deap import base, creator, tools, algorithms
 from pathlib import Path
 import csv
-from datetime import datetime
 from vllm import LLM, SamplingParams
 
 
-USE_VLLM_GEN = True
-VLLM_MODEL = "/storage/brno2/home/xkaska01/master/my_implementation/models/llama2:7b"   # uprav na reálný HF název / lokální cestu
-VLLM_TP = 1
-VLLM_MAX_MODEL_LEN = 4096
-VLLM_GPU_MEM_UTIL = 0.90
+def env_bool(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+USE_VLLM_GEN = env_bool("DEFENSE_USE_VLLM_GEN", True)
+VLLM_MODEL = os.getenv(
+    "DEFENSE_VLLM_MODEL",
+    "/storage/brno2/home/xkaska01/master/my_implementation/models/llama2:7b",
+)
+VLLM_TP = int(os.getenv("DEFENSE_VLLM_TP", "1"))
+VLLM_MAX_MODEL_LEN = int(os.getenv("DEFENSE_VLLM_MAX_MODEL_LEN", "4096"))
+VLLM_GPU_MEM_UTIL = float(os.getenv("DEFENSE_VLLM_GPU_MEM_UTIL", "0.90"))
 
 SYMBOL_TOKENS = list("!@#$%^&*()_+")
 
-RUN_ID = datetime.now().strftime("%Y%m%d_%H%M%S")
-LOG_DIR = Path("gp_logs")
+RUN_ID = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+LOG_DIR = Path(os.getenv("DEFENSE_LOG_DIR", "gp_logs"))
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 LOG_PATH = LOG_DIR / f"run_{RUN_ID}_gen.csv"
 
@@ -132,11 +141,14 @@ else:
 MAX_EXAMPLES_TO_LOAD = int(os.getenv("DEFENSE_MAX_EXAMPLES", "0")) or None  # nebo 25
 
 PROMPTS = load_prompts_from_selected_examples(SELECTED_EXAMPLES_JSON, max_examples=MAX_EXAMPLES_TO_LOAD)
-VOCAB_TXT   = "/storage/brno2/home/xkaska01/master/my_implementation/defense/models_vocabularies/internlm2_5-7b-chat-1m_vocab.txt"
+VOCAB_TXT = os.getenv(
+    "DEFENSE_VOCAB_TXT",
+    "/storage/brno2/home/xkaska01/master/my_implementation/defense/models_vocabularies/internlm2.5:latest_vocab.txt",
+)
 
-GEN_MODEL   = "llama2:7b"
-JUDGE_MODEL = "gemma3:12b"
-OLLAMA_HOST = "http://localhost:11434"
+GEN_MODEL = os.getenv("DEFENSE_GEN_MODEL", "llama2:7b")
+JUDGE_MODEL = os.getenv("DEFENSE_JUDGE_MODEL", "gemma3:12b")
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 GENERATE_PATH = "/api/generate"
 
 # GA parametry
@@ -464,7 +476,7 @@ def _log_generation(gen_idx: int, best_ind, prompts: List[str], sample_count: in
     mode_name = rule["insertion"]["mode"]
     row = {
         "run_id": RUN_ID,
-        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "timestamp": datetime.datetime.now().isoformat(timespec="seconds"),
         "gen": gen_idx,
         "best_fitness": float(best_ind.fitness.values[0]),
         "defense_rate_subset": float(metrics["defense_rate"]),

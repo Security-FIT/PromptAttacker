@@ -1,6 +1,7 @@
+import argparse
 import json
+import os
 import random
-import sys
 from pathlib import Path
 
 # vocab pro "symbols_only" – můžeš si změnit
@@ -130,9 +131,30 @@ def process_dataset(
         print(f"Zpracováno: {json_file.name} -> {out_file}")
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Apply a trained defense rule tree to every JSON dataset in a directory.")
+    parser.add_argument(
+        "--input-dir",
+        default=os.getenv("DEFENSE_APPLY_INPUT_DIR", "/storage/brno2/home/xkaska01/master/my_implementation/dataset/my_attacking_dataset"),
+        help="Directory with input JSON files.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        default=os.getenv("DEFENSE_APPLY_OUTPUT_DIR", "/storage/brno2/home/xkaska01/master/my_implementation/dataset/my_attacking_dataset_with_defense_5"),
+        help="Directory where defended JSON files will be written.",
+    )
+    parser.add_argument(
+        "--defense-rule",
+        "--rule",
+        dest="defense_rule",
+        default=os.getenv("DEFENSE_APPLY_RULE", "/storage/brno2/home/xkaska01/master/my_implementation/defense/defense_rule_5.json"),
+        help="Path to defense_rule JSON or a raw rule_tree JSON.",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=int(os.getenv("DEFENSE_APPLY_SEED", "42")),
+        help="Random seed for stochastic token insertion.",
+    )
+    args = parser.parse_args()
 
-    input_dir = "/storage/brno2/home/xkaska01/master/my_implementation/dataset/my_attacking_dataset"
-    output_dir = "/storage/brno2/home/xkaska01/master/my_implementation/dataset/my_attacking_dataset_with_defense_5"
-    rule_tree_path = "/storage/brno2/home/xkaska01/master/my_implementation/defense/defense_rule_5.json"
-
-    process_dataset(input_dir, output_dir, rule_tree_path)
+    process_dataset(args.input_dir, args.output_dir, args.defense_rule, seed=args.seed)

@@ -1,5 +1,21 @@
 #!/usr/bin/env python3
-# TENTO FILE JE muj 
+"""Run inference for one prepared attack JSON file.
+
+Input files are expected to be JSON arrays produced by the individual attack
+methods, usually with at least these fields:
+
+    id, original_prompt, prompt
+
+For every item the script sends `prompt` to the selected victim model and writes
+the enriched result to `output_dir/<input-file-name>` with the normalized schema:
+
+    id, original_prompt, prompt, response
+
+The backend is controlled by the `api_ollama_vllm` CLI argument:
+
+    true  -> use Ollama HTTP API with `what_ollama_model`
+    false -> use local vLLM with `victim_llm_path`
+"""
 
 import sys
 import os
@@ -13,71 +29,89 @@ from attacks.common.helpers import str2bool
 
 
 def ensure_dir(d: str) -> None:
+    """@brief Create an output directory if it does not exist.
+
+    @param d Directory path.
+    """
     os.makedirs(d, exist_ok=True)
 
 
 def read_json(path: str):
+    """@brief Read a JSON file and repair missing/empty/invalid files.
+
+    If the file does not exist, is empty, or contains invalid JSON, the function
+    writes an empty JSON array to the path and returns an empty list.
+
+    @param path JSON file path.
+    @return Parsed JSON data or an empty list.
     """
-    Načte JSON soubor.
-    Pokud:
-    - soubor neexistuje
-    - je prázdný
-    - má nevalidní JSON
-    → vytvoří validní prázdný JSON [] a vrátí []
-    """
-    # 1) Soubor neexistuje
     if not os.path.exists(path):
-        print(f"[WARN] Soubor neexistuje – vytvářím prázdný JSON: {path}")
+        print(f"[WARN] File does not exist; creating an empty JSON array: {path}")
         write_json(path, [])
         return []
 
-    # 2) Soubor existuje, ale je prázdný
     if os.path.getsize(path) == 0:
-        print(f"[WARN] Soubor je prázdný – inicializuji jako []: {path}")
+        print(f"[WARN] File is empty; initializing it as []: {path}")
         write_json(path, [])
         return []
 
-    # 3) Soubor existuje, ale není validní JSON
     try:
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
-        print(f"[WARN] Soubor není validní JSON: {path}\n       → {e}\n       Inicializuji jako []")
+        print(f"[WARN] File is not valid JSON: {path}\n       -> {e}\n       Initializing it as []")
         write_json(path, [])
         return []
 
 
 def write_json(path: str, data) -> None:
+    """@brief Write JSON with stable UTF-8 formatting.
+
+    @param path Output JSON file path.
+    @param data JSON-serializable data.
+    """
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 def pick_original(d: dict):
-    # podpora různých klíčů, které se v tvých datasetech objevují
+    """@brief Return the original, non-attacked prompt.
+
+    @param d Dataset item.
+    @return Original prompt string or None.
+    """
     return (
         d.get("original_prompt")
     )
 
 
 def pick_prompt(d: dict):
-    # ber primárně 'prompt', jinak další rozumné aliasy
+    """@brief Return the adversarial prompt sent to the victim model.
+
+    @param d Dataset item.
+    @return Prompt string or None.
+    """
     return (
         d.get("prompt")
     )
 
 
 def process_file(in_file: str, out_dir: str, victim_llm_path: str, use_ollama: bool, ollama_model: str):
-    """
-    Načte JSON (pole objektů), pro každý objekt pošle `prompt` do LLM a uloží
-    JSON výsledků ve formátu:
-      [{id, original_prompt, prompt, response}, ...]
+    """@brief Run single-prompt inference for one prepared attack file.
+
+    @param in_file Input JSON file containing attacked prompts.
+    @param out_dir Output directory.
+    @param victim_llm_path Local model path used by vLLM.
+    @param use_ollama If True, use Ollama; otherwise use vLLM.
+    @param ollama_model Ollama model name or display target model name.
     """
     data = read_json(in_file)
     if not isinstance(data, list):
-        print(f"[WARN] {in_file} není JSON pole – přeskočeno")
+        print(f"[WARN] {in_file} is not a JSON array; skipping")
         return
 
-    # Inicializace LLM (jednou pro soubor)
+    # The LLM object is intentionally created once per file. For vLLM this loads
+    # the model into GPU memory; recreating it for every row would be very slow.
     llm = LLM(
         model_path=victim_llm_path,
         temperature=0.0,
@@ -117,8 +151,9 @@ def process_file(in_file: str, out_dir: str, victim_llm_path: str, use_ollama: b
 
 
 def main():
-    """
-    Usage (stejný styl jako tvůj run_cypher):
+    """@brief Parse CLI arguments and process one attack JSON file.
+
+    Usage:
       python3 only_attack.py victim_llm_path input_dir output_dir api_ollama_vllm what_ollama_model
     """
     if len(sys.argv) != 6:
@@ -133,29 +168,10 @@ def main():
     use_ollama      = str2bool(sys.argv[4].lower())
     ollama_model    = sys.argv[5]
 
-    # if not os.path.isdir(dataset_path):
-    #     print(f"[ERR] dataset_path není složka: {dataset_path}")
-    #     sys.exit(2)
-
-    # ensure_dir(dataset_path)
-
-    # # Vem všechny .json v kořeni složky (podsložku 'jobs' ignoruj)
-    # files = [
-    #     os.path.join(dataset_path, f)
-    #     for f in sorted(os.listdir(dataset_path))
-    #     if f.lower().endswith(".json") and f != "jobs"
-    # ]
-
-    # if not files:
-    #     print(f"[WARN] Ve složce {dataset_path} nejsou žádné .json soubory")
-    #     sys.exit(0)
-
-    print(f"[INFO] Vstupní složka: {dataset_path}")
-    print(f"[INFO] Výstupní složka: {results_dir}")
+    print(f"[INFO] Input file: {dataset_path}")
+    print(f"[INFO] Output directory: {results_dir}")
     print(f"[INFO] Model (ollama): {ollama_model}")
     print(f"[INFO] use_ollama:     {use_ollama}")
-    # print(f"[INFO] Soubory:        {len(files)}\n")
-
     process_file(
         in_file=dataset_path,
         out_dir=results_dir,
@@ -164,7 +180,7 @@ def main():
         ollama_model=ollama_model,
     )
 
-    print("\n[DONE] Všechny soubory zpracovány.")
+    print("\n[DONE] File processed.")
 
 
 if __name__ == "__main__":
