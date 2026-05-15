@@ -1,6 +1,7 @@
 models
 __pycache__/
 *.txt
+!requirements.txt
 dataset
 results
 *.csv

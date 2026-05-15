@@ -288,6 +288,32 @@ def merge_env_overrides(*overrides):
     return merged
 
 
+def build_job_env_setup(cfg: dict) -> str:
+    """@brief Build the shell snippet used by generated PBS jobs.
+
+    Users can provide a complete multiline `job_env_setup` snippet in the
+    config. Otherwise the orchestrator builds a portable default from
+    `module_command` and `conda_env`.
+
+    @param cfg Loaded orchestrator configuration.
+    @return Multiline shell snippet for preparing the Python environment.
+    """
+    custom_setup = cfg.get("job_env_setup")
+    if custom_setup:
+        return str(custom_setup)
+
+    lines = []
+    module_command = cfg.get("module_command", "module add mambaforge")
+    conda_env = cfg.get("conda_env", "jailbreak-exp")
+
+    if module_command:
+        lines.append(str(module_command))
+    if conda_env:
+        lines.append(f"mamba activate {shlex.quote(str(conda_env))}")
+
+    return "\n".join(lines)
+
+
 def template_multiline_command(cmd: str):
     """@brief Indent multiline commands for insertion into PBS templates.
 
@@ -496,17 +522,51 @@ def main():
     cfg = load_config(str(cfg_path))
     # base paths and dynamic loading of job_templates from scripts/
     base_dir = os.path.dirname(os.path.abspath(__file__))
+    for path_key in (
+        "victim_llm",
+        "local_model_path",
+        "models_dir",
+        "results_dir",
+        "dataset_to_train_attack_path",
+        "dataset_to_attack_path",
+    ):
+        if cfg.get(path_key):
+            cfg[path_key] = resolve_path(base_dir, cfg[path_key])
+    job_env_setup = build_job_env_setup(cfg)
+    ollama_bin = str(cfg.get("ollama_bin", "ollama"))
     os.environ["PYTHONPATH"] = base_dir + os.pathsep + os.environ.get("PYTHONPATH", "")
     scripts_dir = os.path.join(base_dir, 'scripts')
     jt_path = os.path.join(scripts_dir, 'job_templates.py')
     if os.path.exists(jt_path):
         job_templates = SourceFileLoader('job_templates', jt_path).load_module()
-        job_template = job_templates.job_template
-        batch_template = job_templates.batch_template
-        results_eval_template = job_templates.results_eval_template
+        job_template_base = job_templates.job_template
+        batch_template_base = job_templates.batch_template
+        results_eval_template_base = job_templates.results_eval_template
     else:
         # fallback to legacy import if scripts/ not present
-        from job_templates import job_template, batch_template, results_eval_template
+        from job_templates import (
+            job_template as job_template_base,
+            batch_template as batch_template_base,
+            results_eval_template as results_eval_template_base,
+        )
+
+    def job_template(*template_args, **template_kwargs):
+        template_kwargs.setdefault("env_setup", job_env_setup)
+        template_kwargs.setdefault("homedir", base_dir)
+        template_kwargs.setdefault("ollama_bin", ollama_bin)
+        return job_template_base(*template_args, **template_kwargs)
+
+    def batch_template(*template_args, **template_kwargs):
+        template_kwargs.setdefault("env_setup", job_env_setup)
+        template_kwargs.setdefault("homedir", base_dir)
+        template_kwargs.setdefault("ollama_bin", ollama_bin)
+        return batch_template_base(*template_args, **template_kwargs)
+
+    def results_eval_template(*template_args, **template_kwargs):
+        template_kwargs.setdefault("env_setup", job_env_setup)
+        template_kwargs.setdefault("homedir", base_dir)
+        template_kwargs.setdefault("ollama_bin", ollama_bin)
+        return results_eval_template_base(*template_args, **template_kwargs)
     # prefer new, more intuitive keys but fall back to legacy names for compatibility
     local_model_path = cfg.get('local_model_path', cfg.get('victim_llm'))
     models_dir = cfg.get('models_dir', local_model_path)
