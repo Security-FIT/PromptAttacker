@@ -1,17 +1,20 @@
-"""Apply a selected defense wrapper to one prepared attack JSON file.
-
-The script is used by `run_orchestrator.py --defense <name>`. It reads a JSON
-array of attacked prompts, wraps the victim model with the requested defense,
-runs batch inference, and writes the defended responses to the output directory.
-
-Supported defense values:
-
-    rallm, llamaguard, safeguard, ea
-
-The lightweight `ea` defense is a local prompt rewrite and therefore does not
-need an additional LLM call. The other defenses wrap an LLM backend through the
-shared `attacks.common.llm.LLM` interface.
-"""
+#!/usr/bin/env python3
+## @file only_defense_batch.py
+#  @brief Run a selected defense wrapper on one prepared attack JSON file.
+#
+#  The script is used by `run_orchestrator.py --defense <name>`. It reads attacked
+#  prompts, applies the selected defense wrapper, queries the victim model when
+#  needed, and writes defended responses to the configured output directory.
+#
+#  @author Bc. Petr Kaska
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This file was designed and implemented by Bc. Petr Kaska.
+#   - The CLI, defense selection, JSON I/O, and integration of baseline wrappers
+#     are original project infrastructure.
+#   - Individual baseline defense concepts are used for comparison and are not
+#     claimed as new defense methods.
 
 import argparse
 import json

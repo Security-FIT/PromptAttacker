@@ -1,23 +1,21 @@
 #!/usr/bin/env python3
-"""Generate and submit PBS jobs for attack, defense, and evaluation workflows.
-
-This is the main entry point for the implementation. The script reads
-`config_orchestrator.yaml`, discovers local model directories, creates concrete
-commands for the selected workflow, renders PBS scripts via
-`scripts/job_templates.py`, and submits them with `qsub` unless `dry_run` is
-enabled.
-
-Typical usage:
-
-    python3 run_orchestrator.py --config config_orchestrator.yaml --attack-batch
-    python3 run_orchestrator.py --config config_orchestrator.yaml --attack-single
-    python3 run_orchestrator.py --config config_orchestrator.yaml --defense ea
-
-Batch modes discover models from `models_dir`. Single-model modes use
-`target_model`. For vLLM jobs the generated command can be prefixed with
-environment variables such as `VLLM_USE_V1=0`; GPU selection itself is handled in
-the PBS templates.
-"""
+## @file run_orchestrator.py
+#  @brief Main orchestration entry point for attack, defense, and evaluation workflows.
+#
+#  The script reads `config_orchestrator.yaml`, discovers local model directories,
+#  creates concrete commands for the selected workflow, renders PBS scripts via
+#  `scripts/job_templates.py`, and submits them with `qsub` unless dry-run mode is
+#  enabled. It also supports interactive runs for small experiments and debugging.
+#
+#  @author Bc. Petr Kaska
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This file was designed and implemented by Bc. Petr Kaska.
+#   - The workflow selection, PBS job generation, config handling, model discovery,
+#     interactive execution, and evaluation integration are original project code.
+#   - The implementation uses standard Python libraries and cluster/PBS conventions;
+#     no attack implementation code was copied into this orchestrator.
 
 import os
 import re
@@ -441,7 +439,7 @@ def run_interactive(cmd_list, env_overrides=None, label=None, heartbeat_seconds=
         print(label, flush=True)
     print(f"[INTERACTIVE] Command: {quote_cmd(cmd_list)}", flush=True)
     if env_overrides:
-        shown = {k: env_value(v) for k, v in env_overrides.items() if k in {"CUDA_VISIBLE_DEVICES", "VLLM_USE_V1"}}
+        shown = {k: env_value(v) for k, v in env_overrides.items() if k in {"CUDA_VISIBLE_DEVICES", "VLLM_USE_V1", "DEFENSE_USE_VLLM_GEN", "DEFENSE_OLLAMA_TIMEOUT", "DEFENSE_GEN_MAX_TOKENS", "DEFENSE_JUDGE_MAX_TOKENS", "DEFENSE_OLLAMA_KEEP_ALIVE"}}
         if shown:
             print(f"[INTERACTIVE] Env: {shown}", flush=True)
     print(f"[INTERACTIVE] Started: {time.strftime('%Y-%m-%d %H:%M:%S')}", flush=True)
@@ -600,9 +598,6 @@ def main():
         train_dataset = resolve_path(base_dir, cfg.get('defense_train_dataset', 'evaluate/selected_examples.json'))
         output_rule = resolve_path(base_dir, cfg.get('defense_train_output_rule', 'defense/defense_rule_orchestrator.json'))
         log_dir = resolve_path(base_dir, cfg.get('defense_train_log_dir', 'defense/gp_logs'))
-        vocab_file = cfg.get('defense_train_vocab_file')
-        if vocab_file:
-            vocab_file = resolve_path(base_dir, vocab_file)
         ensure_directory(os.path.dirname(output_rule))
         ensure_directory(log_dir)
         env_overrides = {
@@ -620,7 +615,11 @@ def main():
             "DEFENSE_VLLM_GPU_MEM_UTIL": cfg.get('defense_train_vllm_gpu_mem_util'),
             "DEFENSE_GEN_MODEL": cfg.get('defense_train_gen_model'),
             "DEFENSE_JUDGE_MODEL": cfg.get('defense_train_judge_model'),
-            "DEFENSE_VOCAB_TXT": vocab_file,
+            "DEFENSE_OLLAMA_TIMEOUT": cfg.get('defense_train_ollama_timeout'),
+            "DEFENSE_OLLAMA_MAX_RETRIES": cfg.get('defense_train_ollama_max_retries'),
+            "DEFENSE_OLLAMA_KEEP_ALIVE": cfg.get('defense_train_ollama_keep_alive'),
+            "DEFENSE_GEN_MAX_TOKENS": cfg.get('defense_train_gen_max_tokens'),
+            "DEFENSE_JUDGE_MAX_TOKENS": cfg.get('defense_train_judge_max_tokens'),
             "OLLAMA_HOST": cfg.get('ollama_host'),
         }
         env_overrides = {k: v for k, v in env_overrides.items() if v is not None}
@@ -846,9 +845,38 @@ def main():
         return
 
     if args.evaluate:
-        models = batch_models
+        configured_eval_models = cfg.get('eval_models')
+        if isinstance(configured_eval_models, str):
+            models = [configured_eval_models]
+        elif isinstance(configured_eval_models, list) and configured_eval_models:
+            models = configured_eval_models
+        elif is_true(cfg.get('eval_all_models', False)):
+            models = batch_models
+        else:
+            models = [target_model]
+
+        eval_script = resolve_path(base_dir, cfg.get('eval_script', 'evaluate/evaluate_full_results_datasets.py'))
+        eval_input_dir = resolve_path(base_dir, cfg.get('eval_input_dir', results_dir))
+        eval_output_dir = resolve_path(base_dir, cfg.get('eval_output_dir', os.path.join(results_dir, 'eval')))
+        eval_defense_name = cfg.get('eval_defense_name', 'NO_DEFENSE')
+        ensure_directory(eval_output_dir)
+
         for model_idx, model in enumerate(models, start=1):
-            cmd_list = ["python3", "evaluate/evaluate_full_results_datasets.py", model, "DEFENSE_SAFEGUARD"]
+            cmd_list = [
+                "python3", eval_script,
+                "--model", model,
+                "--defense", str(eval_defense_name),
+                "--input-dir", eval_input_dir,
+                "--output-dir", eval_output_dir,
+                "--judge-model", str(cfg.get('eval_judge_model', 'gemma3:12b')),
+                "--ollama-host", str(cfg.get('eval_ollama_host', cfg.get('ollama_host', 'http://localhost:11434'))),
+                "--timeout", str(cfg.get('eval_ollama_timeout', 180)),
+                "--max-retries", str(cfg.get('eval_ollama_max_retries', 2)),
+                "--num-predict", str(cfg.get('eval_judge_max_tokens', 4)),
+                "--keep-alive", str(cfg.get('eval_ollama_keep_alive', '30m')),
+                "--mode", str(cfg.get('eval_mode', 'safety')),
+                "--success-threshold", str(cfg.get('eval_success_threshold', 6)),
+            ]
             if args.interactive:
                 try:
                     run_interactive(
@@ -859,10 +887,10 @@ def main():
                 except subprocess.CalledProcessError as e:
                     print(f"[EVALUATE] Error: {e}")
             else:
-                script_path = os.path.join(results_dir, 'benign', 'stats', 'SAFEGUARD', f"job_{model}.sh")
+                script_path = os.path.join(eval_output_dir, 'jobs', f"job_eval_{model}.sh")
                 os.makedirs(os.path.dirname(script_path), exist_ok=True)
                 cmd = quote_cmd(cmd_list)
-                content = results_eval_template(model, cmd)
+                content = results_eval_template(f"eval_{model}", cmd)
                 write_and_submit_job(script_path, content, dry_run)
         return
 

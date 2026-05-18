@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
-"""PBS job templates used by run_orchestrator.py.
-
-The orchestrator does not execute heavy model inference directly in normal
-mode. Instead it renders one of these shell scripts and submits it through
-`qsub`. Keeping the PBS parameters in one file makes it easier to tune GPU
-memory, walltime, conda activation, Ollama startup, and CUDA compatibility for
-the whole project.
-
-The `gpu_cap="sm_80,sm_90"` constraint is intentional. The current environment's
-PyTorch build supports CUDA architectures up to sm_90, while newer Blackwell
-GPUs expose sm_120 and fail with "no kernel image is available for execution on
-the device". Requesting "sm_80,sm_90" avoids those incompatible nodes.
-"""
+## @file job_templates.py
+#  @brief PBS job templates used by the orchestrator.
+#
+#  The module renders shell scripts for vLLM attacks, Ollama-backed evaluation,
+#  and auxiliary workflows. Keeping PBS parameters in one place makes it easier
+#  to tune GPU memory, walltime, conda activation, Ollama startup, and CUDA
+#  compatibility for the cluster environment.
+#
+#  @author Bc. Petr Kaska
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This file was designed and implemented by Bc. Petr Kaska.
+#   - The PBS templates, environment setup rendering, Ollama startup handling,
+#     and CUDA architecture constraints are original project infrastructure.
+#   - The implementation uses standard PBS shell-script conventions.
 
 import textwrap
 

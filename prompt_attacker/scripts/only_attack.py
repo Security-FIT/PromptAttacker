@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
-"""Run inference for one prepared attack JSON file.
-
-Input files are expected to be JSON arrays produced by the individual attack
-methods, usually with at least these fields:
-
-    id, original_prompt, prompt
-
-For every item the script sends `prompt` to the selected victim model and writes
-the enriched result to `output_dir/<input-file-name>` with the normalized schema:
-
-    id, original_prompt, prompt, response
-
-The backend is controlled by the `api_ollama_vllm` CLI argument:
-
-    true  -> use Ollama HTTP API with `what_ollama_model`
-    false -> use local vLLM with `victim_llm_path`
-"""
+## @file only_attack.py
+#  @brief Run inference for one prepared attack JSON file.
+#
+#  The script reads one prepared attack dataset, sends each attacked prompt to
+#  the selected victim model through the shared LLM wrapper, and writes responses
+#  in a normalized JSON schema used by later evaluation steps.
+#
+#  @author Bc. Petr Kaska
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This file was designed and implemented by Bc. Petr Kaska.
+#   - The JSON runner, backend selection, schema normalization, and integration
+#     with `attacks.common.llm.LLM` are original project code.
+#   - No attack method logic is implemented here; the script executes prepared
+#     attack prompts produced elsewhere in the project.
 
 import sys
 import os

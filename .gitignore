@@ -20,3 +20,6 @@ ollama_test/
 *.jpg
 lib/*
 *.json
+*.zip
+!make_submission_zip.sh
+!prompt_attacker/oponent_tutorial_steps.txt

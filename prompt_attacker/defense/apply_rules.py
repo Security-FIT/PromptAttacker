@@ -1,3 +1,21 @@
+#!/usr/bin/env python3
+## @file apply_rules.py
+#  @brief Apply a trained rule-tree defense to JSON attack datasets.
+#
+#  The script loads a defense rule produced by `def.py`, transforms prompts by
+#  inserting neutral symbol tokens according to the learned tree parameters, and
+#  writes a defended copy of the input dataset. It is intended to be called either
+#  directly or through `run_orchestrator.py --defense-apply-rules`.
+#
+#  @author Bc. Petr Kaska
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This file was designed and implemented by Bc. Petr Kaska.
+#   - The rule loading, anchor interpretation, symbol insertion, deterministic
+#     seeding, and dataset rewriting logic are original work by the author.
+#   - The implementation uses only standard Python data-processing patterns.
+
 import argparse
 import json
 import os
@@ -5,7 +23,7 @@ import random
 from pathlib import Path
 
 # vocab pro "symbols_only" – můžeš si změnit
-SYMBOL_VOCAB = list("!\"#$%&'()*+,-./:;<=>?@[\]^_`{|}~")
+SYMBOL_VOCAB = list("!”#$%&’()*+,-./:;<=>?@[\]ˆ_‘|~")
 
 
 def load_rule_tree_from_defense(path: str) -> dict:

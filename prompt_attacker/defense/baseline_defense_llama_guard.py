@@ -1,3 +1,22 @@
+## @file baseline_defense_llama_guard.py
+#  @brief LlamaGuard-based baseline defense wrapper.
+#
+#  This module wraps a guard model around a victim LLM and uses the guard output
+#  to decide whether a prompt/response should be treated as safe or unsafe. It is
+#  used as a comparison baseline against the rule-tree defense developed in this
+#  project.
+#
+#  @author Bc. Petr Kaska
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This file was integrated and adapted by Bc. Petr Kaska for the experimental
+#     framework of this thesis.
+#   - The surrounding wrapper, project-specific LLM interface usage, and response
+#     handling are implementation work by the author.
+#   - The underlying LlamaGuard idea/model is an external baseline and is not
+#     claimed as an original defense method.
+
 from typing import Union, List, Dict, Any
 from attacks.common.llm import LLM
 

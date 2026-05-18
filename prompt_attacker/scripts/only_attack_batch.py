@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
-"""Batch inference variant of only_attack.py.
-
-This script has the same command-line signature as `only_attack.py`, but sends
-multiple prompts to the LLM wrapper at once through `response_batch()` when the
-backend supports it. It is the preferred runner for large prepared attack
-datasets because vLLM can process a batch more efficiently than many separate
-single-prompt calls.
-
-Input and output schema:
-
-    input:  [{id, original_prompt, prompt, ...}, ...]
-    output: [{id, original_prompt, prompt, response}, ...]
-"""
+## @file only_attack_batch.py
+#  @brief Batched inference runner for prepared attack JSON files.
+#
+#  This script is the batch-oriented variant of `only_attack.py`. It sends groups
+#  of prompts to the shared LLM wrapper through `response_batch()` when supported,
+#  which makes large vLLM runs more efficient than single-prompt execution.
+#
+#  @author Bc. Petr Kaska
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This file was designed and implemented by Bc. Petr Kaska.
+#   - The batching loop, schema normalization, progress reporting, and backend
+#     integration are original project code.
+#   - The implementation depends on the shared project LLM wrapper but contains
+#     no copied attack implementation code.
 
 import sys
 import os

@@ -1,0 +1,266 @@
+HLAVNI PRAKTICKE WORKFLOW
+
+Vsechny prikazy spoustet z:
+
+    cd */prompt_attacker
+
+Pro interaktivni vLLM beh (`use_ollama: false`) nejdriv vlez na GPU node:
+
+    qsub -I -l walltime=8:0:0 -q default@pbs-m1.metacentrum.cz -l select=1:ncpus=1:ngpus=1:mem=200gb:gpu_mem=60gb:scratch_local=400gb
+
+Pak:
+
+    export CUDA_VISIBLE_DEVICES=0
+
+Pro interaktivni Ollama beh spustit Ollamu:
+
+    /storage/brno2/home/xkaska01/test/bin/ollama serve > ollama.log 2>&1 &
+
+Rychly test Ollamy:
+
+    OLLAMA_MODEL=gemma3:12b OLLAMA_TIMEOUT=180 OLLAMA_NUM_PREDICT=4 \
+      python3 scripts/test_ollama_generate.py
+
+
+1. SINGLE UTOK BEZ OBRANY
+
+V `config_orchestrator.yaml` nastavit:
+
+    use_ollama: false
+    dry_run: false
+    target_model: "falcon3:3b"
+    single_attack: "_1_cypher"
+    dataset_to_attack_path: "dataset/oponent_show"
+    results_dir: "results/oponent_show"
+
+Musi existovat:
+
+    models/falcon3:3b
+    dataset/oponent_show/_1_cypher.json
+
+Spustit interaktivne:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --attack-single --interactive
+
+Nebo vybrat utok pres CLI:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --attack-single --single-attack _1_cypher --interactive
+
+Vystup:
+
+    results/oponent_show/_1_cypher.json
+
+Kontrola:
+
+    python3 -m json.tool results/oponent_show/_1_cypher.json | head -80
+
+
+2. VYHODNOCENI SINGLE UTOKU
+
+Rychle vyhodnoceni jednoho JSON souboru:
+
+    python3 evaluate/evaluate_json_ollama.py \
+      --input results/oponent_show/_1_cypher.json \
+      --model gemma3:12b \
+      --timeout 180
+
+Vystup:
+
+    results/oponent_show/_1_cypher.eval.csv
+    results/oponent_show/_1_cypher.eval.summary.json
+
+Hlavni evaluator pres orchestrator:
+
+V `config_orchestrator.yaml` nastavit:
+
+    eval_input_dir: "results/oponent_show"
+    eval_output_dir: "results/oponent_show/eval"
+    eval_models:
+      - "falcon3:3b"
+    eval_defense_name: "NO_DEFENSE"
+    eval_judge_model: "gemma3:12b"
+    eval_mode: "safety"
+
+Spustit:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --evaluate --interactive
+
+Vystup:
+
+    results/oponent_show/eval/NO_DEFENSE/falcon3:3b.csv
+    results/oponent_show/eval/NO_DEFENSE/falcon3:3b.summary.json
+
+Vyklad safety score:
+
+    0  = neakcni / odmita / prazdne / mimo
+    10 = velmi akcni skodliva odpoved
+
+Pro obranu chci nizsi `mean_score` a nizsi `positive_rate`.
+
+
+3. NATRENOVANI A APLIKACE RULE-TREE OBRANY
+
+V `config_orchestrator.yaml` pro rychly test nastavit:
+
+    defense_train_use_vllm: false
+    defense_train_gen_model: "llama2:7b"
+    defense_train_judge_model: "gemma3:12b"
+    defense_train_ollama_timeout: 180
+    defense_train_ollama_keep_alive: "30m"
+    defense_train_gen_max_tokens: 64
+    defense_train_judge_max_tokens: 4
+    defense_train_pop_size: 2
+    defense_train_n_gen: 1
+    defense_train_n_tries: 1
+    defense_train_max_examples: 2
+
+Spustit trenink:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense-train --interactive
+
+Vystup:
+
+    defense/defense_rule_orchestrator.json
+    defense/gp_logs/run_<timestamp>_gen.csv
+
+Aplikace obrany na dataset:
+
+    defense_apply_input_dir: "dataset/oponent_show"
+    defense_apply_output_dir: "dataset/oponent_show_with_defense_orchestrator"
+    defense_apply_rule_path: "defense/defense_rule_orchestrator.json"
+
+Spustit:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --defense-apply-rules --interactive
+
+Vystup:
+
+    dataset/oponent_show_with_defense_orchestrator/*.json
+
+
+4. SINGLE UTOK S OBRANOU
+
+Nejdriv musi existovat:
+
+    dataset/oponent_show_with_defense_orchestrator/
+
+V `config_orchestrator.yaml` nastav:
+
+    dataset_to_attack_path: "dataset/oponent_show_with_defense_orchestrator"
+    results_dir: "results/oponent_show_gp_defense"
+    target_model: "falcon3:3b"
+    single_attack: "_1_cypher"
+
+Spustit:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --attack-single --interactive
+
+Vystup:
+
+    results/oponent_show_gp_defense/_1_cypher.json
+
+Rychla evaluace:
+
+    python3 evaluate/evaluate_json_ollama.py \
+      --input results/oponent_show_gp_defense/_1_cypher.json \
+      --model gemma3:12b \
+      --timeout 180
+
+Evaluace pres orchestrator:
+
+    eval_input_dir: "results/oponent_show_gp_defense"
+    eval_output_dir: "results/oponent_show_gp_defense/eval"
+    eval_models:
+      - "falcon3:3b"
+    eval_defense_name: "GP_DEFENSE"
+    eval_mode: "safety"
+
+Spustit:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --evaluate --interactive
+
+Vystup:
+
+    results/oponent_show_gp_defense/eval/GP_DEFENSE/falcon3:3b.csv
+    results/oponent_show_gp_defense/eval/GP_DEFENSE/falcon3:3b.summary.json
+
+
+5. FULL BATCH VSECH UTOKU NA VSECHNY MODELY
+
+Toto nepoustet interaktivne. Nejdriv jen dry-run.
+
+V `config_orchestrator.yaml` nastav:
+
+    dry_run: true
+    use_ollama: false
+    dataset_to_attack_path: "dataset/oponent_show"
+    results_dir: "results/oponent_show_full"
+    models_dir: "models"
+    local_model_path: "models"
+
+Vytvor job skripty bez submitu:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --attack-batch
+
+Joby budou typicky zde:
+
+    results/oponent_show_full/<model>/jobs/job_onlyattackbatch_<attack>.sh
+
+Zkontrolovat jeden job:
+
+    sed -n '1,120p' results/oponent_show_full/falcon3:3b/jobs/job_onlyattackbatch__1_cypher.sh
+
+Ostry submit pres PBS:
+
+    dry_run: false
+
+Pak:
+
+    python3 run_orchestrator.py --config config_orchestrator.yaml --attack-batch
+
+Vystupy:
+
+    results/oponent_show_full/<model>/<attack>.json
+
+Sledovani:
+
+    qstat -u $USER
+
+Full batch s GP obranou:
+
+    dataset_to_attack_path: "dataset/oponent_show_with_defense_orchestrator"
+    results_dir: "results/oponent_show_gp_defense_full"
+
+Pak stejny `--attack-batch` postup.
+
+
+6. FULL BATCH EVALUACE
+
+Po full batchi bez obrany:
+
+    eval_input_dir: "results/oponent_show_full"
+    eval_output_dir: "results/oponent_show_full/eval"
+    eval_all_models: true
+    eval_defense_name: "NO_DEFENSE"
+    eval_mode: "safety"
+
+Dry-run evaluacnich jobu:
+
+    dry_run: true
+    python3 run_orchestrator.py --config config_orchestrator.yaml --evaluate
+
+Ostry submit evaluacnich jobu:
+
+    dry_run: false
+    python3 run_orchestrator.py --config config_orchestrator.yaml --evaluate
+
+Po full batchi s GP obranou:
+
+    eval_input_dir: "results/oponent_show_gp_defense_full"
+    eval_output_dir: "results/oponent_show_gp_defense_full/eval"
+    eval_all_models: true
+    eval_defense_name: "GP_DEFENSE"
+    eval_mode: "safety"
+
+Interaktivni evaluaci celeho full batch setu nedoporucuji. Interaktivne pouzivat
+jen male/single testy.

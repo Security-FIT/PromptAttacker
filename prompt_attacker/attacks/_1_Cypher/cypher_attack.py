@@ -1,3 +1,4 @@
+## @file cypher_attack.py
 #  @brief Cypher prompt obfuscation (Word Substitution + Word Reversal)
 #  @author Bc.Petr Kaška
 #  @date 3.1.2026

@@ -1,9 +1,23 @@
 #!/usr/bin/env python3
-"""
-Genetic Algorithm (parametrický „tree rule“) pro vkládání neutrálního šumu do promptu.
-Strom operací: Anchors (kvantily, delta) -> Dispersion (d_min) -> Snap (bezpečná hranice) -> Insert (rozpočet rho, k_min..k_max, režim).
-Fitness: počet úspěchů (judge <= THRESH_SCORE) přes vícenásobné vzorkování.
-"""
+## @file def.py
+#  @brief Genetic programming trainer for the rule-tree prompt defense.
+#
+#  This script trains a parameterized rule tree that inserts neutral symbol noise
+#  into prompts. Candidate defenses are evaluated with a generator model and a
+#  judge model, and the best rule is exported as JSON for later application by
+#  `apply_rules.py`.
+#
+#  @author Bc. Petr Kaska
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This file was designed and implemented by Bc. Petr Kaska.
+#   - The rule-tree representation, symbol-token defense search, fitness loop,
+#     Ollama/vLLM backend integration, and export format are original work by the
+#     author.
+#   - The implementation uses standard DEAP genetic-programming primitives and
+#     standard Ollama/vLLM API usage; no defense code was copied from existing
+#     jailbreak repositories.
 
 import os, sys, json, random, re, time, datetime, requests
 from typing import List, Set
@@ -30,7 +44,7 @@ VLLM_TP = int(os.getenv("DEFENSE_VLLM_TP", "1"))
 VLLM_MAX_MODEL_LEN = int(os.getenv("DEFENSE_VLLM_MAX_MODEL_LEN", "4096"))
 VLLM_GPU_MEM_UTIL = float(os.getenv("DEFENSE_VLLM_GPU_MEM_UTIL", "0.90"))
 
-SYMBOL_TOKENS = list("!@#$%^&*()_+")
+SYMBOL_TOKENS = list("!”#$%&’()*+,-./:;<=>?@[\]ˆ_‘|~")
 
 RUN_ID = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 LOG_DIR = Path(os.getenv("DEFENSE_LOG_DIR", "gp_logs"))
@@ -141,14 +155,15 @@ else:
 MAX_EXAMPLES_TO_LOAD = int(os.getenv("DEFENSE_MAX_EXAMPLES", "0")) or None  # nebo 25
 
 PROMPTS = load_prompts_from_selected_examples(SELECTED_EXAMPLES_JSON, max_examples=MAX_EXAMPLES_TO_LOAD)
-VOCAB_TXT = os.getenv(
-    "DEFENSE_VOCAB_TXT",
-    "/storage/brno2/home/xkaska01/master/prompt_attacker/defense/models_vocabularies/internlm2.5:latest_vocab.txt",
-)
 
 GEN_MODEL = os.getenv("DEFENSE_GEN_MODEL", "llama2:7b")
 JUDGE_MODEL = os.getenv("DEFENSE_JUDGE_MODEL", "gemma3:12b")
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_TIMEOUT = int(os.getenv("DEFENSE_OLLAMA_TIMEOUT", "300"))
+OLLAMA_MAX_RETRIES = int(os.getenv("DEFENSE_OLLAMA_MAX_RETRIES", "2"))
+OLLAMA_KEEP_ALIVE = os.getenv("DEFENSE_OLLAMA_KEEP_ALIVE", "30m")
+GEN_MAX_TOKENS = int(os.getenv("DEFENSE_GEN_MAX_TOKENS", "64"))
+JUDGE_MAX_TOKENS = int(os.getenv("DEFENSE_JUDGE_MAX_TOKENS", "4"))
 GENERATE_PATH = "/api/generate"
 
 # GA parametry
@@ -347,9 +362,22 @@ def _extract_text_from_ollama_json(j):
     return str(j)
 
 def call_ollama_generate(model: str, prompt: str, max_tokens: int = 256, temperature: float = 0.7,
-                         max_retries: int = 3, timeout: int = 300) -> str:
+                         max_retries: int | None = None, timeout: int | None = None) -> str:
     url = OLLAMA_HOST.rstrip("/") + GENERATE_PATH
-    payload = {"model": model, "prompt": prompt, "max_tokens": max_tokens, "temperature": temperature, "stream": False}
+    if max_retries is None:
+        max_retries = OLLAMA_MAX_RETRIES
+    if timeout is None:
+        timeout = OLLAMA_TIMEOUT
+    payload = {
+        "model": model,
+        "prompt": prompt,
+        "stream": False,
+        "keep_alive": OLLAMA_KEEP_ALIVE,
+        "options": {
+            "num_predict": max_tokens,
+            "temperature": temperature,
+        },
+    }
     last_err = None
     for attempt in range(1, max_retries+1):
         try:
@@ -362,11 +390,11 @@ def call_ollama_generate(model: str, prompt: str, max_tokens: int = 256, tempera
     raise RuntimeError(f"Ollama generate failed after {max_retries} attempts: {last_err}")
 
 def call_gen(prompt: str) -> str:
-    return call_ollama_generate(GEN_MODEL, prompt, max_tokens=256, temperature=0.7)
+    return call_ollama_generate(GEN_MODEL, prompt, max_tokens=GEN_MAX_TOKENS, temperature=0.7)
 
 def call_judge(question: str, answer: str) -> int:
     eval_prompt = EVAL_INSTRUCTION + "\n\n" + EVAL_TEMPLATE.format(prompt=question, answer=answer)
-    raw = call_ollama_generate(JUDGE_MODEL, eval_prompt, max_tokens=4, temperature=0.0)
+    raw = call_ollama_generate(JUDGE_MODEL, eval_prompt, max_tokens=JUDGE_MAX_TOKENS, temperature=0.0)
     m = INT_RE.search(raw.strip())
     if m:
         try:
@@ -696,7 +724,7 @@ def evaluate(ind):
 
     # 2) jeden vLLM call pro všechny
     try:
-        answers = call_gen_batch(batch_prompts, max_tokens=256, temperature=0.7)
+        answers = call_gen_batch(batch_prompts, max_tokens=GEN_MAX_TOKENS, temperature=0.7)
     except Exception:
         answers = [""] * len(batch_prompts)
 
@@ -731,11 +759,12 @@ def require_nonempty_prompts(prompts, path):
 # ────────── Main ─────────────────────────────────────────────────────
 if __name__ == "__main__":
 
+    print(f"[INFO] Defense backend: {'vLLM' if USE_VLLM_GEN else 'Ollama'}", flush=True)
+    print(f"[INFO] Ollama config: host={OLLAMA_HOST}, gen_model={GEN_MODEL}, judge_model={JUDGE_MODEL}, timeout={OLLAMA_TIMEOUT}s, retries={OLLAMA_MAX_RETRIES}, keep_alive={OLLAMA_KEEP_ALIVE}, gen_max_tokens={GEN_MAX_TOKENS}, judge_max_tokens={JUDGE_MAX_TOKENS}", flush=True)
+
     if USE_VLLM_GEN:
         init_vllm()
 
-    # toks = load_vocab_tokens(VOCAB_TXT)
-    # TOKEN_POOL = build_token_pool(toks, min_alpha_len=4)
     TOKEN_POOL = SYMBOL_TOKENS
     PROMPTS = load_prompts_from_selected_examples(SELECTED_EXAMPLES_JSON, max_examples=MAX_EXAMPLES_TO_LOAD)
 
@@ -811,7 +840,7 @@ if __name__ == "__main__":
             "prompts": PROMPTS,
             "model_generator": GEN_MODEL,
             "model_judge": JUDGE_MODEL,
-            "vocab_file": VOCAB_TXT,
+            "token_pool": "".join(SYMBOL_TOKENS),
             "population": POP_SIZE,
             "generations": N_GEN,
             "cx_prob": CX_PROB,

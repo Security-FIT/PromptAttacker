@@ -1,3 +1,22 @@
+## @file baseline_defense_rallm.py
+#  @brief RALLM-style perturbation baseline defense wrapper.
+#
+#  The module evaluates a prompt by generating perturbed variants, querying the
+#  victim model through the shared LLM wrapper, and checking for refusal-style
+#  behavior. It is included as a baseline for comparison with the proposed
+#  rule-tree defense.
+#
+#  @author Bc. Petr Kaska
+#  @date 1.2.2026
+#
+#  Ownership / Contribution statement:
+#   - This file was integrated and adapted by Bc. Petr Kaska for the thesis
+#     evaluation framework.
+#   - The project-specific wrapper code, parameterization, and integration with
+#     `attacks.common.llm.LLM` are implementation work by the author.
+#   - The RALLM defense concept is an external baseline and is not claimed as an
+#     original defense method.
+
 import random
 import re
 from typing import Union, List, Dict, Any

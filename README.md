@@ -37,7 +37,7 @@ This repository is intended for controlled LLM safety experiments. It supports:
 - evaluation scripts for generated responses.
 
 The current recommended workflow uses prepared JSON attack files from
-`prompt_attacker/dataset/oponent_show/` and model directories under
+`prompt_attacker/dataset/` and model directories under
 `prompt_attacker/models/`.
 
 ## Prerequisites
@@ -51,7 +51,6 @@ You need:
 - CUDA-capable GPU nodes for vLLM runs;
 - local model files for vLLM, or an Ollama installation and pulled Ollama
   models;
-- enough storage for model directories and generated result JSON files.
 
 On MetaCentrum, the expected module setup is:
 
@@ -76,8 +75,8 @@ Create a fresh environment from the repository root:
 module add mambaforge
 mamba create -n jailbreak-exp python=3.12
 mamba activate jailbreak-exp
-python3.12 -m pip install --upgrade pip
-python3.12 -m pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 cd prompt_attacker
 ```
 
@@ -171,8 +170,8 @@ Important keys:
 ```yaml
 models_dir: "models"
 local_model_path: "models"
-results_dir: "results/oponent_show"
-dataset_to_attack_path: "dataset/oponent_show"
+results_dir: "results"
+dataset_to_attack_path: "dataset"
 
 use_ollama: false
 dry_run: true
@@ -301,7 +300,7 @@ prompt_attacker/
   defense/                 Baseline defenses and rule-tree defense utilities
   evaluate/                Evaluation scripts and selected examples
   scripts/                 Small runners used inside generated PBS jobs
-  dataset/oponent_show/    Prepared attack JSON files for demonstration/testing
+  dataset/                 Prepared attack JSON files
   models/                  Local model folders; not committed
   results/                 Generated jobs and outputs; not committed
   run_orchestrator.py      Main orchestration CLI
@@ -338,24 +337,6 @@ safety behavior. Run experiments only on models, datasets, and infrastructure
 that you are authorized to use. Treat harmful generations as sensitive research
 outputs and avoid publishing raw outputs unless there is a clear research need
 and appropriate safeguards.
-
-See [SECURITY.md](SECURITY.md) for security and responsible-use reporting
-guidance.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup notes, dry-run
-recommendations, and contribution guidelines.
-
-## Security
-
-See [SECURITY.md](SECURITY.md) for responsible-use guidance and reporting
-recommendations for unsafe defaults, credential leaks, or other security issues.
-
-## Citation
-
-If you use this repository in academic work, see [CITATION.cff](CITATION.cff)
-for citation metadata.
 
 ## License
 
